@@ -5,9 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/google/uuid"
-	"github.com/r3d5un/islandwind/internal/config"
-	"github.com/spf13/viper"
+	"github.com/r3d5un/islandwind/internal/monolith"
 )
 
 func main() {
@@ -25,38 +23,15 @@ func main() {
 }
 
 func run() error {
-	defer slog.Info("shutting down")
-	ctx := context.Background()
-	instanceID := uuid.New()
-
-	cfg, err := config.New()
+	mono, err := monolith.NewMonolith()
 	if err != nil {
 		return err
 	}
 
-	logGroup := slog.Group(
-		"instance",
-		slog.String("name", viper.GetString("app.name")),
-		slog.String("environment", viper.GetString("app.environment")),
-		slog.String("id", instanceID.String()),
-	)
-	var handler slog.Handler
-
-	switch cfg.App.Environment {
-	case "testing":
-		fallthrough
-	case "production":
-		handler = slog.NewJSONHandler(os.Stderr, nil)
-	default:
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level:     slog.LevelDebug,
-			AddSource: true,
-		})
+	err = mono.Serve()
+	if err != nil {
+		return err
 	}
-	logger := slog.New(handler).With(logGroup)
-	slog.SetDefault(logger)
-
-	logger.LogAttrs(ctx, slog.LevelInfo, "starting up")
 
 	return nil
 }

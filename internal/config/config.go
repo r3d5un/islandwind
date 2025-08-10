@@ -10,7 +10,8 @@ import (
 )
 
 type Config struct {
-	App AppConfig `json:"app"`
+	App    AppConfig    `json:"app"`
+	Server ServerConfig `json:"server"`
 }
 
 type AppConfig struct {
@@ -18,7 +19,19 @@ type AppConfig struct {
 	Environment string `json:"environment"`
 }
 
-func New() (Config, error) {
+// ServerConfig is the configuration used when setting up http.ServeMux
+type ServerConfig struct {
+	// Port refers to which TCP port the server should use
+	Port int `json:"port"`
+	// IdleTimeout is the number of seconds to wait for the next request when keep-alives are enabled
+	IdleTimeout int `json:"idleTimeout"`
+	// ReadTimeout is the maximum number of seconds for reading the entire request.
+	ReadTimeout int `json:"readTimeout"`
+	// WriteTimeout is the maximum duration before timing out the writes of the response.
+	WriteTimeout int `json:"writeTimeout"`
+}
+
+func New() (*Config, error) {
 	var config Config
 
 	viper.SetConfigName("config")
@@ -27,7 +40,11 @@ func New() (Config, error) {
 
 	viper.SetDefault("app.name", "islandwind")
 	viper.SetDefault("app.environment", "development")
+	// Default Server Settings
 	viper.SetDefault("server.port", 4000)
+	viper.SetDefault("server.idleTimeout", 60)
+	viper.SetDefault("server.readTimeout", 5)
+	viper.SetDefault("server.writeTimeout", 10)
 
 	viper.SafeWriteConfig()
 
@@ -46,13 +63,13 @@ func New() (Config, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return config, err
+		return &config, err
 	}
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		return config, err
+		return &config, err
 	}
 
-	return config, nil
+	return &config, nil
 }
