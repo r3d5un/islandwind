@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,6 +13,14 @@ type Config struct {
 	MaxOpenConns    int32  `json:"maxOpenConns"`
 	IdleTimeMinutes int    `json:"idleTimeMinutes"`
 	TimeoutSeconds  int    `json:"timeoutSeconds"`
+}
+
+func (c Config) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.Int("maxOpenConns", int(c.MaxOpenConns)),
+		slog.Int("idleTimeMinutes", int(c.IdleTimeMinutes)),
+		slog.Int("timeoutSeconds", int(c.TimeoutSeconds)),
+	)
 }
 
 func (c *Config) TimeoutDuration() time.Duration {

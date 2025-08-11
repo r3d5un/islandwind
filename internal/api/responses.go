@@ -23,7 +23,13 @@ func ErrorResponse(
 	ctx := r.Context()
 	logger := logging.LoggerFromContext(ctx)
 
-	logger.Info("writing error response", slog.Int("status", status), slog.Any("message", message))
+	logger.LogAttrs(
+		ctx,
+		slog.LevelInfo,
+		"writing error response",
+		slog.Int("status", status),
+		slog.Any("message", message),
+	)
 	RespondWithJSON(w, r, status, ErrorMessage{Message: message}, nil)
 }
 
@@ -51,7 +57,6 @@ func RespondWithJSON(
 ) {
 	logger := logging.LoggerFromContext(r.Context())
 
-	logger.Info("marshalling data")
 	js, err := json.Marshal(data)
 	if err != nil {
 		ServerErrorResponse(w, r, err)
@@ -59,14 +64,13 @@ func RespondWithJSON(
 
 	js = append(js, '\n')
 
-	logger.Info("adding headers")
 	for key, values := range headers {
 		for _, value := range values {
 			w.Header().Add(key, value)
 		}
 	}
 
-	logger.Info("writing response")
+	logger.LogAttrs(r.Context(), slog.LevelInfo, "writing response")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err = w.Write(js); err != nil {

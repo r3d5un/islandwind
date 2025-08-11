@@ -6,25 +6,50 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
+	"reflect"
 	"syscall"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/justinas/alice"
+	"github.com/r3d5un/islandwind/internal/blog"
 	"github.com/r3d5un/islandwind/internal/config"
 	database "github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
 	"github.com/spf13/viper"
 )
 
 type Monolith struct {
-	cfg    *config.Config
-	mux    *http.ServeMux
-	logger *slog.Logger
-	db     *pgxpool.Pool
-	id     uuid.UUID
+	cfg     *config.Config
+	mux     *http.ServeMux
+	logger  *slog.Logger
+	db      *pgxpool.Pool
+	id      uuid.UUID
+	modules *interfaces.Modules
+}
+
+func (m *Monolith) DB() *pgxpool.Pool {
+	return m.db
+}
+
+func (m *Monolith) Mux() *http.ServeMux {
+	return m.mux
+}
+
+func (m *Monolith) Logger() *slog.Logger {
+	return m.logger
+}
+
+func (m *Monolith) Config() *config.Config {
+	return m.cfg
+}
+
+func (m *Monolith) Modules() *interfaces.Modules {
+	return m.modules
 }
 
 func NewMonolith() (*Monolith, error) {
@@ -62,13 +87,17 @@ func NewMonolith() (*Monolith, error) {
 		return nil, err
 	}
 
-	return &Monolith{
-		id:     instanceID,
-		cfg:    cfg,
-		mux:    http.NewServeMux(),
-		logger: slog.Default(),
-		db:     db,
-	}, nil
+	mono := Monolith{
+		id:      instanceID,
+		cfg:     cfg,
+		mux:     http.NewServeMux(),
+		logger:  slog.Default(),
+		db:      db,
+		modules: &interfaces.Modules{Blog: &blog.Module{}},
+	}
+	mono.SetupModules(ctx)
+
+	return &mono, nil
 }
 
 func (m *Monolith) Serve() error {
@@ -126,7 +155,7 @@ func (m *Monolith) Serve() error {
 }
 
 func (m *Monolith) routes() http.Handler {
-	m.logger.Info("creating standard middleware chain")
+	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "creating standard middleware chain")
 	standard := alice.New(
 		m.recoverPanic,
 		m.enableCORS,
@@ -137,26 +166,46 @@ func (m *Monolith) routes() http.Handler {
 	m.mux.HandleFunc("GET /api/v1/mono/healthcheck", m.healthcheckHandler)
 
 	// profiling
-	m.mux.HandleFunc("GET /debug/pprof/", http.DefaultServeMux.ServeHTTP)
-	m.mux.HandleFunc("GET /debug/pprof/profile", http.DefaultServeMux.ServeHTTP)
-	m.mux.HandleFunc("GET /debug/pprof/heap", http.DefaultServeMux.ServeHTTP)
+	m.mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	m.mux.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+	m.mux.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+	m.mux.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+	m.mux.Handle("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 
 	handler := standard.Then(m.mux)
 	return handler
 }
 
-type ContextKey string
+func (m *Monolith) SetupModules(ctx context.Context) {
+	m.logger.LogAttrs(ctx, slog.LevelInfo, "setting up modules")
+	val := reflect.ValueOf(m.modules)
 
-const InstanceIDKey string = "instanceID"
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 
-func WithInstanceID(ctx context.Context, id uuid.UUID) context.Context {
-	return context.WithValue(ctx, InstanceIDKey, id)
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+
+		if module, ok := field.Interface().(interfaces.Module); ok {
+			module.Setup(ctx, m)
+		}
+	}
 }
 
-func InstanceIDFromContext(ctx context.Context) uuid.UUID {
-	id, ok := ctx.Value(InstanceIDKey).(uuid.UUID)
-	if !ok {
-		return uuid.UUID{}
+func (m *Monolith) ShutdownModules() {
+	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "shutting down modules")
+	val := reflect.ValueOf(m.modules)
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
 	}
-	return id
+
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+
+		if module, ok := field.Interface().(interfaces.Module); ok {
+			module.Shutdown()
+		}
+	}
 }
