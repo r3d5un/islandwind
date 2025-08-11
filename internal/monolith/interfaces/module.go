@@ -1,6 +1,8 @@
 package interfaces
 
-import "context"
+import (
+	"context"
+)
 
 type Module interface {
 	// Setup sets up the module using the context and resources from the
@@ -23,4 +25,8 @@ type Module interface {
 	// Typically called with the defer keyword immediately after Setup and
 	// PostSetup.
 	Shutdown()
+}
+
+type BlogService interface {
+	Module
 }
