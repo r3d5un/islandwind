@@ -1,1 +1,37 @@
 .env
+
+*node_modules
+website/dist
+
+.idea
+
+# Logs
+website/logs
+website/*.log
+website/npm-debug.log*
+website/yarn-debug.log*
+website/yarn-error.log*
+website/pnpm-debug.log*
+website/lerna-debug.log*
+
+website/node_modules
+website/.DS_Store
+website/dist
+website/dist-ssr
+website/coverage
+website/*.local
+
+website/cypress/videos/
+website/cypress/screenshots/
+
+# Editor directories and files
+website/.vscode/*
+website/!.vscode/extensions.json
+website/.idea
+website/*.suo
+website/*.ntvs*
+website/*.njsproj
+website/*.sln
+website/*.sw?
+
+website/*.tsbuildinfo
