@@ -6,12 +6,14 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	App    AppConfig    `json:"app"`
 	Server ServerConfig `json:"server"`
+	DB     db.Config    `json:"db"`
 }
 
 type AppConfig struct {
@@ -45,6 +47,14 @@ func New() (*Config, error) {
 	viper.SetDefault("server.idleTimeout", 60)
 	viper.SetDefault("server.readTimeout", 5)
 	viper.SetDefault("server.writeTimeout", 10)
+	// Default Database Settings
+	viper.SetDefault(
+		"db.connstr",
+		"postgres://postgres:postgres@localhost:5432/islandwind?sslmode=disable",
+	)
+	viper.SetDefault("db.maxOpenConns", 15)
+	viper.SetDefault("db.idleTimeMinutes", 5)
+	viper.SetDefault("db.timeoutSeconds", 5)
 
 	viper.SafeWriteConfig()
 

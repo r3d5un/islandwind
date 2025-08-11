@@ -12,8 +12,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/justinas/alice"
 	"github.com/r3d5un/islandwind/internal/config"
+	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/spf13/viper"
 )
 
@@ -21,10 +23,12 @@ type Monolith struct {
 	cfg    *config.Config
 	mux    *http.ServeMux
 	logger *slog.Logger
+	db     *pgxpool.Pool
 	id     uuid.UUID
 }
 
 func NewMonolith() (*Monolith, error) {
+	ctx := context.Background()
 	cfg, err := config.New()
 	if err != nil {
 		return nil, err
@@ -52,11 +56,18 @@ func NewMonolith() (*Monolith, error) {
 	logger := slog.New(handler).With(logGroup)
 	slog.SetDefault(logger)
 
+	logger.LogAttrs(ctx, slog.LevelInfo, "creating database pool", slog.Any("cfg", cfg.DB))
+	db, err := database.OpenPool(ctx, cfg.DB)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Monolith{
 		id:     instanceID,
 		cfg:    cfg,
 		mux:    http.NewServeMux(),
 		logger: slog.Default(),
+		db:     db,
 	}, nil
 }
 
