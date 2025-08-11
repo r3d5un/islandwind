@@ -86,6 +86,7 @@ func NewMonolith() (*Monolith, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	mono := Monolith{
 		id:      instanceID,
