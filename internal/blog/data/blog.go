@@ -2,22 +2,27 @@ package data
 
 import (
 	"context"
+	"database/sql"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 // Blog is the database record for a blog post.
 type Blog struct {
-	ID        uuid.UUID `json:"id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	Published bool      `json:"published"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID        uuid.UUID    `json:"id"`
+	Title     string       `json:"title"`
+	Content   string       `json:"content"`
+	Published bool         `json:"published"`
+	CreatedAt time.Time    `json:"createdAt"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+	Deleted   bool         `json:"deleted"`
+	DeletedAt sql.NullTime `json:"deletedAt"`
 }
 
 // BlogInput is the input type used by the BlogModel for creating new blog post records.
@@ -43,8 +48,58 @@ type BlogModel struct {
 }
 
 func (m *BlogModel) insert(ctx context.Context, q db.Queryable, input BlogInput) (*Blog, error) {
-	// TODO: Implement
-	return nil, nil
+	const stmt string = `
+INSERT INTO blog.post (title,
+                       content,
+                       published)
+VALUES ($1::VARCHAR(1024),
+        $2::TEXT,
+        $3::BOOLEAN)
+RETURNING
+    id,
+    title,
+    content,
+    published,
+    created_at,
+    updated_at,
+    deleted,
+    deleted_at;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.Any("input", input),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var b Blog
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		input.Title,
+		input.Content,
+		input.Published,
+	).Scan(
+		&b.ID,
+		&b.Title,
+		&b.Content,
+		&b.Published,
+		&b.CreatedAt,
+		&b.UpdatedAt,
+		&b.Deleted,
+		&b.DeletedAt,
+	)
+	if err != nil {
+		return nil, db.HandleError(err, logger)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog selected", slog.Any("blog", b))
+
+	return &b, nil
 }
 
 func (m *BlogModel) Insert(ctx context.Context, input BlogInput) (*Blog, error) {
