@@ -12,12 +12,12 @@ import (
 
 type Models struct {
 	db    pgxpool.Pool
-	Blogs BlogModel
+	Posts PostModel
 }
 
 func NewModels(pool *pgxpool.Pool, timeout *time.Duration) Models {
 	return Models{
-		Blogs: BlogModel{DB: pool, Timeout: timeout},
+		Posts: PostModel{DB: pool, Timeout: timeout},
 	}
 }
 

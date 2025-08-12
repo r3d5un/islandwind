@@ -17,31 +17,31 @@ func TestBlogModel(t *testing.T) {
 		defer cancel()
 	})
 
-	var blog data.Blog
+	var post data.Post
 
 	t.Run("Insert", func(t *testing.T) {
-		inserted, err := models.Blogs.Insert(ctx, data.BlogInput{
+		inserted, err := models.Posts.Insert(ctx, data.PostInput{
 			Title:     "Test",
 			Content:   "Some example content",
 			Published: true,
 		})
 		assert.NoError(t, err)
 
-		t.Logf("blog post inserted: %v\n", inserted)
+		t.Logf("post post inserted: %v\n", inserted)
 
-		blog = *inserted
+		post = *inserted
 	})
 
 	t.Run("Select", func(t *testing.T) {
-		selected, err := models.Blogs.SelectOne(ctx, blog.ID)
+		selected, err := models.Posts.SelectOne(ctx, post.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, blog, *selected)
+		assert.Equal(t, post, *selected)
 	})
 
 	t.Run("SelectMany", func(t *testing.T) {
-		selected, metadata, err := models.Blogs.SelectMany(ctx, data.Filter{
+		selected, metadata, err := models.Posts.SelectMany(ctx, data.Filter{
 			PageSize: 1,
-			ID:       &blog.ID,
+			ID:       &post.ID,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, selected)

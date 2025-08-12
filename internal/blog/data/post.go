@@ -13,8 +13,8 @@ import (
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
-// Blog is the database record for a blog post.
-type Blog struct {
+// Post is the database record for a blog post.
+type Post struct {
 	ID        uuid.UUID    `json:"id"`
 	Title     string       `json:"title"`
 	Content   string       `json:"content"`
@@ -25,29 +25,29 @@ type Blog struct {
 	DeletedAt sql.NullTime `json:"deletedAt"`
 }
 
-// BlogInput is the input type used by the BlogModel for creating new blog post records.
-type BlogInput struct {
+// PostInput is the input type used by the BlogModel for creating new blog post records.
+type PostInput struct {
 	Title     string `json:"title"`
 	Content   string `json:"content"`
 	Published bool   `json:"published"`
 }
 
-// BlogPatch is used for updating any existing blog post records. All fields except
+// PostPatch is used for updating any existing blog post records. All fields except
 // the ID is optional, but if populated will update the record when given to
 // BlogModel.Update.
-type BlogPatch struct {
+type PostPatch struct {
 	ID        uuid.UUID `json:"id"`
 	Title     *string   `json:"title"`
 	Content   *string   `json:"content"`
 	Published *bool     `json:"published"`
 }
 
-type BlogModel struct {
+type PostModel struct {
 	DB      *pgxpool.Pool
 	Timeout *time.Duration
 }
 
-func (m *BlogModel) insert(ctx context.Context, q db.Queryable, input BlogInput) (*Blog, error) {
+func (m *PostModel) insert(ctx context.Context, q db.Queryable, input PostInput) (*Post, error) {
 	const stmt string = `
 INSERT INTO blog.post (title,
                        content,
@@ -77,7 +77,7 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var b Blog
+	var p Post
 	err := q.QueryRow(
 		ctx,
 		stmt,
@@ -85,32 +85,32 @@ RETURNING
 		input.Content,
 		input.Published,
 	).Scan(
-		&b.ID,
-		&b.Title,
-		&b.Content,
-		&b.Published,
-		&b.CreatedAt,
-		&b.UpdatedAt,
-		&b.Deleted,
-		&b.DeletedAt,
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Published,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Deleted,
+		&p.DeletedAt,
 	)
 	if err != nil {
 		return nil, db.HandleError(err, logger)
 	}
-	logger.LogAttrs(ctx, slog.LevelInfo, "blog inserted", slog.Any("blog", b))
+	logger.LogAttrs(ctx, slog.LevelInfo, "post inserted", slog.Any("post", p))
 
-	return &b, nil
+	return &p, nil
 }
 
-func (m *BlogModel) Insert(ctx context.Context, input BlogInput) (*Blog, error) {
+func (m *PostModel) Insert(ctx context.Context, input PostInput) (*Post, error) {
 	return m.insert(ctx, m.DB, input)
 }
 
-func (m *BlogModel) InsertTx(ctx context.Context, tx pgx.Tx, input BlogInput) (*Blog, error) {
+func (m *PostModel) InsertTx(ctx context.Context, tx pgx.Tx, input PostInput) (*Post, error) {
 	return m.insert(ctx, tx, input)
 }
 
-func (m *BlogModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
 	const stmt string = `
 SELECT id,
        title,
@@ -134,42 +134,42 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var b Blog
+	var p Post
 	err := q.QueryRow(
 		ctx,
 		stmt,
 		id,
 	).Scan(
-		&b.ID,
-		&b.Title,
-		&b.Content,
-		&b.Published,
-		&b.CreatedAt,
-		&b.UpdatedAt,
-		&b.Deleted,
-		&b.DeletedAt,
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Published,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Deleted,
+		&p.DeletedAt,
 	)
 	if err != nil {
 		return nil, db.HandleError(err, logger)
 	}
-	logger.LogAttrs(ctx, slog.LevelInfo, "blog selected", slog.Any("blog", b))
+	logger.LogAttrs(ctx, slog.LevelInfo, "post selected", slog.Any("post", p))
 
-	return &b, nil
+	return &p, nil
 }
 
-func (m *BlogModel) SelectOne(ctx context.Context, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) SelectOne(ctx context.Context, id uuid.UUID) (*Post, error) {
 	return m.selectOne(ctx, m.DB, id)
 }
 
-func (m *BlogModel) SelectOneTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) SelectOneTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Post, error) {
 	return m.selectOne(ctx, tx, id)
 }
 
-func (m *BlogModel) selectMany(
+func (m *PostModel) selectMany(
 	ctx context.Context,
 	q db.Queryable,
 	filter Filter,
-) ([]*Blog, *Metadata, error) {
+) ([]*Post, *Metadata, error) {
 	const stmt string = `
 SELECT id,
        title,
@@ -227,10 +227,10 @@ LIMIT $1;
 		return nil, nil, err
 	}
 
-	posts := []*Blog{}
+	posts := []*Post{}
 
 	for rows.Next() {
-		var b Blog
+		var b Post
 
 		err := rows.Scan(
 			&b.ID,
@@ -257,43 +257,43 @@ LIMIT $1;
 	return posts, &metadata, nil
 }
 
-func (m *BlogModel) SelectMany(
+func (m *PostModel) SelectMany(
 	ctx context.Context,
 	filter Filter,
-) ([]*Blog, *Metadata, error) {
+) ([]*Post, *Metadata, error) {
 	return m.selectMany(ctx, m.DB, filter)
 }
 
-func (m *BlogModel) SelectManyTx(
+func (m *PostModel) SelectManyTx(
 	ctx context.Context,
 	tx pgx.Tx,
 	filter Filter,
-) ([]*Blog, *Metadata, error) {
+) ([]*Post, *Metadata, error) {
 	return m.selectMany(ctx, tx, filter)
 }
 
-func (m *BlogModel) update(ctx context.Context, q db.Queryable, patch BlogPatch) (*Blog, error) {
+func (m *PostModel) update(ctx context.Context, q db.Queryable, patch PostPatch) (*Post, error) {
 	// TODO: Implement
 	return nil, nil
 }
 
-func (m *BlogModel) Update(ctx context.Context, patch BlogPatch) (*Blog, error) {
+func (m *PostModel) Update(ctx context.Context, patch PostPatch) (*Post, error) {
 	return m.update(ctx, m.DB, patch)
 }
 
-func (m *BlogModel) UpdateTx(ctx context.Context, tx pgx.Tx, patch BlogPatch) (*Blog, error) {
+func (m *PostModel) UpdateTx(ctx context.Context, tx pgx.Tx, patch PostPatch) (*Post, error) {
 	return m.update(ctx, tx, patch)
 }
 
-func (m *BlogModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
 	// TODO: Implement
 	return nil, nil
 }
 
-func (m *BlogModel) Delete(ctx context.Context, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) Delete(ctx context.Context, id uuid.UUID) (*Post, error) {
 	return m.delete(ctx, m.DB, id)
 }
 
-func (m *BlogModel) DeleteTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Blog, error) {
+func (m *PostModel) DeleteTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Post, error) {
 	return m.delete(ctx, tx, id)
 }
