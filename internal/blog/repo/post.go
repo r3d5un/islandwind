@@ -224,6 +224,41 @@ func (r *PostRepository) Restore(ctx context.Context, ID uuid.UUID) (*Post, erro
 }
 
 func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"blogpost",
+		slog.String("id", ID.String()),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "starting database transaction")
+	tx, rollback, err := r.models.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rollback()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "deleting blog post")
+	state := true
+	row, err := r.models.Posts.UpdateTx(
+		ctx,
+		tx,
+		data.PostPatch{ID: ID, Deleted: &state},
+	)
+	if err != nil {
+		return nil, err
+	}
+	row, err = r.models.Posts.DeleteTx(ctx, tx, row.ID)
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "committing changes")
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	post := newPostFromRow(*row)
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog post deleted")
+
+	return post, nil
 }

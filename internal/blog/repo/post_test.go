@@ -97,6 +97,15 @@ func TestPostRepository(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		t.Skip("not implemented")
+		deleted, err := blog.Posts.Delete(ctx, post.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, deleted)
+		assert.Equal(t, post.ID, deleted.ID)
+		assert.NotNil(t, deleted.DeletedAt)
+		assert.Equal(t, post.ID, deleted.ID)
+
+		t.Log(deleted)
+
+		post = *deleted
 	})
 }
