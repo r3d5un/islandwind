@@ -65,7 +65,7 @@ var (
 	ErrUnsafeDeleteFilter = errors.New("filter is unsafe")
 )
 
-// deleteManyGuardrail accepts a slice of values and raises and error if all
+// DeleteManyGuardrail accepts a slice of values and raises and error if all
 // given values are nil. If all values are nil an ErrUnsafeDeleteFilter error
 // is returned. If a value is not nil the function returns nil, and the
 // filter is safe to use.
@@ -73,7 +73,7 @@ var (
 // WARNING: This function assumed any given value in the input slice is a
 // pointer that can be checked for nil. A non-pointer value will return
 // early, but the the filter may still be unsafe.
-func deleteManyGuardrail(input ...any) error {
+func DeleteManyGuardrail(input ...any) error {
 	for _, x := range input {
 		if v := reflect.ValueOf(x); !v.IsNil() {
 			return nil
@@ -83,7 +83,7 @@ func deleteManyGuardrail(input ...any) error {
 	return ErrUnsafeDeleteFilter
 }
 
-// isEmpty checks if a slice is nil or empty
-func isEmpty[T comparable](x []*T) bool {
+// IsEmpty checks if a slice is nil or empty
+func IsEmpty[T comparable](x []*T) bool {
 	return len(x) < 1
 }
