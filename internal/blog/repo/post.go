@@ -99,8 +99,21 @@ func newPostRepository(db *pgxpool.Pool, timeout *time.Duration) PostReaderWrite
 }
 
 func (r *PostRepository) Read(ctx context.Context, ID uuid.UUID) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"post",
+		slog.String("id", ID.String()),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "reading blog post")
+	row, err := r.models.Posts.SelectOne(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+	post := newPostFromRow(*row)
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog post retrieved")
+
+	return post, nil
 }
 
 func (r *PostRepository) List(

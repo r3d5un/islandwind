@@ -34,10 +34,11 @@ func TestPostRepository(t *testing.T) {
 		post = *created
 	})
 
-	t.Log(post)
-
 	t.Run("Read", func(t *testing.T) {
-		t.Skip("not implemented")
+		read, err := blog.Posts.Read(ctx, post.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, read)
+		assert.Equal(t, post, *read)
 	})
 
 	t.Run("List", func(t *testing.T) {
