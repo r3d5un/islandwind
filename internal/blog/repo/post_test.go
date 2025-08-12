@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,7 +43,18 @@ func TestPostRepository(t *testing.T) {
 	})
 
 	t.Run("List", func(t *testing.T) {
-		t.Skip("not implemented")
+		list, metadata, err := blog.Posts.List(
+			ctx,
+			data.Filter{
+				PageSize: 1,
+				ID:       &post.ID,
+			},
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, list)
+		assert.NotEmpty(t, list)
+		assert.NotEmpty(t, metadata)
+		assert.Equal(t, list[len(list)-1].ID, metadata.LastSeen)
 	})
 
 	t.Run("Update", func(t *testing.T) {

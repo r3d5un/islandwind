@@ -120,8 +120,26 @@ func (r *PostRepository) List(
 	ctx context.Context,
 	filter data.Filter,
 ) ([]*Post, *data.Metadata, error) {
-	// TODO: Implement
-	return nil, nil, nil
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"posts",
+		slog.Any("filter", filter),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "reading blog posts")
+	rows, metadata, err := r.models.Posts.SelectMany(ctx, filter)
+	if err != nil {
+		return nil, nil, err
+	}
+	testsuite.Assert(rows != nil, "blog post list are nil", nil)
+	testsuite.Assert(metadata != nil, "blog post metadata are nil", nil)
+
+	posts := make([]*Post, metadata.ResponseLength)
+	for i, row := range rows {
+		posts[i] = newPostFromRow(*row)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog posts retrieved")
+
+	return posts, metadata, nil
 }
 
 func (r *PostRepository) Create(ctx context.Context, input PostInput) (*Post, error) {
