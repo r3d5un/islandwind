@@ -97,7 +97,7 @@ RETURNING
 	if err != nil {
 		return nil, db.HandleError(err, logger)
 	}
-	logger.LogAttrs(ctx, slog.LevelInfo, "blog selected", slog.Any("blog", b))
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog inserted", slog.Any("blog", b))
 
 	return &b, nil
 }
@@ -111,8 +111,50 @@ func (m *BlogModel) InsertTx(ctx context.Context, tx pgx.Tx, input BlogInput) (*
 }
 
 func (m *BlogModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Blog, error) {
-	// TODO: Implement
-	return nil, nil
+	const stmt string = `
+SELECT id,
+       title,
+       content,
+       published,
+       created_at,
+       updated_at,
+       deleted,
+       deleted_at
+FROM blog.post
+WHERE id = $1::UUID;
+`
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.String("id", id.String()),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var b Blog
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		id,
+	).Scan(
+		&b.ID,
+		&b.Title,
+		&b.Content,
+		&b.Published,
+		&b.CreatedAt,
+		&b.UpdatedAt,
+		&b.Deleted,
+		&b.DeletedAt,
+	)
+	if err != nil {
+		return nil, db.HandleError(err, logger)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog selected", slog.Any("blog", b))
+
+	return &b, nil
 }
 
 func (m *BlogModel) SelectOne(ctx context.Context, id uuid.UUID) (*Blog, error) {
@@ -128,13 +170,95 @@ func (m *BlogModel) selectMany(
 	q db.Queryable,
 	filter Filter,
 ) ([]*Blog, *Metadata, error) {
-	// TODO: Implement
-	return nil, nil, nil
+	const stmt string = `
+SELECT id,
+       title,
+       content,
+       published,
+       created_at,
+       updated_at,
+       deleted,
+       deleted_at
+FROM blog.post
+WHERE ($2::UUID IS NULL OR id = $2::UUID)
+  AND ($3::VARCHAR(1024) IS NULL OR title = $3::VARCHAR(1024))
+  AND ($4::BOOLEAN IS NULL OR published = $4::BOOLEAN)
+  AND ($5::TIMESTAMPTZ IS NULL OR created_at <= $5::TIMESTAMPTZ)
+  AND ($6::TIMESTAMPTZ IS NULL OR created_at > $6::TIMESTAMPTZ)
+  AND ($7::TIMESTAMPTZ IS NULL OR updated_at <= $7::TIMESTAMPTZ)
+  AND ($8::TIMESTAMPTZ IS NULL OR updated_at > $8::TIMESTAMPTZ)
+  AND ($9::BOOLEAN IS NULL OR deleted = $9::BOOLEAN)
+  AND ($10::TIMESTAMPTZ IS NULL OR updated_at <= $10::TIMESTAMPTZ)
+  AND ($11::TIMESTAMPTZ IS NULL OR updated_at > $11::TIMESTAMPTZ)
+  AND id > $12::UUID
+ORDER BY created_at, id
+LIMIT $1;
+`
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("statement", logging.MinifySQL(stmt)),
+		slog.Any("filter", filter),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	rows, err := q.Query(
+		ctx,
+		stmt,
+		filter.PageSize,
+		filter.ID,
+		filter.Title,
+		filter.Published,
+		filter.CreatedAtFrom,
+		filter.CreatedAtTo,
+		filter.UpdatedAtFrom,
+		filter.UpdatedAtTo,
+		filter.Deleted,
+		filter.DeletedAtFrom,
+		filter.DeletedAtTo,
+		filter.LastSeen,
+	)
+	if err != nil {
+		logger.LogAttrs(
+			ctx, slog.LevelError, "unable to perform query", slog.String("error", err.Error()),
+		)
+		return nil, nil, err
+	}
+
+	posts := []*Blog{}
+
+	for rows.Next() {
+		var b Blog
+
+		err := rows.Scan(
+			&b.ID,
+			&b.Title,
+			&b.Content,
+			&b.Published,
+			&b.CreatedAt,
+			&b.UpdatedAt,
+			&b.Deleted,
+			&b.DeletedAt,
+		)
+		if err != nil {
+			return nil, nil, db.HandleError(err, logger)
+		}
+		posts = append(posts, &b)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, nil, db.HandleError(err, logger)
+	}
+	metadata := NewMetadata(posts, filter)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "posts selected", slog.Any("metadata", metadata))
+
+	return posts, &metadata, nil
 }
 
 func (m *BlogModel) SelectMany(
 	ctx context.Context,
-	q db.Queryable,
 	filter Filter,
 ) ([]*Blog, *Metadata, error) {
 	return m.selectMany(ctx, m.DB, filter)

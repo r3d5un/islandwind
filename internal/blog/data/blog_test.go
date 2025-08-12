@@ -32,14 +32,21 @@ func TestBlogModel(t *testing.T) {
 		blog = *inserted
 	})
 
-	t.Log(blog)
-
 	t.Run("Select", func(t *testing.T) {
-		t.Skip("not implemented")
+		selected, err := models.Blogs.SelectOne(ctx, blog.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, blog, *selected)
 	})
 
 	t.Run("SelectMany", func(t *testing.T) {
-		t.Skip("not implemented")
+		selected, metadata, err := models.Blogs.SelectMany(ctx, data.Filter{
+			PageSize: 1,
+			ID:       &blog.ID,
+		})
+		assert.NoError(t, err)
+		assert.NotEmpty(t, selected)
+		assert.NotEmpty(t, metadata)
+		assert.Equal(t, selected[len(selected)-1].ID, metadata.LastSeen)
 	})
 
 	t.Run("Update", func(t *testing.T) {

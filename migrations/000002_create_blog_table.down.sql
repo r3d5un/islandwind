@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS blog.blog;
+DROP TABLE IF EXISTS blog.post;
