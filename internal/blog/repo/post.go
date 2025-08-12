@@ -161,8 +161,21 @@ func (r *PostRepository) Create(ctx context.Context, input PostInput) (*Post, er
 }
 
 func (r *PostRepository) Update(ctx context.Context, patch PostPatch) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"changes",
+		slog.Any("patch", patch),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "updating blog post")
+	row, err := r.models.Posts.Update(ctx, patch.postPatchRow())
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+	post := newPostFromRow(*row)
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog post updated")
+
+	return post, nil
 }
 
 func (r *PostRepository) SoftDelete(ctx context.Context, ID uuid.UUID) (*Post, error) {

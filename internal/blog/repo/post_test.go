@@ -58,7 +58,18 @@ func TestPostRepository(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		t.Skip("not implemented")
+		del := false
+		updated, err := blog.Posts.Update(
+			ctx,
+			repo.PostPatch{ID: post.ID, Deleted: &del},
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, post.ID, updated.ID)
+		assert.Empty(t, updated.DeletedAt)
+		assert.False(t, updated.Deleted)
+
+		post = *updated
 	})
 
 	t.Run("SoftDelete", func(t *testing.T) {
