@@ -73,7 +73,16 @@ func TestPostRepository(t *testing.T) {
 	})
 
 	t.Run("SoftDelete", func(t *testing.T) {
-		t.Skip("not implemented")
+		deleted, err := blog.Posts.SoftDelete(ctx, post.ID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, deleted)
+		assert.Equal(t, post.ID, deleted.ID)
+		assert.True(t, deleted.Deleted)
+		assert.NotNil(t, deleted.DeletedAt)
+		assert.Equal(t, post.ID, deleted.ID)
+
+		post = *deleted
+	})
 	})
 
 	t.Run("Delete", func(t *testing.T) {

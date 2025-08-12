@@ -179,8 +179,26 @@ func (r *PostRepository) Update(ctx context.Context, patch PostPatch) (*Post, er
 }
 
 func (r *PostRepository) SoftDelete(ctx context.Context, ID uuid.UUID) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"blogpost",
+		slog.String("id", ID.String()),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "soft deleting blog post")
+	state := true
+	row, err := r.models.Posts.Update(
+		ctx,
+		data.PostPatch{ID: ID, Deleted: &state},
+	)
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+	post := newPostFromRow(*row)
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog post soft deleted")
+
+	return post, nil
+}
 }
 
 func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error) {
