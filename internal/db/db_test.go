@@ -1,0 +1,69 @@
+package db_test
+
+import (
+	"context"
+	"log"
+	"log/slog"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+)
+
+const (
+	dbName     string = "postgres"
+	dbUser     string = "postgres"
+	dbPassword string = "postgres"
+)
+
+var connectionString string
+
+func TestMain(m *testing.M) {
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: true,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logger.Info("creating PostgreSQL container")
+	dbContainer, err := postgres.Run(
+		ctx,
+		"postgres:17.4",
+		postgres.WithDatabase(dbName),
+		postgres.WithUsername(dbUser),
+		postgres.WithPassword(dbPassword),
+		testcontainers.WithLogger(log.Default()),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second),
+		),
+	)
+	defer func() {
+		if err := testcontainers.TerminateContainer(dbContainer); err != nil {
+			logger.Info("failed to terminate container", slog.String("error", err.Error()))
+		}
+	}()
+	if err != nil {
+		logger.Error("unable to start container", slog.String("error", err.Error()))
+		return
+	}
+
+	connStr, err := dbContainer.ConnectionString(ctx, "sslmode=disable", "application_name=rosetta")
+	if err != nil {
+		logger.Error("unable to get database connection string", slog.String("error", err.Error()))
+		return
+	}
+	connectionString = connStr
+
+	exitCode := m.Run()
+
+	defer os.Exit(exitCode)
+}
