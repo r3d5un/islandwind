@@ -344,8 +344,52 @@ func (m *PostModel) UpdateTx(ctx context.Context, tx pgx.Tx, patch PostPatch) (*
 }
 
 func (m *PostModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	const stmt string = `
+DELETE
+FROM blog.post
+WHERE id = $1::UUID
+RETURNING id,
+    title,
+    content,
+    published,
+    created_at,
+    updated_at,
+    deleted,
+    deleted_at;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.String("id", id.String()),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var p Post
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		id,
+	).Scan(
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Published,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Deleted,
+		&p.DeletedAt,
+	)
+	if err != nil {
+		return nil, db.HandleError(err, logger)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "post deleted", slog.Any("post", p))
+
+	return &p, nil
 }
 
 func (m *PostModel) Delete(ctx context.Context, id uuid.UUID) (*Post, error) {

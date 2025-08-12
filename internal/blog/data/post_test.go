@@ -28,8 +28,6 @@ func TestBlogModel(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, inserted)
 
-		t.Logf("post post inserted: %v\n", inserted)
-
 		post = *inserted
 	})
 
@@ -68,6 +66,11 @@ func TestBlogModel(t *testing.T) {
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		t.Skip("not implemented")
+		deleted, err := models.Posts.Delete(ctx, post.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, deleted)
+		assert.Equal(t, post.ID, deleted.ID)
+		assert.NotNil(t, deleted.DeletedAt)
+		assert.True(t, deleted.Deleted)
 	})
 }
