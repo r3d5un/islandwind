@@ -2,9 +2,13 @@ package db
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"reflect"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -49,4 +53,41 @@ func OpenPool(ctx context.Context, config Config) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+type Queryable interface {
+	Exec(ctx context.Context, query string, args ...any) (pgconn.CommandTag, error)
+	QueryRow(ctx context.Context, query string, args ...any) pgx.Row
+	Query(ctx context.Context, query string, args ...any) (pgx.Rows, error)
+}
+
+var (
+	ErrUnsafeDeleteFilter = errors.New("filter is unsafe")
+)
+
+// deleteManyGuardrail accepts a slice of values and raises and error if all
+// given values are nil. If all values are nil an ErrUnsafeDeleteFilter error
+// is returned. If a value is not nil the function returns nil, and the
+// filter is safe to use.
+//
+// WARNING: This function assumed any given value in the input slice is a
+// pointer that can be checked for nil. A non-pointer value will return
+// early, but the the filter may still be unsafe.
+func deleteManyGuardrail(input ...any) error {
+	for _, x := range input {
+		if v := reflect.ValueOf(x); !v.IsNil() {
+			return nil
+		}
+	}
+
+	return ErrUnsafeDeleteFilter
+}
+
+// isEmpty checks if a slice is nil or empty
+func isEmpty[T comparable](x []*T) bool {
+	if len(x) < 1 {
+		return true
+	}
+
+	return false
 }
