@@ -1,13 +1,22 @@
 package testsuite
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 )
+
+func Assert(condition bool, msg string, object any) {
+	if !condition {
+		slog.LogAttrs(context.Background(), slog.LevelError, msg, slog.Any("object", object))
+		panic(msg)
+	}
+}
 
 func FindProjectRoot() (string, error) {
 	cwd, err := os.Getwd()
