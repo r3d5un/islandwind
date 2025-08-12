@@ -60,12 +60,12 @@ func (m *BlogModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID)
 	return nil, nil
 }
 
-func (m *BlogModel) SelectOne(ctx context.Context, input BlogInput) (*Blog, error) {
-	return m.insert(ctx, m.DB, input)
+func (m *BlogModel) SelectOne(ctx context.Context, id uuid.UUID) (*Blog, error) {
+	return m.selectOne(ctx, m.DB, id)
 }
 
-func (m *BlogModel) SelectOneTx(ctx context.Context, tx pgx.Tx, input BlogInput) (*Blog, error) {
-	return m.insert(ctx, tx, input)
+func (m *BlogModel) SelectOneTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Blog, error) {
+	return m.selectOne(ctx, tx, id)
 }
 
 func (m *BlogModel) selectMany(

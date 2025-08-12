@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/golang-migrate/migrate/v4"
 )
 
 func FindProjectRoot() (string, error) {
@@ -55,4 +57,19 @@ func ListDownMigrationScrips(dirPath string) (migrations []string, err error) {
 	}
 
 	return migrations, nil
+}
+
+func NewMigrateClient(connStr string) (*migrate.Migrate, error) {
+	projectRoot, err := FindProjectRoot()
+	if err != nil {
+		return nil, err
+	}
+	migrationURL := fmt.Sprintf("file://%s/migrations", projectRoot)
+
+	migrate, err := migrate.New(migrationURL, connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return migrate, nil
 }

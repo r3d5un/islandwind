@@ -5,10 +5,11 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"path"
 	"testing"
 	"time"
 
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	database "github.com/r3d5un/islandwind/internal/db"
@@ -38,22 +39,10 @@ func TestMain(m *testing.M) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	projectRoot, err := testsuite.FindProjectRoot()
-	if err != nil {
-		logger.Error("unable to find project root", slog.String("error", err.Error()))
-		return
-	}
-	upMigrationScripts, err := testsuite.ListUpMigrationScrips(path.Join(projectRoot, "migrations"))
-	if err != nil {
-		logger.Error("unable to find project root", slog.String("error", err.Error()))
-		return
-	}
-
 	logger.Info("creating PostgreSQL container")
 	dbContainer, err := postgres.Run(
 		ctx,
 		"postgres:17.4",
-		postgres.WithInitScripts(upMigrationScripts...),
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
@@ -80,6 +69,25 @@ func TestMain(m *testing.M) {
 		return
 	}
 
+	migrate, err := testsuite.NewMigrateClient(connStr)
+	if err != nil {
+		logger.Error("unable to create migration client", slog.String("error", err.Error()))
+		return
+	}
+
+	err = migrate.Up()
+	if err != nil {
+		logger.Error("up migrations failed", slog.String("error", err.Error()))
+		return
+	}
+	defer func() {
+		err = migrate.Down()
+		if err != nil {
+			logger.Error("up migrations failed", slog.String("error", err.Error()))
+			return
+		}
+	}()
+
 	dbConfig := database.Config{
 		ConnStr:         connStr,
 		MaxOpenConns:    20,
@@ -95,6 +103,11 @@ func TestMain(m *testing.M) {
 	models = data.NewModels(db, &timeout)
 
 	exitCode := m.Run()
+
+	err = migrate.Drop()
+	if err != nil {
+		logger.Error("unable to drop database schemas", slog.String("error", err.Error()))
+	}
 
 	defer os.Exit(exitCode)
 }

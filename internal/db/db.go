@@ -85,9 +85,5 @@ func deleteManyGuardrail(input ...any) error {
 
 // isEmpty checks if a slice is nil or empty
 func isEmpty[T comparable](x []*T) bool {
-	if len(x) < 1 {
-		return true
-	}
-
-	return false
+	return len(x) < 1
 }
