@@ -78,6 +78,7 @@ type PostWriter interface {
 	Create(ctx context.Context, input PostInput) (*Post, error)
 	Update(ctx context.Context, patch PostPatch) (*Post, error)
 	SoftDelete(ctx context.Context, ID uuid.UUID) (*Post, error)
+	Restore(ctx context.Context, ID uuid.UUID) (*Post, error)
 	Delete(ctx context.Context, ID uuid.UUID) (*Post, error)
 }
 
@@ -199,6 +200,27 @@ func (r *PostRepository) SoftDelete(ctx context.Context, ID uuid.UUID) (*Post, e
 
 	return post, nil
 }
+
+func (r *PostRepository) Restore(ctx context.Context, ID uuid.UUID) (*Post, error) {
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"blogpost",
+		slog.String("id", ID.String()),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "restoring blog post")
+	state := false
+	row, err := r.models.Posts.Update(
+		ctx,
+		data.PostPatch{ID: ID, Deleted: &state},
+	)
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+	post := newPostFromRow(*row)
+	logger.LogAttrs(ctx, slog.LevelInfo, "blog post restored")
+
+	return post, nil
 }
 
 func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error) {

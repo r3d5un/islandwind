@@ -83,6 +83,17 @@ func TestPostRepository(t *testing.T) {
 
 		post = *deleted
 	})
+
+	t.Run("Restore", func(t *testing.T) {
+		restored, err := blog.Posts.Restore(ctx, post.ID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, restored)
+		assert.Equal(t, post.ID, restored.ID)
+		assert.False(t, restored.Deleted)
+		assert.Nil(t, restored.DeletedAt)
+		assert.Equal(t, post.ID, restored.ID)
+
+		post = *restored
 	})
 
 	t.Run("Delete", func(t *testing.T) {
