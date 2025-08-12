@@ -40,6 +40,7 @@ type PostPatch struct {
 	Title     *string   `json:"title"`
 	Content   *string   `json:"content"`
 	Published *bool     `json:"published"`
+	Deleted   *bool     `json:"deleted"`
 }
 
 type PostModel struct {
@@ -273,8 +274,65 @@ func (m *PostModel) SelectManyTx(
 }
 
 func (m *PostModel) update(ctx context.Context, q db.Queryable, patch PostPatch) (*Post, error) {
-	// TODO: Implement
-	return nil, nil
+	const stmt string = `
+UPDATE blog.post
+SET title      = COALESCE($2::VARCHAR(1024), title),
+    content    = COALESCE($3::TEXT, content),
+    published  = COALESCE($4::BOOLEAN, published),
+    deleted    = COALESCE($5::BOOLEAN, deleted),
+    deleted_at = CASE
+                     WHEN COALESCE($5::BOOLEAN, deleted) = TRUE AND deleted_at IS NULL THEN NOW()
+                     WHEN COALESCE($5::BOOLEAN, deleted) = FALSE THEN NULL
+                     ELSE deleted_at
+        END,
+    updated_at = NOW()
+WHERE id = $1::UUID
+RETURNING id,
+    title,
+    content,
+    published,
+    created_at,
+    updated_at,
+    deleted,
+    deleted_at;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.Any("id", patch),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var p Post
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		patch.ID,
+		patch.Title,
+		patch.Content,
+		patch.Published,
+		patch.Deleted,
+	).Scan(
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Published,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Deleted,
+		&p.DeletedAt,
+	)
+	if err != nil {
+		return nil, db.HandleError(err, logger)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "post updated", slog.Any("post", p))
+
+	return &p, nil
 }
 
 func (m *PostModel) Update(ctx context.Context, patch PostPatch) (*Post, error) {
