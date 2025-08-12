@@ -11,17 +11,18 @@ import (
 )
 
 type Models struct {
-	db    pgxpool.Pool
+	db    *pgxpool.Pool
 	Posts PostModel
 }
 
 func NewModels(pool *pgxpool.Pool, timeout *time.Duration) Models {
 	return Models{
+		db:    pool,
 		Posts: PostModel{DB: pool, Timeout: timeout},
 	}
 }
 
-func (m *Models) BeginTx(ctx context.Context) (*pgx.Tx, func(), error) {
+func (m *Models) BeginTx(ctx context.Context) (pgx.Tx, func(), error) {
 	tx, err := m.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return nil, nil, err
@@ -42,5 +43,5 @@ func (m *Models) BeginTx(ctx context.Context) (*pgx.Tx, func(), error) {
 		}
 	}
 
-	return &tx, rollbackFunc, nil
+	return tx, rollbackFunc, nil
 }
