@@ -28,10 +28,10 @@ type PatchRequestBody struct {
 }
 
 type DeleteRequestBody struct {
-	Data deleteOptions `json:"data"`
+	Data DeleteOptions `json:"data"`
 }
 
-type deleteOptions struct {
+type DeleteOptions struct {
 	ID    uuid.UUID `json:"id"`
 	Purge bool      `json:"purge"`
 }
@@ -157,11 +157,46 @@ func DeleteBlogpostHandler(
 	blogposts repo.PostWriter,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		var body DeleteRequestBody
+		if err := api.ReadJSON(r, &body); err != nil {
+			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
+			return
+		}
+
+		var blogpost *repo.Post
+		var err error
+		switch body.Data.Purge {
+		case true:
+			blogpost, err = blogposts.Delete(ctx, body.Data.ID)
+		default:
+			change := true
+			blogpost, err = blogposts.Update(
+				ctx,
+				repo.PostPatch{ID: body.Data.ID, Deleted: &change},
+			)
+		}
+		if err != nil {
+			switch {
+			case errors.Is(err, db.ErrUniqueConstraintViolation):
+				api.ConstraintViolationResponse(w, r, err, "blostpost ID already exists")
+			case errors.Is(err, db.ErrForeignKeyConstraintViolation):
+				api.ConstraintViolationResponse(w, r, err, "blogpost referenced by other resources")
+			case errors.Is(err, db.ErrRecordNotFound):
+				api.NotFoundResponse(ctx, w, r)
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
 		api.RespondWithJSON(
 			w,
 			r,
 			http.StatusOK,
-			BlogpostResponse{},
+			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
 	})

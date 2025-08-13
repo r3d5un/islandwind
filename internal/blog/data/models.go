@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -29,17 +30,20 @@ func (m *Models) BeginTx(ctx context.Context) (pgx.Tx, func(), error) {
 	}
 
 	rollbackFunc := func() {
-		logger := logging.LoggerFromContext(ctx)
-		logger.LogAttrs(ctx, slog.LevelInfo, "performing rollback")
-
 		if err := tx.Rollback(ctx); err != nil {
-			logger.LogAttrs(
-				ctx,
-				slog.LevelInfo,
-				"error upon rollback",
-				slog.String("error", err.Error()),
-			)
-			return
+			switch {
+			case errors.Is(err, pgx.ErrTxClosed):
+				// No action needed. Safe to ignore.
+			default:
+				logger := logging.LoggerFromContext(ctx)
+				logger.LogAttrs(
+					ctx,
+					slog.LevelInfo,
+					"error upon rollback",
+					slog.String("error", err.Error()),
+				)
+				return
+			}
 		}
 	}
 

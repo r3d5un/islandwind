@@ -94,7 +94,41 @@ func TestBlogpostHandlers(t *testing.T) {
 		assert.False(t, post.Data.Published)
 	})
 
-	t.Run("DeleteBlogpostHandler", func(t *testing.T) {
-		t.Skip("not implemented")
+	t.Run("DeleteBlogpostHandlerSoftDelete", func(t *testing.T) {
+		body, err := json.Marshal(handlers.DeleteRequestBody{
+			Data: handlers.DeleteOptions{
+				ID:    post.Data.ID,
+				Purge: false,
+			},
+		})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodDelete, "", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.DeleteBlogpostHandler(blogReaderWriter)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+	})
+
+	t.Run("DeleteBlogpostHandlerPurge", func(t *testing.T) {
+		body, err := json.Marshal(handlers.DeleteRequestBody{
+			Data: handlers.DeleteOptions{
+				ID:    post.Data.ID,
+				Purge: true,
+			},
+		})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodDelete, "", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.DeleteBlogpostHandler(blogReaderWriter)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
 	})
 }
