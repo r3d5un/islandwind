@@ -40,8 +40,8 @@ func TestBlogpostHandlers(t *testing.T) {
 		assert.NoError(t, err)
 
 		rr := httptest.NewRecorder()
-		postHandler := handlers.PostBlogpostHandler(blogReaderWriter)
-		postHandler.ServeHTTP(rr, req)
+		handler := handlers.PostBlogpostHandler(blogReaderWriter)
+		handler.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 		assert.NotNil(t, rr.Body)
@@ -51,7 +51,16 @@ func TestBlogpostHandlers(t *testing.T) {
 	})
 
 	t.Run("GetBlogpostHandler", func(t *testing.T) {
-		t.Skip("not implemented")
+		req, err := http.NewRequest(http.MethodPost, "", nil)
+		assert.NoError(t, err)
+		req.SetPathValue("id", post.Data.ID.String())
+
+		rr := httptest.NewRecorder()
+		handler := handlers.GetBlogpostHandler(blogReaderWriter)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
 	})
 
 	t.Run("ListBlogpostHandler", func(t *testing.T) {

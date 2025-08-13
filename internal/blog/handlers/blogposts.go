@@ -70,11 +70,32 @@ func GetBlogpostHandler(
 	blogposts repo.PostReader,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		id, err := api.ReadPathParamID(ctx, "id", r)
+		if err != nil {
+			api.InvalidParameterResponse(ctx, w, r, "id", err)
+			return
+		}
+
+		blogpost, err := blogposts.Read(ctx, *id)
+		if err != nil {
+			switch {
+			case errors.Is(err, db.ErrRecordNotFound):
+				api.NotFoundResponse(ctx, w, r)
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
 		api.RespondWithJSON(
 			w,
 			r,
 			http.StatusOK,
-			BlogpostResponse{},
+			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
 	})

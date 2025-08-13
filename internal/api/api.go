@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -54,6 +56,19 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	ErrorResponse(w, r, http.StatusInternalServerError, serverErrorMsg)
 }
 
+func InvalidParameterResponse(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	param string,
+	err error,
+) {
+	logger := logging.LoggerFromContext(ctx)
+	logger.LogAttrs(ctx, slog.LevelInfo, "parameter invalid", slog.String("error", err.Error()))
+
+	ErrorResponse(w, r, http.StatusNotFound, fmt.Sprintf("%s is not a valid parameter", param))
+}
+
 func RespondWithJSON(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -94,6 +109,30 @@ func ReadJSON(r *http.Request, data any) error {
 	}
 
 	return nil
+}
+
+func ReadPathParamID(ctx context.Context, key string, r *http.Request) (*uuid.UUID, error) {
+	logger := logging.LoggerFromContext(ctx)
+
+	pathValue := r.PathValue(key)
+	if pathValue == "" {
+		logger.LogAttrs(ctx, slog.LevelInfo, "path parameter empty", slog.String("key", key))
+		return nil, ErrPathParamID
+	}
+
+	id, err := uuid.Parse(pathValue)
+	if err != nil {
+		logger.LogAttrs(
+			ctx,
+			slog.LevelInfo,
+			"unable to parse path parameter UUID",
+			slog.String("key", key),
+			slog.String("value", pathValue),
+		)
+		return nil, ErrPathParamID
+	}
+
+	return &id, err
 }
 
 func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error, msg string) {
