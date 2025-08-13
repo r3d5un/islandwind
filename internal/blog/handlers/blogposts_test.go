@@ -68,7 +68,30 @@ func TestBlogpostHandlers(t *testing.T) {
 	})
 
 	t.Run("PatchBlogpostHandler", func(t *testing.T) {
-		t.Skip("not implemented")
+		change := false
+		body, err := json.Marshal(handlers.PatchRequestBody{
+			Data: repo.PostPatch{
+				ID:        post.Data.ID,
+				Published: &change,
+			},
+		})
+		assert.NoError(t, err)
+
+		req, err := http.NewRequest(
+			http.MethodPatch, "", strings.NewReader(string(body)),
+		)
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.PatchBlogpostHandler(blogReaderWriter)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+
+		err = json.Unmarshal(rr.Body.Bytes(), &post)
+		assert.NoError(t, err)
+		assert.False(t, post.Data.Published)
 	})
 
 	t.Run("DeleteBlogpostHandler", func(t *testing.T) {

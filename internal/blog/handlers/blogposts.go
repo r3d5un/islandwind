@@ -15,6 +15,10 @@ type BlogpostResponse struct {
 	Data repo.Post `json:"data"`
 }
 
+type BlogpostListResponse struct {
+	Data []repo.Post `json:"data"`
+}
+
 type PostRequestBody struct {
 	Data repo.PostInput `json:"data"`
 }
@@ -119,11 +123,31 @@ func PatchBlogpostHandler(
 	blogposts repo.PostWriter,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		var body PatchRequestBody
+		if err := api.ReadJSON(r, &body); err != nil {
+			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
+			return
+		}
+
+		blogpost, err := blogposts.Update(ctx, body.Data)
+		if err != nil {
+			switch {
+			case errors.Is(err, db.ErrUniqueConstraintViolation):
+				api.ConstraintViolationResponse(w, r, err, "blostpost ID already exists")
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
 		api.RespondWithJSON(
 			w,
 			r,
 			http.StatusOK,
-			BlogpostResponse{},
+			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
 	})
