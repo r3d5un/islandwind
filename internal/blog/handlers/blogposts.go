@@ -33,12 +33,12 @@ type deleteOptions struct {
 }
 
 func PostBlogpostHandler(
-	blogposts repo.PostReaderWriter,
+	blogposts repo.PostWriter,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var body PostRequestBody
-		if err := api.ReadJSON(r, body); err != nil {
+		if err := api.ReadJSON(r, &body); err != nil {
 			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
 			return
 		}
@@ -67,7 +67,7 @@ func PostBlogpostHandler(
 }
 
 func GetBlogpostHandler(
-	blogposts repo.PostReaderWriter,
+	blogposts repo.PostReader,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithJSON(
@@ -81,7 +81,7 @@ func GetBlogpostHandler(
 }
 
 func ListBlogpostHandler(
-	blogposts repo.PostReaderWriter,
+	blogposts repo.PostReader,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithJSON(
@@ -95,7 +95,7 @@ func ListBlogpostHandler(
 }
 
 func PatchBlogpostHandler(
-	blogposts repo.PostReaderWriter,
+	blogposts repo.PostWriter,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithJSON(
@@ -109,7 +109,7 @@ func PatchBlogpostHandler(
 }
 
 func DeleteBlogpostHandler(
-	blogposts repo.PostReaderWriter,
+	blogposts repo.PostWriter,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		api.RespondWithJSON(
