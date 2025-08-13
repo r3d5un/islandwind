@@ -90,7 +90,6 @@ func NewMonolith() (*Monolith, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
 
 	mono := Monolith{
 		id:      instanceID,
@@ -198,8 +197,9 @@ func (m *Monolith) SetupModules(ctx context.Context) {
 	}
 }
 
-func (m *Monolith) ShutdownModules() {
-	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "shutting down modules")
+func (m *Monolith) Shutdown() {
+	ctx := context.Background()
+	m.logger.LogAttrs(ctx, slog.LevelInfo, "shutting down modules")
 	val := reflect.ValueOf(m.modules)
 
 	if val.Kind() == reflect.Pointer {
@@ -213,4 +213,7 @@ func (m *Monolith) ShutdownModules() {
 			module.Shutdown()
 		}
 	}
+
+	m.logger.LogAttrs(ctx, slog.LevelInfo, "closing database connection pool")
+	m.db.Close()
 }

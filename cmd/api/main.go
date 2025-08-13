@@ -32,7 +32,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer mono.ShutdownModules()
+	defer mono.Shutdown()
 
 	return nil
 }
