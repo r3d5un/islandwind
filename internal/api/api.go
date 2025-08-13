@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -11,6 +12,11 @@ import (
 
 var (
 	ErrPathParamID = errors.New("path parameter is invalid")
+)
+
+const (
+	notFoundMsg string = "resource not found"
+	timeoutMsg  string = "the server took to long to respond"
 )
 
 type ErrorMessage struct {
@@ -76,4 +82,46 @@ func RespondWithJSON(
 	if _, err = w.Write(js); err != nil {
 		ServerErrorResponse(w, r, err)
 	}
+}
+
+func ReadJSON(r *http.Request, data any) error {
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	err := decoder.Decode(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error, msg string) {
+	logger := logging.LoggerFromContext(r.Context())
+
+	logger.Info("bad request", slog.String("error", err.Error()), slog.String("message", msg))
+	ErrorResponse(w, r, http.StatusBadRequest, msg)
+}
+
+func ConstraintViolationResponse(w http.ResponseWriter, r *http.Request, err error, msg string) {
+	logger := logging.LoggerFromContext(r.Context())
+
+	logger.Info(
+		"a constraint violation occurred",
+		slog.String("error", err.Error()),
+		slog.String("message", msg),
+	)
+	ErrorResponse(w, r, http.StatusConflict, msg)
+}
+
+func TimeoutResponse(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	logger := logging.LoggerFromContext(r.Context())
+	logger.LogAttrs(ctx, slog.LevelInfo, timeoutMsg)
+	ErrorResponse(w, r, http.StatusRequestTimeout, timeoutMsg)
+}
+
+func NotFoundResponse(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	logger := logging.LoggerFromContext(ctx)
+	logger.LogAttrs(ctx, slog.LevelInfo, notFoundMsg)
+	ErrorResponse(w, r, http.StatusNotFound, notFoundMsg)
 }
