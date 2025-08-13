@@ -17,8 +17,8 @@ func (m *Module) addRoutes(ctx context.Context) {
 		{"GET /api/v1/blog/healthcheck", m.healthcheckHandler},
 		// blog posts
 		{"POST /api/v1/blog/post", handlers.PostBlogpostHandler(m.repo.Posts)},
-		{"GET /api/v1/blog/post", handlers.GetBlogpostHandler(m.repo.Posts)},
-		{"GET /api/v1/blog/post/{id}", handlers.ListBlogpostHandler(m.repo.Posts)},
+		{"GET /api/v1/blog/post/{id}", handlers.GetBlogpostHandler(m.repo.Posts)},
+		{"GET /api/v1/blog/post/", handlers.ListBlogpostHandler(m.repo.Posts)},
 		{"PATCH /api/v1/blog/post", handlers.PatchBlogpostHandler(m.repo.Posts)},
 		{"DELETE /api/v1/blog/post", handlers.DeleteBlogpostHandler(m.repo.Posts)},
 	}
