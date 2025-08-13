@@ -3,8 +3,11 @@ package blog
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/r3d5un/islandwind/internal/blog/repo"
+	"github.com/r3d5un/islandwind/internal/config"
 	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
 )
 
@@ -14,6 +17,8 @@ type Module struct {
 	name   string
 	logger *slog.Logger
 	db     *pgxpool.Pool
+	cfg    *config.Config
+	repo   repo.Repository
 }
 
 func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
@@ -26,6 +31,9 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	m.name = moduleName
 	m.logger = logger
 	m.db = mono.DB()
+	m.cfg = mono.Config()
+	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
+	m.repo = repo.NewRepository(m.db, &timeout)
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 
