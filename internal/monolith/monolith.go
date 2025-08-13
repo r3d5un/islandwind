@@ -32,6 +32,10 @@ type Monolith struct {
 	modules *interfaces.Modules
 }
 
+func (m *Monolith) InstanceID() uuid.UUID {
+	return m.id
+}
+
 func (m *Monolith) DB() *pgxpool.Pool {
 	return m.db
 }
@@ -181,7 +185,7 @@ func (m *Monolith) SetupModules(ctx context.Context) {
 	m.logger.LogAttrs(ctx, slog.LevelInfo, "setting up modules")
 	val := reflect.ValueOf(m.modules)
 
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 
@@ -198,7 +202,7 @@ func (m *Monolith) ShutdownModules() {
 	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "shutting down modules")
 	val := reflect.ValueOf(m.modules)
 
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 

@@ -3,8 +3,10 @@ package blog
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
 	"github.com/r3d5un/islandwind/internal/config"
@@ -14,11 +16,13 @@ import (
 const moduleName string = "blog"
 
 type Module struct {
-	name   string
-	logger *slog.Logger
-	db     *pgxpool.Pool
-	cfg    *config.Config
-	repo   repo.Repository
+	name       string
+	logger     *slog.Logger
+	db         *pgxpool.Pool
+	cfg        *config.Config
+	repo       repo.Repository
+	mux        *http.ServeMux
+	instanceID uuid.UUID
 }
 
 func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
@@ -28,12 +32,15 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "setting up module")
+	m.instanceID = mono.InstanceID()
 	m.name = moduleName
 	m.logger = logger
 	m.db = mono.DB()
 	m.cfg = mono.Config()
 	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
 	m.repo = repo.NewRepository(m.db, &timeout)
+	m.mux = mono.Mux()
+	m.addRoutes(ctx)
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 
