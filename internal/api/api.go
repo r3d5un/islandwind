@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/logging"
+	"github.com/r3d5un/islandwind/internal/validator"
 )
 
 var (
@@ -163,4 +167,131 @@ func NotFoundResponse(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	logger := logging.LoggerFromContext(ctx)
 	logger.LogAttrs(ctx, slog.LevelInfo, notFoundMsg)
 	ErrorResponse(w, r, http.StatusNotFound, notFoundMsg)
+}
+
+func ValidationFailedResponse(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	validationErrors map[string]string,
+) {
+	logger := logging.LoggerFromContext(r.Context())
+	logger.LogAttrs(ctx, slog.LevelInfo, timeoutMsg, slog.Any("validationErrors", validationErrors))
+	ErrorResponse(
+		w,
+		r,
+		http.StatusUnprocessableEntity,
+		fmt.Sprintf("filter validation failed: %v", validationErrors),
+	)
+}
+
+func ReadRequiredQueryBoolean(
+	qs url.Values,
+	key string,
+	defaultValue bool,
+) bool {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return defaultValue
+	}
+	return b
+}
+
+func ReadOptionalQueryBoolean(qs url.Values, key string) *bool {
+	s := qs.Get(key)
+	if s == "" {
+		return nil
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return nil
+	}
+	return &b
+}
+
+func ReadRequiredQueryInt(qs url.Values, key string, defaultVal int, v *validator.Validator) int {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultVal
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultVal
+	}
+
+	return i
+}
+
+func ReadRequiredQueryUUID(
+	qs url.Values,
+	key string,
+	v *validator.Validator,
+	defaultVal uuid.UUID,
+) *uuid.UUID {
+	s := qs.Get(key)
+
+	if s == "" {
+		return &defaultVal
+	}
+
+	id, err := uuid.Parse(s)
+	if err != nil {
+		v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+	}
+
+	return &id
+}
+
+func ReadOptionalQueryUUID(qs url.Values, key string, v *validator.Validator) *uuid.UUID {
+	s := qs.Get(key)
+
+	if s == "" {
+		return nil
+	}
+
+	id, err := uuid.Parse(s)
+	if err != nil {
+		v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+	}
+
+	return &id
+}
+
+func ReadOptionalQueryString(qs url.Values, key string) *string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return nil
+	}
+
+	return &s
+}
+
+func ReadOptionalQueryDate(qs url.Values, key string, v *validator.Validator) *time.Time {
+	s := qs.Get(key)
+	if s == "" {
+		return nil
+	}
+
+	formats := []string{
+		"2006-01-02",
+		"2006-01-02T15:04:05",
+	}
+
+	for _, format := range formats {
+		if date, err := time.Parse(format, s); err == nil {
+			return &date
+		}
+	}
+
+	v.AddError(key, fmt.Sprintf("not a valid date format, accepting %s", formats))
+
+	return nil
 }

@@ -7,8 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/api"
+	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/validator"
 )
 
 type BlogpostResponse struct {
@@ -16,7 +18,8 @@ type BlogpostResponse struct {
 }
 
 type BlogpostListResponse struct {
-	Data []repo.Post `json:"data"`
+	Metadata data.Metadata `json:"metadata"`
+	Data     []*repo.Post  `json:"data"`
 }
 
 type PostRequestBody struct {
@@ -109,11 +112,45 @@ func ListBlogpostHandler(
 	blogposts repo.PostReader,
 ) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		v := validator.New()
+		qs := r.URL.Query()
+		filters := data.Filter{}
+
+		filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
+		filters.ID = api.ReadOptionalQueryUUID(qs, "id", v)
+		filters.Title = api.ReadOptionalQueryString(qs, "title")
+		filters.CreatedAtFrom = api.ReadOptionalQueryDate(qs, "created_at_from", v)
+		filters.CreatedAtTo = api.ReadOptionalQueryDate(qs, "created_at_to", v)
+		filters.UpdatedAtFrom = api.ReadOptionalQueryDate(qs, "updated_at_from", v)
+		filters.UpdatedAtTo = api.ReadOptionalQueryDate(qs, "updated_at_to", v)
+		filters.Deleted = api.ReadOptionalQueryBoolean(qs, "deleted")
+		filters.DeletedAtFrom = api.ReadOptionalQueryDate(qs, "deleted_at_from", v)
+		filters.DeletedAtTo = api.ReadOptionalQueryDate(qs, "deleted_at_to", v)
+		filters.LastSeen = *api.ReadRequiredQueryUUID(qs, "deleted_at_to", v, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
+
+		if !v.Valid() {
+			api.ValidationFailedResponse(ctx, w, r, v.Errors)
+			return
+		}
+
+		blogposts, metadata, err := blogposts.List(ctx, filters)
+		if err != nil {
+			switch {
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
 		api.RespondWithJSON(
 			w,
 			r,
 			http.StatusOK,
-			BlogpostResponse{},
+			BlogpostListResponse{Data: blogposts, Metadata: *metadata},
 			nil,
 		)
 	})

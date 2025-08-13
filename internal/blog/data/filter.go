@@ -16,8 +16,8 @@ type Filter struct {
 	UpdatedAtFrom *time.Time `json:"updatedAtFrom"`
 	UpdatedAtTo   *time.Time `json:"updatedAtTo"`
 	Deleted       *bool      `json:"deleted"`
-	DeletedAtFrom *bool      `json:"deletedAtFrom"`
-	DeletedAtTo   *bool      `json:"deletedAtTo"`
+	DeletedAtFrom *time.Time `json:"deletedAtFrom"`
+	DeletedAtTo   *time.Time `json:"deletedAtTo"`
 
 	OrderBy         []string  `json:"orderBy,omitzero"`
 	OrderBySafeList []string  `json:"orderBySafeList,omitzero"`
