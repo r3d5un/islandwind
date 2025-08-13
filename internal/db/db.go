@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 type Config struct {
@@ -93,6 +93,7 @@ func IsEmpty[T comparable](x []*T) bool {
 var (
 	ErrRecordNotFound                = errors.New("record not found")
 	ErrForeignKeyConstraintViolation = errors.New("foreign key constraint violation")
+	ErrConstraintViolation           = errors.New("schema constraint violation")
 	ErrUniqueConstraintViolation     = errors.New("unique constraint violation")
 	ErrNotNullConstraintViolation    = errors.New("not null constraint violation")
 	ErrCheckConstraintViolation      = errors.New("check constraint violation")
@@ -121,52 +122,59 @@ const (
 	PgxUndefinedTableCode = "42P01"
 )
 
-// CreateOrderByClause creates a SQL statement for ordering based on a given
-// list of column names. Column names prefixed in "-" will be in a descending
-// order.
-//
-// This function always adds an "id" column at the end to guarantee the order
-// of cursor SQL queries.
-func CreateOrderByClause(orderBy []string) string {
-	length := len(orderBy)
-	if length == 0 {
-		return "ORDER BY id"
+func HandleError(ctx context.Context, err error) error {
+	logger := logging.LoggerFromContext(ctx).With("pgxError", slog.String("error", err.Error()))
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.LogAttrs(ctx, slog.LevelInfo, "no rows found")
+		return ErrRecordNotFound
 	}
 
-	orderClauses := make([]string, length+1)
-	for i, item := range orderBy {
-		if strings.HasPrefix(item, "-") {
-			orderClauses[i] = strings.TrimPrefix(item, "-") + " DESC"
-		} else {
-			orderClauses[i] = item + " ASC"
-		}
-	}
-	orderClauses[len(orderClauses)-1] = "id ASC"
-
-	return "ORDER BY " + strings.Join(orderClauses, ", ")
-}
-
-func HandleError(err error, logger *slog.Logger) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
+		logger = logger.With(slog.Group(
+			"pgxError",
+			slog.String("error", err.Error()),
+			slog.String("code", pgErr.Code),
+			slog.String("message", pgErr.Message),
+			slog.Int("line", int(pgErr.Line)),
+		))
 		switch pgErr.Code {
-		case "23505": // unique_violation
-			logger.Error("unique constraint violation", slog.String("error", pgErr.Message))
-			return ErrUniqueConstraintViolation
-		case "23503": // foreign_key_violation
-			logger.Error("foreign key constraint violation", slog.String("error", pgErr.Message))
+		case PgxIntegrityConstraintViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "constraint violation")
+			return ErrConstraintViolation
+		case PgxRestrictViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "record referenced by other resources")
+			return ErrConstraintViolation
+		case PgxNotNullViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "null cannot be inserted to non-nullable fields")
+			return ErrConstraintViolation
+		case PgxForeignKeyViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "foreign key constraint violation")
 			return ErrForeignKeyConstraintViolation
-		case "23514": // check_violation
-			logger.Error("check constraint violation", slog.String("error", pgErr.Message))
+		case PgxUniqueViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "unique constraint violation")
+			return ErrUniqueConstraintViolation
+		case PgxCheckViolationCode:
+			logger.LogAttrs(ctx, slog.LevelError, "check constraint violation")
 			return ErrCheckConstraintViolation
+		case PgxSyntaxErrorCode:
+			logger.LogAttrs(ctx, slog.LevelError, "syntax error")
+			return ErrSynatxErrorViolation
+		case PgxUndefinedColumnCode:
+			logger.LogAttrs(ctx, slog.LevelError, "referenced column does not exist")
+			return ErrUndefinedResource
+		case PgxUndefinedTableCode:
+			logger.LogAttrs(ctx, slog.LevelError, "referenced table does not exist")
+			return ErrUndefinedResource
 		default:
-			logger.Error("unhandled constraint violation", slog.String("error", pgErr.Message))
+			logger.LogAttrs(ctx, slog.LevelError, "unhandled constraint violation")
 			return fmt.Errorf("unhandled constraint violation: %s", pgErr.Message)
 		}
-	} else if errors.Is(err, pgx.ErrNoRows) {
-		return ErrRecordNotFound
-	} else {
-		logger.Error("unable to perform query", slog.String("error", err.Error()))
-		return err
 	}
+
+	logger.LogAttrs(
+		ctx, slog.LevelError, "unhandled database error", slog.String("error", err.Error()),
+	)
+	return err
 }

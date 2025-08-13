@@ -96,7 +96,7 @@ RETURNING
 		&p.DeletedAt,
 	)
 	if err != nil {
-		return nil, db.HandleError(err, logger)
+		return nil, db.HandleError(ctx, err)
 	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "post inserted", slog.Any("post", p))
 
@@ -151,7 +151,7 @@ WHERE id = $1::UUID;
 		&p.DeletedAt,
 	)
 	if err != nil {
-		return nil, db.HandleError(err, logger)
+		return nil, db.HandleError(ctx, err)
 	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "post selected", slog.Any("post", p))
 
@@ -244,12 +244,12 @@ LIMIT $1;
 			&b.DeletedAt,
 		)
 		if err != nil {
-			return nil, nil, db.HandleError(err, logger)
+			return nil, nil, db.HandleError(ctx, err)
 		}
 		posts = append(posts, &b)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, nil, db.HandleError(err, logger)
+		return nil, nil, db.HandleError(ctx, err)
 	}
 	metadata := NewMetadata(posts, filter)
 
@@ -328,7 +328,7 @@ RETURNING id,
 		&p.DeletedAt,
 	)
 	if err != nil {
-		return nil, db.HandleError(err, logger)
+		return nil, db.HandleError(ctx, err)
 	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "post updated", slog.Any("post", p))
 
@@ -385,7 +385,7 @@ RETURNING id,
 		&p.DeletedAt,
 	)
 	if err != nil {
-		return nil, db.HandleError(err, logger)
+		return nil, db.HandleError(ctx, err)
 	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "post deleted", slog.Any("post", p))
 
