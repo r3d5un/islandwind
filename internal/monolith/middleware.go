@@ -2,12 +2,10 @@ package monolith
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -49,17 +47,5 @@ func (m *Monolith) logRequest(next http.Handler) http.Handler {
 		logger.LogAttrs(ctx, slog.LevelInfo, "received request")
 		next.ServeHTTP(w, r.WithContext(ctx))
 		logger.LogAttrs(ctx, slog.LevelInfo, "request completed")
-	})
-}
-
-func (m *Monolith) recoverPanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				w.Header().Set("Connection", "close")
-				api.ServerErrorResponse(w, r, fmt.Errorf("%s", err))
-			}
-		}()
-		next.ServeHTTP(w, r)
 	})
 }

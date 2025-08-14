@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/justinas/alice"
+	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/blog"
 	"github.com/r3d5un/islandwind/internal/config"
 	database "github.com/r3d5un/islandwind/internal/db"
@@ -161,7 +162,7 @@ func (m *Monolith) Serve() error {
 func (m *Monolith) routes() http.Handler {
 	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "creating standard middleware chain")
 	standard := alice.New(
-		m.recoverPanic,
+		api.RecoverPanicMiddleware,
 		m.enableCORS,
 		m.logRequest,
 	)

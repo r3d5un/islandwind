@@ -50,3 +50,18 @@ func TestBasicAuthMiddleware(t *testing.T) {
 		assert.Equal(t, rr.Code, http.StatusUnauthorized)
 	})
 }
+
+func TestRecoverPanicMiddleware(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		panic("the middleware should recover from this panic")
+	})
+	middleware := api.RecoverPanicMiddleware(handler)
+
+	req := httptest.NewRequest("GET", "/", nil)
+	rr := httptest.NewRecorder()
+
+	assert.NotPanics(t, func() {
+		middleware.ServeHTTP(rr, req)
+	})
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+}
