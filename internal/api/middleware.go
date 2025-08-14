@@ -1,11 +1,15 @@
 package api
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 // BasicAuthConfig contains the username and password used in the basic authentication
@@ -58,5 +62,37 @@ func CORSMiddleware(next http.Handler, allow []string) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+type requestUrlKey string
+
+const RequestUrlKey requestUrlKey = "requestUrlKey"
+
+// LogRequestMiddleware returns a middleware which adds a [slog.Logger] to the request context
+func LogRequestMiddleware(
+	next http.Handler,
+	logger slog.Logger,
+	instanceID uuid.UUID,
+	module string,
+) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		logger := logger.With(
+			slog.Group(
+				"request",
+				slog.String("id", uuid.New().String()),
+				slog.String("module", module),
+				slog.String("method", r.Method),
+				slog.String("protocol", r.Proto),
+				slog.String("url", r.URL.Path),
+			),
+		)
+		ctx = logging.WithLogger(ctx, logger)
+		ctx = context.WithValue(ctx, RequestUrlKey, r.URL.Path)
+
+		logger.LogAttrs(ctx, slog.LevelInfo, "received request")
+		next.ServeHTTP(w, r.WithContext(ctx))
+		logger.LogAttrs(ctx, slog.LevelInfo, "request completed")
 	})
 }
