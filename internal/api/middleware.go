@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 // BasicAuthConfig contains the username and password used in the basic authentication
@@ -41,5 +42,21 @@ func BasicAuthMiddleware(next http.Handler, cfg BasicAuthConfig) http.Handler {
 
 		w.Header().Set("WWW-Authentication", `Basic realm="restricted", charset="UTF-8"`)
 		UnauthorizedResponse(w, r)
+	})
+}
+
+// CORSMiddleware returns middleware enabeling Cross-Origin Resource Sharing
+func CORSMiddleware(next http.Handler, allow []string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", strings.Join(allow, ", "))
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
