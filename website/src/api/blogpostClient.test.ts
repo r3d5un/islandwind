@@ -23,9 +23,9 @@ describe('BlogpostClient', () => {
     }
 
     for (const id of blogpostIds) {
-      logger.info("test GET request", {id: id})
+      logger.info('test GET request', { id: id })
       const blogpost: Blogpost | RequestFailureError = await blogpostClient.get(id)
-      logger.info("blogpost retrieved", {blogpost: blogpost})
+      logger.info('blogpost retrieved', { blogpost: blogpost })
     }
   })
 })

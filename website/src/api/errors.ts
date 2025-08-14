@@ -36,21 +36,21 @@ export class ForbiddenError extends Error {
 export class BadRequestError extends Error {
   constructor(public message: string = 'The request was not accepted') {
     super()
-    this.name = "BadRequestError"
+    this.name = 'BadRequestError'
   }
 }
 
 export class UnexpectedStatusCodeError extends Error {
   constructor(public message: string = 'Unexpected HTTP status code received') {
     super()
-    this.name = "UnexpectedStatusCodeError"
+    this.name = 'UnexpectedStatusCodeError'
   }
 }
 
 export class UnknownRequestFailureError extends Error {
-  constructor(public message: string = "Unknown request failure") {
+  constructor(public message: string = 'Unknown request failure') {
     super()
-    this.name = "UnknownRequestFailureError"
+    this.name = 'UnknownRequestFailureError'
   }
 }
 
@@ -62,4 +62,4 @@ export type RequestFailureError =
   | BackendServerInternalError
   | UnexpectedStatusCodeError
   | NetworkError
-  | UnknownRequestFailureError;
+  | UnknownRequestFailureError
