@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/spf13/viper"
 )
@@ -31,6 +32,8 @@ type ServerConfig struct {
 	ReadTimeout int `json:"readTimeout"`
 	// WriteTimeout is the maximum duration before timing out the writes of the response.
 	WriteTimeout int `json:"writeTimeout"`
+	// BasicAuthConfig is used to set the administrator username and password
+	Authentication api.BasicAuthConfig `json:"authentication"`
 }
 
 func New() (*Config, error) {

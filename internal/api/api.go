@@ -73,6 +73,15 @@ func InvalidParameterResponse(
 	ErrorResponse(w, r, http.StatusNotFound, fmt.Sprintf("%s is not a valid parameter", param))
 }
 
+func UnauthorizedResponse(w http.ResponseWriter, r *http.Request) {
+	logger := logging.LoggerFromContext(r.Context())
+
+	const forbiddenMsg string = "request unauthorized"
+
+	logger.Info(forbiddenMsg)
+	ErrorResponse(w, r, http.StatusUnauthorized, forbiddenMsg)
+}
+
 func RespondWithJSON(
 	w http.ResponseWriter,
 	r *http.Request,
