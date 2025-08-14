@@ -161,11 +161,7 @@ func (m *Monolith) Serve() error {
 
 func (m *Monolith) routes() http.Handler {
 	m.logger.LogAttrs(context.Background(), slog.LevelInfo, "creating standard middleware chain")
-	standard := alice.New(
-		api.RecoverPanicMiddleware,
-		m.enableCORS,
-		m.logRequest,
-	)
+	standard := alice.New(api.RecoverPanicMiddleware)
 
 	// healthcheck
 	m.mux.HandleFunc("GET /api/v1/mono/healthcheck", m.healthcheckHandler)

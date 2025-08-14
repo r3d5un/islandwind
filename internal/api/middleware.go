@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -71,19 +70,12 @@ type requestUrlKey string
 const RequestUrlKey requestUrlKey = "requestUrlKey"
 
 // LogRequestMiddleware returns a middleware which adds a [slog.Logger] to the request context
-func LogRequestMiddleware(
-	next http.Handler,
-	logger slog.Logger,
-	instanceID uuid.UUID,
-	module string,
-) http.Handler {
+func LogRequestMiddleware(next http.Handler, logger slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		logger := logger.With(
 			slog.Group(
 				"request",
-				slog.String("id", uuid.New().String()),
-				slog.String("module", module),
 				slog.String("method", r.Method),
 				slog.String("protocol", r.Proto),
 				slog.String("url", r.URL.Path),
