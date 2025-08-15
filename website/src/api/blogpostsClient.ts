@@ -1,10 +1,12 @@
 import {
   Blogpost,
+  BlogpostDeleteBody,
   BlogpostDeleteOptions,
   BlogpostInput,
   BlogpostListResponse,
+  BlogpostPatch,
+  BlogpostPatchBody,
   BlogpostPostBody,
-  BlogpostDeleteBody,
 } from './blogposts'
 import { type IBlogpostListResponse, type IBlogpostResponse } from './blogposts.ts'
 import { type ILogObj, Logger } from 'tslog'
@@ -24,8 +26,6 @@ export class BlogpostClient {
   readonly baseUrl: string
   private logger: Logger<ILogObj>
   private timeout: number = 5000
-  private _username: string | null
-  private _password: string | null
 
   constructor(baseUrl: string, logger: Logger<ILogObj>) {
     this.baseUrl = baseUrl
@@ -34,9 +34,13 @@ export class BlogpostClient {
     this._password = null
   }
 
+  private _username: string | null
+
   set username(value: string) {
     this._username = value
   }
+
+  private _password: string | null
 
   set password(value: string) {
     this._password = value
@@ -65,6 +69,30 @@ export class BlogpostClient {
       )
       this.logger.info('blogposts listed')
       return new BlogpostListResponse(response.data.data, response.data.metadata)
+    } catch (error) {
+      this.logger.error('Error listing blogposts', { error: error })
+      return this.handleRequestFailure(error)
+    }
+  }
+
+  public async patch(blogpost: BlogpostPatch): Promise<Blogpost | RequestFailureError> {
+    this.logger.info('updating blogpost', { blogpost: blogpost })
+
+    if (!this._username || !this._password) {
+      return new UnauthorizedError('missing basic authentication credentials')
+    }
+
+    try {
+      const response: AxiosResponse<IBlogpostResponse, number> = await axios.patch(
+        `${this.baseUrl}/api/v1/blog/post`,
+        new BlogpostPatchBody(blogpost),
+        {
+          timeout: this.timeout,
+          auth: { username: this._username, password: this._password },
+        },
+      )
+      this.logger.info('blogpost updated')
+      return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
       return this.handleRequestFailure(error)

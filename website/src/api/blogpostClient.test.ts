@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest'
 import { type ILogObj, Logger } from 'tslog'
 import { BlogpostClient } from '@/api/blogpostsClient.ts'
-import { Blogpost, BlogpostInput, BlogpostListResponse } from '@/api/blogposts.ts'
+import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/api/blogposts.ts'
 import type { RequestFailureError } from '@/api/errors.ts'
 
 describe('BlogpostClient', () => {
@@ -43,9 +43,25 @@ describe('BlogpostClient', () => {
   })
 
   it('should create, update, then delete a blogpost', async () => {
-    const blogpost: Blogpost | RequestFailureError = await blogpostClient.post(
+    const posted: Blogpost | RequestFailureError = await blogpostClient.post(
       new BlogpostInput('Update me', 'This content should be updated', false),
     )
-    logger.info('post performed', { blogpost: blogpost })
+    logger.info('post performed', { blogpost: posted })
+
+    if (posted instanceof Blogpost && posted) {
+      const updated: Blogpost | RequestFailureError = await blogpostClient.patch(
+        new BlogpostPatch({
+          id: posted.id,
+          title: 'New Title',
+          content: 'This content is updated',
+          published: true,
+        }),
+      )
+      logger.info('blogpost updated', { blogpost: updated })
+
+      if (updated instanceof Blogpost && updated) {
+        await blogpostClient.delete(updated.id, true)
+      }
+    }
   })
 })

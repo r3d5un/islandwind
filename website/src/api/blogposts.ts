@@ -96,6 +96,38 @@ export class BlogpostDeleteOptions {
   }
 }
 
+export class BlogpostPatchBody {
+  public data: BlogpostPatch
+
+  constructor(data: BlogpostPatch) {
+    this.data = data
+  }
+}
+
+export class BlogpostPatch {
+  public id: string
+  public title?: string | null = null
+  public content?: string | null = null
+  public published?: boolean | null = null
+  public deleted?: boolean | null = null
+
+  constructor(input: IBlogpostPatchNamedParameters) {
+    this.id = input.id
+    this.title = input.title
+    this.content = input.content
+    this.published = input.published
+    this.deleted = input.deleted
+  }
+}
+
+export interface IBlogpostPatchNamedParameters {
+  id: string
+  title?: string
+  content?: string
+  published?: boolean
+  deleted?: boolean
+}
+
 export class Metadata {
   lastSeen: string
   next: string
