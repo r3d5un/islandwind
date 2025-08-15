@@ -29,6 +29,10 @@ func (c BasicAuthConfig) LogValue() slog.Value {
 
 func BasicAuthMiddleware(next http.Handler, cfg BasicAuthConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		logger := logging.LoggerFromContext(ctx)
+
+		logger.LogAttrs(ctx, slog.LevelInfo, "authenticating request")
 		username, password, ok := r.BasicAuth()
 		if ok {
 			usernameHash := sha256.Sum256([]byte(username))
@@ -39,6 +43,7 @@ func BasicAuthMiddleware(next http.Handler, cfg BasicAuthConfig) http.Handler {
 			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
 
 			if usernameMatch && passwordMatch {
+				logger.LogAttrs(ctx, slog.LevelInfo, "request authenticated")
 				next.ServeHTTP(w, r)
 				return
 			}
