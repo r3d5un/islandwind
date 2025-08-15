@@ -50,6 +50,8 @@ func New() (*Config, error) {
 	viper.SetDefault("server.idleTimeout", 60)
 	viper.SetDefault("server.readTimeout", 5)
 	viper.SetDefault("server.writeTimeout", 10)
+	viper.SetDefault("server.authentication.username", "islandwind")
+	viper.SetDefault("server.authentication.password", "islandwind")
 	// Default Database Settings
 	viper.SetDefault(
 		"db.connstr",

@@ -29,7 +29,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			"POST /api/v1/blog/post",
 			handlers.PostBlogpostHandler(m.repo.Posts),
 			[]string{http.MethodPost},
-			false,
+			true,
 		},
 		{
 			"GET /api/v1/blog/post/{id}",
@@ -47,13 +47,13 @@ func (m *Module) addRoutes(ctx context.Context) {
 			"PATCH /api/v1/blog/post",
 			handlers.PatchBlogpostHandler(m.repo.Posts),
 			[]string{http.MethodPatch},
-			false,
+			true,
 		},
 		{
 			"DELETE /api/v1/blog/post",
 			handlers.DeleteBlogpostHandler(m.repo.Posts),
 			[]string{http.MethodDelete},
-			false,
+			true,
 		},
 	}
 
