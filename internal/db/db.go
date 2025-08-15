@@ -15,10 +15,22 @@ import (
 )
 
 type Config struct {
-	ConnStr         string `json:"-"`
-	MaxOpenConns    int32  `json:"maxOpenConns"`
-	IdleTimeMinutes int    `json:"idleTimeMinutes"`
-	TimeoutSeconds  int    `json:"timeoutSeconds"`
+	// ConnStr is the database connection string
+	//
+	// Set through the ISLANDWIND_DB_CONNSTR environment variable
+	ConnStr string `json:"-"`
+	// MaxOpenConns sets the maximum number of connections to the database
+	//
+	// Set through the ISLANDWIND_DB_MAXOPENCONNS environment variable
+	MaxOpenConns int32 `json:"maxOpenConns"`
+	// IdleTimeMinutes is how long idle database connections remain alive set in minutes.
+	//
+	// Set through the ISLANDWIND_DB_IDLETIMEMINUTES environment variable
+	IdleTimeMinutes int `json:"idleTimeMinutes"`
+	// TimeoutSeconds sets the timeout for queries set in seconds.
+	//
+	// Set through the ISLANDWIND_DB_TIMEOUTSECONDS environment variable
+	TimeoutSeconds int `json:"timeoutSeconds"`
 }
 
 func (c Config) LogValue() slog.Value {
