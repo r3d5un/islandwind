@@ -30,6 +30,26 @@ export class BlogpostResponse {
   }
 }
 
+export class BlogpostPostBody {
+  public data: BlogpostInput
+
+  constructor(input: BlogpostInput) {
+    this.data = input
+  }
+}
+
+export class BlogpostInput {
+  public title: string
+  public content: string
+  public published: boolean
+
+  constructor(title: string, content: string, published: boolean) {
+    this.title = title
+    this.content = content
+    this.published = published
+  }
+}
+
 export class BlogpostListResponse {
   public data: Blogpost[]
   public metadata: Metadata

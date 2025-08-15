@@ -1,4 +1,4 @@
-import { Blogpost, BlogpostListResponse } from './blogposts'
+import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPostBody } from './blogposts'
 import { type IBlogpostListResponse, type IBlogpostResponse } from './blogposts.ts'
 import { type ILogObj, Logger } from 'tslog'
 import axios, { type AxiosResponse } from 'axios'
@@ -17,10 +17,22 @@ export class BlogpostClient {
   readonly baseUrl: string
   private logger: Logger<ILogObj>
   private timeout: number = 5000
+  private _username: string | null
+  private _password: string | null
 
   constructor(baseUrl: string, logger: Logger<ILogObj>) {
     this.baseUrl = baseUrl
     this.logger = logger
+    this._username = null
+    this._password = null
+  }
+
+  set username(value: string) {
+    this._username = value
+  }
+
+  set password(value: string) {
+    this._password = value
   }
 
   public async get(id: string): Promise<Blogpost | RequestFailureError> {
@@ -46,6 +58,30 @@ export class BlogpostClient {
       )
       this.logger.info('blogposts listed')
       return new BlogpostListResponse(response.data.data, response.data.metadata)
+    } catch (error) {
+      this.logger.error('Error listing blogposts', { error: error })
+      return this.handleRequestFailure(error)
+    }
+  }
+
+  public async post(blogpost: BlogpostInput): Promise<Blogpost | RequestFailureError> {
+    this.logger.info('creating blogpost', { blogpost: blogpost })
+
+    if (!this._username || !this._password) {
+      return new UnauthorizedError('missing basic authentication credentials')
+    }
+
+    try {
+      const response: AxiosResponse<IBlogpostResponse, number> = await axios.post(
+        `${this.baseUrl}/api/v1/blog/post`,
+        new BlogpostPostBody(blogpost),
+        {
+          timeout: this.timeout,
+          auth: { username: this._username, password: this._password },
+        },
+      )
+      this.logger.info('blogpost created')
+      return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
       return this.handleRequestFailure(error)
