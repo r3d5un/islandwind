@@ -11,8 +11,8 @@ describe('BlogpostClient', () => {
     type: 'pretty',
   })
   const blogpostClient: BlogpostClient = new BlogpostClient(baseUrl, logger)
-  blogpostClient.username = "islandwind"
-  blogpostClient.password = "islandwind"
+  blogpostClient.username = 'islandwind'
+  blogpostClient.password = 'islandwind'
   const blogpostIds: string[] = []
 
   it('should list blogposts', async () => {
@@ -31,10 +31,21 @@ describe('BlogpostClient', () => {
     }
   })
 
-  it('should create a new blogpost', async () => {
+  it('should create then delete a blogpost', async () => {
     const blogpost: Blogpost | RequestFailureError = await blogpostClient.post(
       new BlogpostInput('Example title', 'This is some sample content', false),
     )
-    logger.info("post performed", {blogpost: blogpost})
+    logger.info('post performed', { blogpost: blogpost })
+
+    if (blogpost instanceof Blogpost && blogpost) {
+      await blogpostClient.delete(blogpost.id, true)
+    }
+  })
+
+  it('should create, update, then delete a blogpost', async () => {
+    const blogpost: Blogpost | RequestFailureError = await blogpostClient.post(
+      new BlogpostInput('Update me', 'This content should be updated', false),
+    )
+    logger.info('post performed', { blogpost: blogpost })
   })
 })

@@ -1,4 +1,11 @@
-import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPostBody } from './blogposts'
+import {
+  Blogpost,
+  BlogpostDeleteOptions,
+  BlogpostInput,
+  BlogpostListResponse,
+  BlogpostPostBody,
+  BlogpostDeleteBody,
+} from './blogposts'
 import { type IBlogpostListResponse, type IBlogpostResponse } from './blogposts.ts'
 import { type ILogObj, Logger } from 'tslog'
 import axios, { type AxiosResponse } from 'axios'
@@ -80,6 +87,29 @@ export class BlogpostClient {
           auth: { username: this._username, password: this._password },
         },
       )
+      this.logger.info('blogpost created')
+      return new Blogpost(response.data.data)
+    } catch (error) {
+      this.logger.error('Error listing blogposts', { error: error })
+      return this.handleRequestFailure(error)
+    }
+  }
+
+  public async delete(id: string, purge: boolean): Promise<Blogpost | RequestFailureError> {
+    this.logger.info('deleting blogpost', { id: id })
+
+    if (!this._username || !this._password) {
+      return new UnauthorizedError('missing basic authentication credentials')
+    }
+
+    try {
+      const response: AxiosResponse<IBlogpostResponse, number> = await axios({
+        method: 'delete',
+        url: `${this.baseUrl}/api/v1/blog/post`,
+        data: new BlogpostDeleteBody(new BlogpostDeleteOptions(id, purge)),
+        timeout: this.timeout,
+        auth: { username: this._username, password: this._password },
+      })
       this.logger.info('blogpost created')
       return new Blogpost(response.data.data)
     } catch (error) {

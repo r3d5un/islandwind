@@ -78,6 +78,24 @@ export class Blogpost {
   }
 }
 
+export class BlogpostDeleteBody {
+  public data: BlogpostDeleteOptions
+
+  constructor(data: BlogpostDeleteOptions) {
+    this.data = data
+  }
+}
+
+export class BlogpostDeleteOptions {
+  id: string
+  purge: boolean
+
+  constructor(id: string, purge: boolean) {
+    this.id = id
+    this.purge = purge
+  }
+}
+
 export class Metadata {
   lastSeen: string
   next: string
