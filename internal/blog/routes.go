@@ -38,7 +38,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			false,
 		},
 		{
-			"GET /api/v1/blog/post/",
+			"GET /api/v1/blog/post",
 			handlers.ListBlogpostHandler(m.repo.Posts),
 			[]string{http.MethodGet},
 			false,
