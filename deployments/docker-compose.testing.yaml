@@ -1,0 +1,41 @@
+services:
+  database:
+    image: "postgres:17.6"
+    ports:
+      - 15432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=islandwind
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  migrate:
+    image: "migrate/migrate"
+    volumes:
+      - "./../migrations:/migrations"
+    command: >
+      -path=/migrations/
+      -database postgres://postgres:postgres@database:5432/islandwind?sslmode=disable up
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+  backend:
+    build:
+      context: "./.."
+      dockerfile: ".//build/api.Dockerfile"
+    stop_signal: SIGINT
+    environment:
+      - ISLANDWIND_DB_CONNSTR=postgres://postgres:postgres@database:5432/islandwind?sslmode=disable
+    depends_on:
+      database:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "14000:4000"
+    restart: "unless-stopped"

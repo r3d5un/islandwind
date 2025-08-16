@@ -35,21 +35,21 @@ export class ForbiddenError extends Error {
 
 export class BadRequestError extends Error {
   constructor(public message: string = 'The request was not accepted') {
-    super()
+    super(message)
     this.name = 'BadRequestError'
   }
 }
 
 export class UnexpectedStatusCodeError extends Error {
   constructor(public message: string = 'Unexpected HTTP status code received') {
-    super()
+    super(message)
     this.name = 'UnexpectedStatusCodeError'
   }
 }
 
 export class UnknownRequestFailureError extends Error {
   constructor(public message: string = 'Unknown request failure') {
-    super()
+    super(message)
     this.name = 'UnknownRequestFailureError'
   }
 }

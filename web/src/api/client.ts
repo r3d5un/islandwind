@@ -1,7 +1,12 @@
+import { BlogpostClient } from '@/api/blogpostsClient.ts'
+import { type ILogObj, Logger } from 'tslog'
+
 export class HttpClient {
   public baseUrl: string
+  public blogposts: BlogpostClient
 
-  constructor(baseUrl: string) {
+  constructor(logger: Logger<ILogObj>, baseUrl: string) {
     this.baseUrl = baseUrl
+    this.blogposts = new BlogpostClient(baseUrl, logger)
   }
 }

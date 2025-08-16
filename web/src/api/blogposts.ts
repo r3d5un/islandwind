@@ -9,6 +9,7 @@ export interface IBlogpostListResponse {
 
 export interface IBlogpost {
   id: string
+  title: string
   content: string
   published: boolean
   createdAt: Date
@@ -20,14 +21,6 @@ export interface IMetadata {
   lastSeen: string
   next: string
   responseLength: number
-}
-
-export class BlogpostResponse {
-  public data: Blogpost
-
-  constructor(data: IBlogpost) {
-    this.data = data
-  }
 }
 
 export class BlogpostPostBody {
@@ -62,6 +55,7 @@ export class BlogpostListResponse {
 
 export class Blogpost {
   id: string
+  title: string
   content: string
   published: boolean
   createdAt: Date
@@ -70,6 +64,7 @@ export class Blogpost {
 
   constructor(blogpost: IBlogpost) {
     this.id = blogpost.id
+    this.title = blogpost.title
     this.content = blogpost.content
     this.published = blogpost.published
     this.createdAt = blogpost.createdAt

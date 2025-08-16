@@ -3,113 +3,140 @@ import { type ILogObj, Logger } from 'tslog'
 import { BlogpostClient } from '@/api/blogpostsClient.ts'
 import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/api/blogposts.ts'
 import type { RequestFailureError } from '@/api/errors.ts'
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
-import { Client } from 'pg'
-import { migrate, MigrationDirection } from '@/testsuite/db.ts'
+import { Client, type QueryResult } from 'pg'
+import { DockerComposeEnvironment, StartedDockerComposeEnvironment, Wait } from 'testcontainers'
+
+interface IBlogpostID {
+  id: string
+}
 
 describe('BlogpostClient', () => {
-  let postgresContainer: StartedPostgreSqlContainer
-  let postgresClient: Client
-
-  const baseUrl: string = 'http://localhost:4000'
   const logger: Logger<ILogObj> = new Logger({
     hideLogPositionForProduction: false,
     type: 'pretty',
   })
+
+  const databaseConnectionString: string =
+    'postgres://postgres:postgres@localhost:15432/islandwind?sslmode=disable'
+  let databaseClient: Client
+
+  const baseUrl: string = 'http://localhost:14000'
   const blogpostClient: BlogpostClient = new BlogpostClient(baseUrl, logger)
   blogpostClient.username = 'islandwind'
   blogpostClient.password = 'islandwind'
-  const blogpostIds: string[] = []
 
-  beforeAll(async () => {
-    logger.info('Setting up Docker network')
+  let environment: StartedDockerComposeEnvironment
 
-    logger.info('Starting Postgres container')
-    postgresContainer = await new PostgreSqlContainer('postgres:17.6').start()
-    postgresClient = new Client({ connectionString: postgresContainer.getConnectionUri() })
-    await postgresClient.connect()
-    logger.info('Postgres container started')
+  beforeAll(
+    async () => {
+      logger.info('Setting up Docker Compose testing environment')
+      try {
+        environment = await new DockerComposeEnvironment(
+          './../.', // Project root
+          './deployments/docker-compose.testing.yaml',
+        )
+          // One shot startup strategy is for containers than run briefly then exit on their own with exit code 0.
+          // The migrate container executes all up migrations after the database is, then exits. This ensures that
+          // the container is ready before proceeding.
+          .withWaitStrategy('migrate-1', Wait.forOneShotStartup())
+          .up()
+      } catch (error) {
+        logger.error('unable to start Docker Compose', { error: error })
+        throw error
+      }
 
-    logger.info('performing up migrations')
-    try {
-      await migrate(postgresClient, MigrationDirection.up)
-    } catch (error) {
-      logger.error('unable to run migrations', { error: error })
-    }
-  }, 60_000)
+      logger.info('Connecting database client')
+      databaseClient = new Client({ connectionString: databaseConnectionString })
+      await databaseClient.connect()
+
+      logger.info('Inserting test data')
+      await databaseClient.query(`
+          INSERT INTO blog.post (title, content, published)
+          VALUES ('Read Me', 'Read Me', false),
+                 ('Update Me', 'Update Me', false),
+                 ('Delete Me', 'Delete Me', false);
+      `)
+    },
+    // Timeout set to two minutes because the container environment can take some time to be ready
+    120_000,
+  )
 
   afterAll(async () => {
-    logger.info('performing down migrations')
-    try {
-      await migrate(postgresClient, MigrationDirection.down)
-    } catch (error) {
-      logger.error('unable to run migrations', { error: error })
+    logger.info('Cleaning up database')
+    await databaseClient.query('DROP SCHEMA IF EXISTS blog CASCADE;')
+    logger.info('Cleanup complete')
+
+    logger.info('Closing database client')
+    await databaseClient.end()
+
+    logger.info('Shutting down Docker Compose testing environment')
+    await environment.down()
+  })
+
+  it('should create a blogpost', async () => {
+    const input = new BlogpostInput('Created Blogpost', 'Content', false)
+    const result: Blogpost | RequestFailureError = await blogpostClient.post(input)
+
+    expect(result).toBeInstanceOf(Blogpost)
+    if (result instanceof Blogpost) {
+      expect(result.id.length).toBeGreaterThan(0)
+      expect(result.title).toBe(input.title)
+      expect(result.content).toBe(input.content)
+      expect(result.published).toBe(input.published)
     }
-
-    await postgresClient.end()
-    await postgresContainer.stop()
   })
 
-  it('should SELECT anything', async () => {
-    const result = await postgresClient.query("SELECT 'Hello, World!' AS col1")
-    expect(result.rows[0].col1).toEqual('Hello, World!')
-  })
+  it('should read a blogpost', async () => {
+    const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
+      "SELECT id FROM blog.post WHERE title = 'Read Me';",
+    )
+    const result: Blogpost | RequestFailureError = await blogpostClient.get(queryResult.rows[0].id)
 
-  it('should SELECT from blog.post', async () => {
-    try {
-      await postgresClient.query('SELECT * FROM blog.post;')
-    } catch (error) {
-      logger.error('something went wrong', { error: error })
+    expect(result).toBeInstanceOf(Blogpost)
+    if (result instanceof Blogpost) {
+      expect(result.title).toBe('Read Me')
+      expect(result.content).toBe('Read Me')
     }
   })
 
   it('should list blogposts', async () => {
-    const blogposts: BlogpostListResponse | RequestFailureError = await blogpostClient.list()
-    if (blogposts instanceof BlogpostListResponse) {
-      blogposts?.data.forEach((value: Blogpost) => {
-        logger.info('blogpost', { blogpost: value })
-        blogpostIds.push(value.id)
-      })
-    }
+    const result: BlogpostListResponse | RequestFailureError = await blogpostClient.list()
+    expect(result).toBeInstanceOf(BlogpostListResponse)
 
-    for (const id of blogpostIds) {
-      logger.info('test GET request', { id: id })
-      const blogpost: Blogpost | RequestFailureError = await blogpostClient.get(id)
-      logger.info('blogpost retrieved', { blogpost: blogpost })
+    if (result instanceof BlogpostListResponse) {
+      expect(result.data.length).toBeGreaterThan(0)
+      expect(result.metadata.next)
+      expect(result.metadata.responseLength).toBe(result.data.length)
     }
   })
 
-  it('should create then delete a blogpost', async () => {
-    const blogpost: Blogpost | RequestFailureError = await blogpostClient.post(
-      new BlogpostInput('Example title', 'This is some sample content', false),
+  it('should update a blogpost', async () => {
+    const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
+      "SELECT id FROM blog.post WHERE title = 'Update Me';",
     )
-    logger.info('post performed', { blogpost: blogpost })
+    const patch: BlogpostPatch = new BlogpostPatch({ id: queryResult.rows[0].id, published: true })
+    const result: Blogpost | RequestFailureError = await blogpostClient.patch(patch)
 
-    if (blogpost instanceof Blogpost && blogpost) {
-      await blogpostClient.delete(blogpost.id, true)
+    expect(result).toBeInstanceOf(Blogpost)
+    if (result instanceof Blogpost) {
+      expect(result.id).toBe(queryResult.rows[0].id)
+      expect(result.published).toBe(true)
     }
   })
 
-  it('should create, update, then delete a blogpost', async () => {
-    const posted: Blogpost | RequestFailureError = await blogpostClient.post(
-      new BlogpostInput('Update me', 'This content should be updated', false),
+  it('should delete a blogpost', async () => {
+    const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
+      "SELECT id FROM blog.post WHERE title = 'Delete Me';",
     )
-    logger.info('post performed', { blogpost: posted })
+    const result: Blogpost | RequestFailureError = await blogpostClient.delete(
+      queryResult.rows[0].id,
+      true,
+    )
 
-    if (posted instanceof Blogpost && posted) {
-      const updated: Blogpost | RequestFailureError = await blogpostClient.patch(
-        new BlogpostPatch({
-          id: posted.id,
-          title: 'New Title',
-          content: 'This content is updated',
-          published: true,
-        }),
-      )
-      logger.info('blogpost updated', { blogpost: updated })
-
-      if (updated instanceof Blogpost && updated) {
-        await blogpostClient.delete(updated.id, true)
-      }
+    expect(result).toBeInstanceOf(Blogpost)
+    if (result instanceof Blogpost) {
+      expect(result.id).toBe(queryResult.rows[0].id)
+      expect(result.deleted).toBe(true)
     }
   })
 })
