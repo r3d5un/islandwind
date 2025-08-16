@@ -1,4 +1,5 @@
 local.env
+build/bin/*
 
 *node_modules
 website/dist

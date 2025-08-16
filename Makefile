@@ -76,6 +76,19 @@ test/backend/reload:
 	find . -name "*.go" | entr -c go test -race -vet=off ./...
 
 # ==================================================================================== #
+# TESTING
+# ==================================================================================== #
+
+.PHONY: build/backend/linux
+build/backend/linux: test/backend
+	mkdir -p ./build/bin
+	GOOS=linux GOARCH=amd64 go build -o ./build/bin/api ./cmd/api/
+
+.PHONY: build/backend/docker
+build/backend/docker: test/backend
+	docker build -t r3d5un/islandwind/backend -f ./build/api.Dockerfile .
+
+# ==================================================================================== #
 # RUNNERS
 # ==================================================================================== #
 .PHONY: run/backend
