@@ -26,19 +26,19 @@ db/migrations/new:
 .PHONY: db/migrations/up
 db/migrations/up: confirm
 	@echo 'Running up migrations...'
-	migrate -path ./migrations -database="${ISLANDWIND_DB_CONN_STR}" up
+	migrate -path ./migrations -database="${ISLANDWIND_DB_CONNSTR}" up
 
 ## db/migrations/goto number=$1: target versiont to migrate to
 .PHONY: db/migrations/goto
 db/migrations/goto: confirm
 	@echo 'Running down migrations...'
-	migrate -path=./migrations -database="${ISLANDWIND_DB_CONN_STR}" goto ${number}
+	migrate -path=./migrations -database="${ISLANDWIND_DB_CONNSTR}" goto ${number}
 
 ## db/migrations/down
 .PHONY: db/migrations/down
 db/migrations/down: confirm
 	@echo 'Running down migrations...'
-	migrate -path=./migrations -database="${ISLANDWIND_DB_CONN_STR}" down
+	migrate -path=./migrations -database="${ISLANDWIND_DB_CONNSTR}" down
 
 # ==================================================================================== #
 # FORMATTING
