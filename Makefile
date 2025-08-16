@@ -70,8 +70,6 @@ test/backend: test/backend/staticcheck test/backend/vet
 
 .PHONY: test/backend/reload
 test/backend/reload:
-	$(sstatic_analysis_and_vet)
-
 	@echo 'Running tests...'
 	find . -name "*.go" | entr -c go test -race -vet=off ./...
 
