@@ -1,10 +1,16 @@
-import { describe, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { type ILogObj, Logger } from 'tslog'
 import { BlogpostClient } from '@/api/blogpostsClient.ts'
 import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/api/blogposts.ts'
 import type { RequestFailureError } from '@/api/errors.ts'
+import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
+import { Client } from 'pg'
+import { migrate, MigrationDirection } from '@/testsuite/db.ts'
 
 describe('BlogpostClient', () => {
+  let postgresContainer: StartedPostgreSqlContainer
+  let postgresClient: Client
+
   const baseUrl: string = 'http://localhost:4000'
   const logger: Logger<ILogObj> = new Logger({
     hideLogPositionForProduction: false,
@@ -14,6 +20,48 @@ describe('BlogpostClient', () => {
   blogpostClient.username = 'islandwind'
   blogpostClient.password = 'islandwind'
   const blogpostIds: string[] = []
+
+  beforeAll(async () => {
+    logger.info('Setting up Docker network')
+
+    logger.info('Starting Postgres container')
+    postgresContainer = await new PostgreSqlContainer('postgres:17.6').start()
+    postgresClient = new Client({ connectionString: postgresContainer.getConnectionUri() })
+    await postgresClient.connect()
+    logger.info('Postgres container started')
+
+    logger.info('performing up migrations')
+    try {
+      await migrate(postgresClient, MigrationDirection.up)
+    } catch (error) {
+      logger.error('unable to run migrations', { error: error })
+    }
+  }, 60_000)
+
+  afterAll(async () => {
+    logger.info('performing down migrations')
+    try {
+      await migrate(postgresClient, MigrationDirection.down)
+    } catch (error) {
+      logger.error('unable to run migrations', { error: error })
+    }
+
+    await postgresClient.end()
+    await postgresContainer.stop()
+  })
+
+  it('should SELECT anything', async () => {
+    const result = await postgresClient.query("SELECT 'Hello, World!' AS col1")
+    expect(result.rows[0].col1).toEqual('Hello, World!')
+  })
+
+  it('should SELECT from blog.post', async () => {
+    try {
+      await postgresClient.query('SELECT * FROM blog.post;')
+    } catch (error) {
+      logger.error('something went wrong', { error: error })
+    }
+  })
 
   it('should list blogposts', async () => {
     const blogposts: BlogpostListResponse | RequestFailureError = await blogpostClient.list()
