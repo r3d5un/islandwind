@@ -55,6 +55,13 @@ func (m *Module) addRoutes(ctx context.Context) {
 			[]string{http.MethodDelete},
 			true,
 		},
+		{
+			// Route for testing basic auth credentials
+			"GET /api/v1/auth/login",
+			api.EmptyHandler(),
+			[]string{http.MethodGet},
+			true,
+		},
 	}
 
 	m.logger.LogAttrs(ctx, slog.LevelInfo, "adding routes")
