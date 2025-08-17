@@ -35,6 +35,7 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	m.db = mono.DB()
 	m.cfg = mono.Config()
 	m.mux = mono.Mux()
+	m.addRoutes(ctx)
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 
