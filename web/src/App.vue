@@ -1,11 +1,7 @@
 <script lang="ts" setup>
-import { type ILogObj, Logger } from 'tslog'
+import { useLogger } from '@/ui/logging.ts'
 
-const logger: Logger<ILogObj> = new Logger({
-  hideLogPositionForProduction: true,
-  type: 'json',
-})
-
+const logger = useLogger()
 logger.info('Loading UI')
 </script>
 
@@ -15,11 +11,7 @@ logger.info('Loading UI')
     <p>Path: {{ $route.fullPath }}</p>
     <nav>
       <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/blogpost">Blogpost</RouterLink>
     </nav>
-    <p>
-      <strong></strong>
-    </p>
   </header>
   <main>
     <RouterView />
@@ -28,10 +20,6 @@ logger.info('Loading UI')
 
 <style scoped>
 h1 {
-  font-family: Monospaced, monospace;
-}
-
-h2 {
   font-family: Monospaced, monospace;
 }
 
