@@ -1,3 +1,5 @@
+import { marked } from 'marked'
+
 export interface IBlogpostResponse {
   data: IBlogpost
 }
@@ -70,6 +72,10 @@ export class Blogpost {
     this.updatedAt = new Date(blogpost.updatedAt)
     this.deleted = blogpost.deleted
     this.deletedAt = new Date(blogpost.deletedAt)
+  }
+
+  public async markdownContent(): Promise<string> {
+    return marked(this.content)
   }
 }
 

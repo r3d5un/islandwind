@@ -9,6 +9,7 @@ const logger = useLogger()
 const route = useRoute()
 const client = useClient()
 const blogpost = ref<Blogpost>()
+const content = ref('')
 
 function validateRouteId(input: string | string[]): string {
   if (!input) {
@@ -25,6 +26,7 @@ async function retrieveBlogpost(id: string): Promise<void> {
   if (response instanceof Blogpost) {
     logger.info('retrieved blogpost', { blogpost: blogpost })
     blogpost.value = response
+    content.value = await response.markdownContent()
   } else {
     logger.error('Unable to retrieve blogpost', { id: id, error: blogpost })
     blogpost.value = undefined
@@ -49,14 +51,7 @@ onMounted(async () => {
 <template>
   <h2 v-if="blogpost">{{ blogpost.title }}</h2>
   <p v-if="blogpost">{{ blogpost.createdAt }} - {{ blogpost.id }}</p>
+  <div v-html="content"></div>
 </template>
 
-<style scoped>
-h2 {
-  font-family: Monospaced, monospace;
-}
-
-p {
-  font-family: Monospaced, monospace;
-}
-</style>
+<style scoped></style>

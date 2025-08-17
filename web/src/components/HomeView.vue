@@ -30,12 +30,4 @@ onMounted(async () => {
   </ul>
 </template>
 
-<style scoped>
-h2 {
-  font-family: Monospaced, monospace;
-}
-
-a {
-  font-family: Monospaced, monospace;
-}
-</style>
+<style scoped></style>

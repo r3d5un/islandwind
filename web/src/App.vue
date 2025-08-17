@@ -18,19 +18,4 @@ logger.info('Loading UI')
   </main>
 </template>
 
-<style scoped>
-h1 {
-  font-family: Monospaced, monospace;
-}
-
-p {
-  font-family: Monospaced, monospace;
-}
-
-a {
-  font-family: Monospaced, monospace;
-}
-nav > a + a {
-  margin-left: 10px;
-}
-</style>
+<style scoped></style>
