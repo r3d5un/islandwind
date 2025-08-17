@@ -83,6 +83,7 @@ describe('BlogpostClient', () => {
       expect(result.title).toBe(input.title)
       expect(result.content).toBe(input.content)
       expect(result.published).toBe(input.published)
+      expect(result.createdAt).toBeInstanceOf(Date)
     }
   })
 
@@ -96,6 +97,7 @@ describe('BlogpostClient', () => {
     if (result instanceof Blogpost) {
       expect(result.title).toBe('Read Me')
       expect(result.content).toBe('Read Me')
+      expect(result.createdAt).toBeInstanceOf(Date)
     }
   })
 
@@ -121,6 +123,7 @@ describe('BlogpostClient', () => {
     if (result instanceof Blogpost) {
       expect(result.id).toBe(queryResult.rows[0].id)
       expect(result.published).toBe(true)
+      expect(result.createdAt).toBeInstanceOf(Date)
     }
   })
 
@@ -137,6 +140,8 @@ describe('BlogpostClient', () => {
     if (result instanceof Blogpost) {
       expect(result.id).toBe(queryResult.rows[0].id)
       expect(result.deleted).toBe(true)
+      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(result.deletedAt).toBeInstanceOf(Date)
     }
   })
 })

@@ -7,22 +7,6 @@ export interface IBlogpostListResponse {
   metadata: IMetadata
 }
 
-export interface IBlogpost {
-  id: string
-  title: string
-  content: string
-  published: boolean
-  createdAt: Date
-  deleted: boolean
-  deletedAt: Date
-}
-
-export interface IMetadata {
-  lastSeen: string
-  next: string
-  responseLength: number
-}
-
 export class BlogpostPostBody {
   public data: BlogpostInput
 
@@ -48,9 +32,23 @@ export class BlogpostListResponse {
   public metadata: Metadata
 
   constructor(data: IBlogpost[], metadata: IMetadata) {
-    this.data = data
-    this.metadata = metadata
+    this.data = []
+    for (const input of data) {
+      this.data.push(new Blogpost(input))
+    }
+    this.metadata = new Metadata(metadata)
   }
+}
+
+export interface IBlogpost {
+  id: string
+  title: string
+  content: string
+  published: boolean
+  createdAt: Date
+  updatedAt: Date
+  deleted: boolean
+  deletedAt: Date
 }
 
 export class Blogpost {
@@ -59,6 +57,7 @@ export class Blogpost {
   content: string
   published: boolean
   createdAt: Date
+  updatedAt: Date
   deleted: boolean
   deletedAt: Date
 
@@ -67,9 +66,10 @@ export class Blogpost {
     this.title = blogpost.title
     this.content = blogpost.content
     this.published = blogpost.published
-    this.createdAt = blogpost.createdAt
+    this.createdAt = new Date(blogpost.createdAt)
+    this.updatedAt = new Date(blogpost.updatedAt)
     this.deleted = blogpost.deleted
-    this.deletedAt = blogpost.deletedAt
+    this.deletedAt = new Date(blogpost.deletedAt)
   }
 }
 
@@ -121,6 +121,12 @@ export interface IBlogpostPatchNamedParameters {
   content?: string
   published?: boolean
   deleted?: boolean
+}
+
+export interface IMetadata {
+  lastSeen: string
+  next: string
+  responseLength: number
 }
 
 export class Metadata {
