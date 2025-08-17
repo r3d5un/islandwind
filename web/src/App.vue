@@ -10,7 +10,7 @@ logger.info('Loading UI')
     <h1>Islandwind</h1>
     <p>Path: {{ $route.fullPath }}</p>
     <nav>
-      <RouterLink to="/">Home</RouterLink>
+      <router-link :to="{ name: 'Home' }">Home</router-link>
     </nav>
   </header>
   <main>

@@ -4,9 +4,8 @@ import BlogpostView from '@/components/BlogpostView.vue'
 import NotFoundView from '@/components/NotFoundView.vue'
 
 const routes = [
-  { path: '/', component: HomeView },
-  { path: '/blog', component: HomeView },
-  { path: '/blog/:id', component: BlogpostView },
+  { path: '/', name: 'Home', component: HomeView },
+  { path: '/blog/:id', name: 'BlogpostView', component: BlogpostView },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundView },
 ]
 

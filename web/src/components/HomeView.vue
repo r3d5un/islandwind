@@ -23,8 +23,8 @@ onMounted(async () => {
   <h2>HomeView</h2>
   <ul>
     <li v-for="post of blogposts" :key="post.id">
-      <RouterLink :to="`/blog/${post.id}`"
-        >{{ post.id }}: {{ post.title }} - {{ post.createdAt }}</RouterLink
+      <router-link :to="{ name: 'BlogpostView', params: { id: post.id } }"
+        >{{ post.createdAt }} - {{ post.title }}</router-link
       >
     </li>
   </ul>

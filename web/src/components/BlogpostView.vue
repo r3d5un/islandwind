@@ -10,43 +10,39 @@ const route = useRoute()
 const client = useClient()
 const blogpost = ref<Blogpost>()
 
-watch(
-  () => route.params.id,
-  async (newId) => {
-    if (!newId) {
-      logger.error('No ID provided in route')
-      blogpost.value = undefined
-      return
-    }
-
-    const id = Array.isArray(newId) ? newId[0] : newId
-
-    const response = await client.blogposts.get(id)
-    if (response instanceof Blogpost) {
-      logger.info('retrieved blogpost', { blogpost: blogpost })
-      blogpost.value = response
-    } else {
-      logger.error('Unable to retrieve blogpost', { id: newId, error: blogpost })
-    }
-  },
-)
-
-onMounted(async () => {
-  const newId = route.params.id
-  if (!newId) {
+function validateRouteId(input: string | string[]): string {
+  if (!input) {
     logger.error('No ID provided in route')
     blogpost.value = undefined
-    return
+    return ''
   }
-  const id = Array.isArray(newId) ? newId[0] : newId
 
+  return Array.isArray(input) ? input[0] : input
+}
+
+async function retrieveBlogpost(id: string): Promise<void> {
   const response = await client.blogposts.get(id)
   if (response instanceof Blogpost) {
     logger.info('retrieved blogpost', { blogpost: blogpost })
     blogpost.value = response
   } else {
-    logger.error('Unable to retrieve blogpost', { id: newId, error: blogpost })
+    logger.error('Unable to retrieve blogpost', { id: id, error: blogpost })
+    blogpost.value = undefined
   }
+}
+
+watch(
+  () => route.params.id,
+  async (newId) => {
+    const id = validateRouteId(newId)
+    await retrieveBlogpost(id)
+  },
+)
+
+onMounted(async () => {
+  const newId = route.params.id
+  const id = validateRouteId(newId)
+  await retrieveBlogpost(id)
 })
 </script>
 
