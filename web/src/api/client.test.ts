@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { type ILogObj, Logger } from 'tslog'
-import { BlogpostClient } from '@/api/blogpostsClient.ts'
 import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/api/blogposts.ts'
 import type { RequestFailureError } from '@/api/errors.ts'
 import { Client, type QueryResult } from 'pg'
 import { DockerComposeEnvironment, StartedDockerComposeEnvironment, Wait } from 'testcontainers'
+import { HttpClient } from '@/api/client.ts'
 
 interface IBlogpostID {
   id: string
@@ -21,9 +21,11 @@ describe('BlogpostClient', () => {
   let databaseClient: Client
 
   const baseUrl: string = 'http://localhost:14000'
-  const blogpostClient: BlogpostClient = new BlogpostClient(baseUrl, logger)
-  blogpostClient.username = 'islandwind'
-  blogpostClient.password = 'islandwind'
+  const client: HttpClient = new HttpClient(logger, baseUrl)
+  const username: string = 'islandwind'
+  const password: string = 'islandwind'
+  client.blogposts.username = 'islandwind'
+  client.blogposts.password = 'islandwind'
 
   let environment: StartedDockerComposeEnvironment
 
@@ -75,7 +77,7 @@ describe('BlogpostClient', () => {
 
   it('should create a blogpost', async () => {
     const input = new BlogpostInput('Created Blogpost', 'Content', false)
-    const result: Blogpost | RequestFailureError = await blogpostClient.post(input)
+    const result: Blogpost | RequestFailureError = await client.blogposts.post(input)
 
     expect(result).toBeInstanceOf(Blogpost)
     if (result instanceof Blogpost) {
@@ -91,7 +93,9 @@ describe('BlogpostClient', () => {
     const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
       "SELECT id FROM blog.post WHERE title = 'Read Me';",
     )
-    const result: Blogpost | RequestFailureError = await blogpostClient.get(queryResult.rows[0].id)
+    const result: Blogpost | RequestFailureError = await client.blogposts.get(
+      queryResult.rows[0].id,
+    )
 
     expect(result).toBeInstanceOf(Blogpost)
     if (result instanceof Blogpost) {
@@ -102,7 +106,7 @@ describe('BlogpostClient', () => {
   })
 
   it('should list blogposts', async () => {
-    const result: BlogpostListResponse | RequestFailureError = await blogpostClient.list()
+    const result: BlogpostListResponse | RequestFailureError = await client.blogposts.list()
     expect(result).toBeInstanceOf(BlogpostListResponse)
 
     if (result instanceof BlogpostListResponse) {
@@ -117,7 +121,7 @@ describe('BlogpostClient', () => {
       "SELECT id FROM blog.post WHERE title = 'Update Me';",
     )
     const patch: BlogpostPatch = new BlogpostPatch({ id: queryResult.rows[0].id, published: true })
-    const result: Blogpost | RequestFailureError = await blogpostClient.patch(patch)
+    const result: Blogpost | RequestFailureError = await client.blogposts.patch(patch)
 
     expect(result).toBeInstanceOf(Blogpost)
     if (result instanceof Blogpost) {
@@ -131,7 +135,7 @@ describe('BlogpostClient', () => {
     const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
       "SELECT id FROM blog.post WHERE title = 'Delete Me';",
     )
-    const result: Blogpost | RequestFailureError = await blogpostClient.delete(
+    const result: Blogpost | RequestFailureError = await client.blogposts.delete(
       queryResult.rows[0].id,
       true,
     )
@@ -142,6 +146,14 @@ describe('BlogpostClient', () => {
       expect(result.deleted).toBe(true)
       expect(result.createdAt).toBeInstanceOf(Date)
       expect(result.deletedAt).toBeInstanceOf(Date)
+    }
+  })
+
+  it('should login', async () => {
+    const result: boolean | RequestFailureError = await client.auth.get(username, password)
+
+    if (typeof result === 'boolean') {
+      expect(result).toBeTruthy()
     }
   })
 })
