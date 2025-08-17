@@ -2,6 +2,7 @@ package blog
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -12,61 +13,66 @@ import (
 
 func (m *Module) addRoutes(ctx context.Context) {
 	routes := []struct {
-		Path           string `json:"path"`
-		Handler        http.HandlerFunc
-		AllowedMethods []string
-		AuthRequried   bool
+		Path         string `json:"path"`
+		Handler      http.HandlerFunc
+		Method       string
+		AuthRequried bool
 	}{
 		// healthcheck
 		{
 			"GET /api/v1/blog/healthcheck",
 			m.healthcheckHandler,
-			[]string{http.MethodGet},
+			http.MethodGet,
 			false,
 		},
 		// blog posts
 		{
 			"POST /api/v1/blog/post",
 			handlers.PostBlogpostHandler(m.repo.Posts),
-			[]string{http.MethodPost},
+			http.MethodPost,
 			true,
 		},
 		{
 			"GET /api/v1/blog/post/{id}",
 			handlers.GetBlogpostHandler(m.repo.Posts),
-			[]string{http.MethodGet},
+			http.MethodGet,
 			false,
 		},
 		{
 			"GET /api/v1/blog/post",
 			handlers.ListBlogpostHandler(m.repo.Posts),
-			[]string{http.MethodGet},
+			http.MethodGet,
 			false,
 		},
 		{
 			"PATCH /api/v1/blog/post",
 			handlers.PatchBlogpostHandler(m.repo.Posts),
-			[]string{http.MethodPatch},
+			http.MethodPatch,
 			true,
 		},
 		{
 			"DELETE /api/v1/blog/post",
 			handlers.DeleteBlogpostHandler(m.repo.Posts),
-			[]string{http.MethodDelete},
+			http.MethodDelete,
 			true,
 		},
 		{
 			// Route for testing basic auth credentials
 			"GET /api/v1/auth/login",
 			api.EmptyHandler(),
-			[]string{http.MethodGet},
+			http.MethodGet,
 			true,
 		},
 	}
 
 	m.logger.LogAttrs(ctx, slog.LevelInfo, "adding routes")
 	for _, route := range routes {
-		m.logger.LogAttrs(ctx, slog.LevelInfo, "adding route", slog.Any("route", route))
+		m.logger.LogAttrs(ctx, slog.LevelInfo, "adding route", slog.Group(
+			"route",
+			slog.String("method", route.Method),
+			slog.String("path", route.Path),
+			slog.Bool("authRequired", route.AuthRequried),
+		))
 
 		chain := alice.New(
 			// Add logging middleware for all requests
@@ -78,7 +84,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 			// Enable CORS for all requests
 			func(next http.Handler) http.Handler {
-				return api.CORSMiddleware(next, route.AllowedMethods)
+				return api.CORSMiddleware(next, route.Method)
 			},
 			// Require authentication for write requests
 			func(next http.Handler) http.Handler {
@@ -92,6 +98,9 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 		)
 
-		m.mux.Handle(route.Path, chain.Then(route.Handler))
+		m.mux.Handle(
+			fmt.Sprintf("%s %s", route.Method, route.Path),
+			chain.Then(route.Handler),
+		)
 	}
 }

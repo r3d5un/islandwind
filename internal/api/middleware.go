@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/r3d5un/islandwind/internal/logging"
 )
@@ -59,10 +58,10 @@ func BasicAuthMiddleware(next http.Handler, cfg BasicAuthConfig) http.Handler {
 }
 
 // CORSMiddleware returns middleware enabeling Cross-Origin Resource Sharing
-func CORSMiddleware(next http.Handler, allow []string) http.Handler {
+func CORSMiddleware(next http.Handler, allowedMethod string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", strings.Join(allow, ", "))
+		w.Header().Set("Access-Control-Allow-Methods", allowedMethod)
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
