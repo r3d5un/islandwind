@@ -27,6 +27,10 @@ type Module interface {
 	Shutdown()
 }
 
+type AuthService interface {
+	Module
+}
+
 type BlogService interface {
 	Module
 }

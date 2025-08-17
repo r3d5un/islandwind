@@ -19,5 +19,6 @@ type Monolith interface {
 }
 
 type Modules struct {
+	Auth AuthService
 	Blog BlogService
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/justinas/alice"
 	"github.com/r3d5un/islandwind/internal/api"
+	"github.com/r3d5un/islandwind/internal/auth"
 	"github.com/r3d5un/islandwind/internal/blog"
 	"github.com/r3d5un/islandwind/internal/config"
 	database "github.com/r3d5un/islandwind/internal/db"
@@ -93,12 +94,15 @@ func NewMonolith() (*Monolith, error) {
 	}
 
 	mono := Monolith{
-		id:      instanceID,
-		cfg:     cfg,
-		mux:     http.NewServeMux(),
-		logger:  slog.Default(),
-		db:      db,
-		modules: &interfaces.Modules{Blog: &blog.Module{}},
+		id:     instanceID,
+		cfg:    cfg,
+		mux:    http.NewServeMux(),
+		logger: slog.Default(),
+		db:     db,
+		modules: &interfaces.Modules{
+			Auth: &auth.Module{},
+			Blog: &blog.Module{},
+		},
 	}
 	mono.SetupModules(ctx)
 
