@@ -40,7 +40,7 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	m.mux = mono.Mux()
 	m.addRoutes(ctx)
 	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
-	m.repo = repo.NewRepository(m.db, &timeout)
+	m.repo = repo.NewRepository(m.db, &timeout, m.cfg.Auth)
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 

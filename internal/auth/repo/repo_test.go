@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
 	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/testsuite"
@@ -98,7 +99,11 @@ func TestMain(m *testing.M) {
 		return
 	}
 	timeout := dbConfig.TimeoutDuration()
-	authRepo = repo.NewRepository(db, &timeout, []byte("secret"), "islandwind")
+	authRepo = repo.NewRepository(
+		db,
+		&timeout,
+		config.Config{SigningSecret: "islandwind", TokenIssuer: "islandwind"},
+	)
 
 	exitCode := m.Run()
 

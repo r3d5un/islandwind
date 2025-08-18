@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/r3d5un/islandwind/internal/api"
+	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/spf13/viper"
 )
@@ -12,9 +13,10 @@ import (
 // does not reload environment variables; you will have to use the [viper] package directly
 // where you need to read updated configuration variables.
 type Config struct {
-	App    AppConfig    `json:"app"`
-	Server ServerConfig `json:"server"`
-	DB     db.Config    `json:"db"`
+	App    AppConfig     `json:"app"`
+	Server ServerConfig  `json:"server"`
+	DB     db.Config     `json:"db"`
+	Auth   config.Config `json:"auth"`
 }
 
 // AppConfig contains the most top-level configuration for the application.
@@ -35,7 +37,7 @@ type ServerConfig struct {
 	//
 	// Set through the ISLANDWIND_SERVER_PORT environment variable
 	Port int `json:"port"`
-	// IdleTimeout is the number of seconds to wait for the next request when keep-alives are enabled
+	// IdleTimeout is the number of seconds to wait for the next request when keep-alive are enabled
 	//
 	// Set through the ISLANDWIND_SERVER_IDLETIMEOUT environment variable
 	IdleTimeout int `json:"idleTimeout"`
@@ -52,7 +54,7 @@ type ServerConfig struct {
 }
 
 func New() (*Config, error) {
-	var config Config
+	var cfg Config
 
 	viper.SetDefault("app.name", "islandwind")
 	viper.SetDefault("app.environment", "development")
@@ -76,10 +78,10 @@ func New() (*Config, error) {
 	viper.SetEnvPrefix("islandwind")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	err := viper.Unmarshal(&config)
+	err := viper.Unmarshal(&cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &config, nil
+	return &cfg, nil
 }

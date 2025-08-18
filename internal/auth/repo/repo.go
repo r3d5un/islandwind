@@ -4,25 +4,27 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/auth/data"
 )
 
 type Repository struct {
 	db     *pgxpool.Pool
 	models data.Models
+	cfg    config.Config
 	Tokens TokenRepository
 }
 
 func NewRepository(
 	db *pgxpool.Pool,
 	timeout *time.Duration,
-	secret []byte,
-	issuer string,
+	cfg config.Config,
 ) Repository {
 	models := data.NewModels(db, timeout)
 	return Repository{
 		db:     db,
 		models: models,
-		Tokens: NewTokenRepository(secret, issuer, &models),
+		cfg:    cfg,
+		Tokens: NewTokenRepository([]byte(cfg.SigningSecret), cfg.TokenIssuer, &models),
 	}
 }
