@@ -100,7 +100,6 @@ func (r *TokenRepository) NewRefreshToken(ctx context.Context) (*string, error) 
 		Issuer:     "",
 		Expiration: time.Now().Add(time.Minute * 60),
 		IssuedAt:   time.Now(),
-		NotBefore:  time.Now(),
 	})
 	if err != nil {
 		logger.LogAttrs(
@@ -117,7 +116,6 @@ func (r *TokenRepository) NewRefreshToken(ctx context.Context) (*string, error) 
 		jwt.MapClaims{
 			"jti": row.ID,
 			"exp": row.Expiration.Unix(),
-			"nbf": row.NotBefore.Unix(),
 			"iat": row.IssuedAt.Unix(),
 			"iss": r.Issuer,
 		},

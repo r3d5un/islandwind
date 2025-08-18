@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"time"
 
@@ -13,18 +14,25 @@ import (
 )
 
 type RefreshToken struct {
-	ID         uuid.UUID `json:"id"`
-	Issuer     string    `json:"issuer"`
-	Expiration time.Time `json:"expiration"`
-	IssuedAt   time.Time `json:"issuedAt"`
-	NotBefore  time.Time `json:"notBefore"`
+	ID            uuid.UUID     `json:"id"`
+	Issuer        string        `json:"issuer"`
+	Expiration    time.Time     `json:"expiration"`
+	IssuedAt      time.Time     `json:"issuedAt"`
+	Invalidated   bool          `json:"invalidated"`
+	InvalidatedBy uuid.NullUUID `json:"invalidatedBy"`
 }
 
 type RefreshTokenInput struct {
 	Issuer     string    `json:"issuer"`
 	Expiration time.Time `json:"expiration"`
 	IssuedAt   time.Time `json:"issuedAt"`
-	NotBefore  time.Time `json:"notBefore"`
+}
+
+type RefreshTokenPatch struct {
+	ID            uuid.UUID      `json:"id"`
+	Issuer        sql.NullString `json:"issuer"`
+	Invalidated   sql.NullBool   `json:"invalidated"`
+	InvalidatedBy uuid.NullUUID  `json:"invalidatedBy"`
 }
 
 type RefreshTokenModel struct {
@@ -40,18 +48,17 @@ func (m *RefreshTokenModel) insert(
 	const stmt string = `
 INSERT INTO auth.refresh_token (issuer,
                                 expiration,
-                                issued_at,
-                                not_before)
+                                issued_at)
 VALUES ($1::VARCHAR(512),
         $2::TIMESTAMP,
-        $3::TIMESTAMP,
-        $4::TIMESTAMP)
+        $3::TIMESTAMP)
 RETURNING
     id,
     issuer,
     expiration,
     issued_at,
-    not_before;
+    invalidated,
+    invalidated_by;
 `
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
@@ -72,13 +79,13 @@ RETURNING
 		input.Issuer,
 		input.Expiration,
 		input.IssuedAt,
-		input.NotBefore,
 	).Scan(
 		&r.ID,
 		&r.Issuer,
 		&r.Expiration,
 		&r.IssuedAt,
-		&r.NotBefore,
+		&r.Invalidated,
+		&r.InvalidatedBy,
 	)
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
@@ -114,7 +121,8 @@ SELECT id,
        issuer,
        expiration,
        issued_at,
-       not_before
+       invalidated,
+       invalidated_by
 FROM auth.refresh_token
 WHERE id = $1::UUID;
 `
@@ -140,7 +148,8 @@ WHERE id = $1::UUID;
 		&r.Issuer,
 		&r.Expiration,
 		&r.IssuedAt,
-		&r.NotBefore,
+		&r.Invalidated,
+		&r.InvalidatedBy,
 	)
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
@@ -175,7 +184,8 @@ SELECT id,
        issuer,
        expiration,
        issued_at,
-       not_before
+       invalidated,
+       invalidated_by
 FROM auth.refresh_token
 WHERE ($2::UUID IS NULL OR id = $2::UUID)
   AND ($3::VARCHAR(512) IS NULL OR issuer = $3::VARCHAR(512))
@@ -183,9 +193,7 @@ WHERE ($2::UUID IS NULL OR id = $2::UUID)
   AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
   AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
   AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
-  AND ($8::TIMESTAMP IS NULL OR not_before <= $8::TIMESTAMP)
-  AND ($9::TIMESTAMP IS NULL OR not_before > $9::TIMESTAMP)
-  AND id > $10::UUID
+  AND id > $8::UUID
 ORDER BY expiration, id
 LIMIT $1;
 `
@@ -210,8 +218,6 @@ LIMIT $1;
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
 		filter.IssuedAtTo,
-		filter.NotBeforeFrom,
-		filter.NotBeforeTo,
 		filter.LastSeen,
 	)
 	if err != nil {
@@ -228,7 +234,8 @@ LIMIT $1;
 			&r.Issuer,
 			&r.Expiration,
 			&r.IssuedAt,
-			&r.NotBefore,
+			&r.Invalidated,
+			&r.InvalidatedBy,
 		)
 		if err != nil {
 			return nil, nil, db.HandleError(ctx, err)
@@ -260,6 +267,76 @@ func (m *RefreshTokenModel) SelectManyTx(
 	return m.selectMany(ctx, tx, filter)
 }
 
+func (m *RefreshTokenModel) update(
+	ctx context.Context,
+	q db.Queryable,
+	input RefreshTokenPatch,
+) (*RefreshToken, error) {
+	const stmt string = `
+UPDATE auth.refresh_token
+SET issuer = COALESCE($2::VARCHAR(512), issuer),
+    invalidated = COALESCE($3::BOOLEAN, invalidated),
+	invalidated_by = COALESCE($4::UUID, invalidated_by)
+WHERE id = $1::UUID
+RETURNING
+    id,
+    issuer,
+    expiration,
+    issued_at,
+    invalidated,
+    invalidated_by;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.Any("input", input),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var r RefreshToken
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		input.ID,
+		input.Issuer,
+		input.Invalidated,
+		input.InvalidatedBy,
+	).Scan(
+		&r.ID,
+		&r.Issuer,
+		&r.Expiration,
+		&r.IssuedAt,
+		&r.Invalidated,
+		&r.InvalidatedBy,
+	)
+	if err != nil {
+		return nil, db.HandleError(ctx, err)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token updated", slog.Any("refreshToken", r))
+
+	return &r, nil
+}
+
+func (m *RefreshTokenModel) Update(
+	ctx context.Context,
+	input RefreshTokenPatch,
+) (*RefreshToken, error) {
+	return m.update(ctx, m.DB, input)
+}
+
+func (m *RefreshTokenModel) UpdateTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	input RefreshTokenPatch,
+) (*RefreshToken, error) {
+	return m.update(ctx, tx, input)
+}
+
 func (m *RefreshTokenModel) delete(
 	ctx context.Context,
 	q db.Queryable,
@@ -274,7 +351,8 @@ RETURNING
     issuer,
     expiration,
     issued_at,
-    not_before;
+    invalidated,
+    invalidated_by;
 `
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
@@ -298,7 +376,8 @@ RETURNING
 		&r.Issuer,
 		&r.Expiration,
 		&r.IssuedAt,
-		&r.NotBefore,
+		&r.Invalidated,
+		&r.InvalidatedBy,
 	)
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
@@ -333,9 +412,7 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
   AND ($3::TIMESTAMP IS NULL OR expiration <= $3::TIMESTAMP)
   AND ($4::TIMESTAMP IS NULL OR expiration > $4::TIMESTAMP)
   AND ($5::TIMESTAMP IS NULL OR issued_at <= $5::TIMESTAMP)
-  AND ($6::TIMESTAMP IS NULL OR issued_at > $6::TIMESTAMP)
-  AND ($7::TIMESTAMP IS NULL OR not_before <= $7::TIMESTAMP)
-  AND ($8::TIMESTAMP IS NULL OR not_before > $8::TIMESTAMP);
+  AND ($6::TIMESTAMP IS NULL OR issued_at > $6::TIMESTAMP);
 `
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
@@ -355,8 +432,6 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
 		filter.IssuedAtTo,
-		filter.NotBeforeFrom,
-		filter.NotBeforeTo,
 	)
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
@@ -372,8 +447,6 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
 		filter.IssuedAtTo,
-		filter.NotBeforeFrom,
-		filter.NotBeforeTo,
 	)
 	if err != nil {
 		return nil, db.HandleError(ctx, err)

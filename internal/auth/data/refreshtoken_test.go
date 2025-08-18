@@ -2,9 +2,11 @@ package data_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,7 +27,6 @@ func TestRefreshTokenModel(t *testing.T) {
 			Issuer:     "islandwind",
 			Expiration: timestamp,
 			IssuedAt:   timestamp,
-			NotBefore:  timestamp,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, inserted)
@@ -50,6 +51,27 @@ func TestRefreshTokenModel(t *testing.T) {
 		assert.NotEmpty(t, selected)
 		assert.NotEmpty(t, metadata)
 		assert.Equal(t, selected[len(selected)-1].ID, metadata.LastSeen)
+	})
+
+	t.Run("Update", func(t *testing.T) {
+		timestamp := time.Now()
+		inserted, err := models.RefreshTokens.Insert(ctx, data.RefreshTokenInput{
+			Issuer:     "islandwind",
+			Expiration: timestamp,
+			IssuedAt:   timestamp,
+		})
+		assert.NoError(t, err)
+		assert.NotEmpty(t, inserted)
+
+		updated, err := models.RefreshTokens.Update(ctx, data.RefreshTokenPatch{
+			ID:            refreshToken.ID,
+			Invalidated:   sql.NullBool{Bool: true, Valid: true},
+			InvalidatedBy: uuid.NullUUID{Valid: true, UUID: inserted.ID},
+		})
+		assert.NoError(t, err)
+		assert.NotEmpty(t, *updated)
+
+		refreshToken = *updated
 	})
 
 	t.Run("Delete", func(t *testing.T) {

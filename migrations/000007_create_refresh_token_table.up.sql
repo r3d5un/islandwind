@@ -1,9 +1,13 @@
 CREATE TABLE IF NOT EXISTS auth.refresh_token
 (
-    id         UUID DEFAULT gen_random_uuid(),
-    issuer     VARCHAR(512) NOT NULL,
-    expiration TIMESTAMP    NOT NULL,
-    issued_at  TIMESTAMP    NOT NULL,
-    not_before TIMESTAmP    NOT NULL,
-    CONSTRAINT pk_refresh_token_id PRIMARY KEY (id)
+    id             UUID    DEFAULT gen_random_uuid(),
+    issuer         VARCHAR(512)         NOT NULL,
+    expiration     TIMESTAMP            NOT NULL,
+    issued_at      TIMESTAMP            NOT NULL,
+    invalidated    BOOLEAN DEFAULT FALSE,
+    invalidated_by UUID    DEFAULT NULL NULL,
+    CONSTRAINT pk_refresh_token_id PRIMARY KEY (id),
+    CONSTRAINT fk_refresh_token_invalidated_by FOREIGN KEY (invalidated_by)
+        REFERENCES auth.refresh_token (id),
+    CONSTRAINT chk_invalidated_by CHECK (invalidated = FALSE OR invalidated_by IS NOT NULL)
 );
