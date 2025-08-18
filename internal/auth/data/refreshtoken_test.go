@@ -34,5 +34,10 @@ func TestRefreshTokenModel(t *testing.T) {
 		refreshToken = *inserted
 	})
 
-	t.Log(refreshToken)
+	t.Run("Select", func(t *testing.T) {
+		selected, err := models.RefreshTokens.SelectOne(ctx, refreshToken.ID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, selected)
+		assert.Equal(t, refreshToken, *selected)
+	})
 }

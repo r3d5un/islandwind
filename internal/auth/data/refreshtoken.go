@@ -99,7 +99,6 @@ func (m *RefreshTokenModel) Insert(
 	ctx context.Context,
 	input RefreshTokenInput,
 ) (*RefreshToken, error) {
-	// TODO: Implement
 	return m.insert(ctx, m.DB, input)
 }
 
@@ -117,15 +116,53 @@ func (m *RefreshTokenModel) selectOne(
 	q db.Queryable,
 	id uuid.UUID,
 ) (*RefreshToken, error) {
-	// TODO: Implement
-	return nil, nil
+	const stmt string = `
+SELECT id,
+       issuer,
+       audience,
+       expiration,
+       issued_at,
+       not_before
+FROM auth.refresh_token
+WHERE id = $1::UUID;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.String("id", id.String()),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var r RefreshToken
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		id,
+	).Scan(
+		&r.ID,
+		&r.Issuer,
+		&r.Audience,
+		&r.Expiration,
+		&r.IssuedAt,
+		&r.NotBefore,
+	)
+	if err != nil {
+		return nil, db.HandleError(ctx, err)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token selected", slog.Any("refreshToken", r))
+
+	return &r, nil
 }
 
 func (m *RefreshTokenModel) SelectOne(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*RefreshToken, error) {
-	// TODO: Implement
 	return m.selectOne(ctx, m.DB, id)
 }
 
@@ -134,7 +171,6 @@ func (m *RefreshTokenModel) SelectOneTx(
 	tx pgx.Tx,
 	id uuid.UUID,
 ) (*RefreshToken, error) {
-	// TODO: Implement
 	return m.selectOne(ctx, tx, id)
 }
 
