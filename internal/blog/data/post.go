@@ -228,7 +228,7 @@ LIMIT $1;
 		return nil, nil, err
 	}
 
-	posts := []*Post{}
+	var posts []*Post
 
 	for rows.Next() {
 		var b Post
