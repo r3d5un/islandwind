@@ -42,8 +42,8 @@ func BasicAuthMiddleware(next http.Handler, cfg BasicAuthConfig) http.Handler {
 			passwordHash := sha256.Sum256([]byte(password))
 			expectedUsernameHash := sha256.Sum256([]byte(cfg.Username))
 			expectedPasswordHash := sha256.Sum256([]byte(cfg.Password))
-			usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
-			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
+			usernameMatch := subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1
+			passwordMatch := subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1
 
 			if usernameMatch && passwordMatch {
 				logger.LogAttrs(ctx, slog.LevelInfo, "request authenticated")
