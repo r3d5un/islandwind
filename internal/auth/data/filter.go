@@ -9,7 +9,6 @@ import (
 type Filter struct {
 	ID             *uuid.UUID `json:"id"`
 	Issuer         *string    `json:"issuer"`
-	Audience       *string    `json:"audience"`
 	NotBeforeFrom  *time.Time `json:"notBeforeFrom"`
 	NotBeforeTo    *time.Time `json:"notBeforeTo"`
 	IssuedAtFrom   *time.Time `json:"issuedAtFrom"`

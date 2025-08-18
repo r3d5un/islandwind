@@ -10,11 +10,19 @@ import (
 type Repository struct {
 	db     *pgxpool.Pool
 	models data.Models
+	Tokens TokenRepository
 }
 
-func NewRepository(db *pgxpool.Pool, timeout *time.Duration) Repository {
+func NewRepository(
+	db *pgxpool.Pool,
+	timeout *time.Duration,
+	secret []byte,
+	issuer string,
+) Repository {
+	models := data.NewModels(db, timeout)
 	return Repository{
 		db:     db,
-		models: data.NewModels(db, timeout),
+		models: models,
+		Tokens: NewTokenRepository(secret, issuer, &models),
 	}
 }

@@ -23,7 +23,6 @@ func TestRefreshTokenModel(t *testing.T) {
 		timestamp := time.Now()
 		inserted, err := models.RefreshTokens.Insert(ctx, data.RefreshTokenInput{
 			Issuer:     "islandwind",
-			Audience:   "islandwind",
 			Expiration: timestamp,
 			IssuedAt:   timestamp,
 			NotBefore:  timestamp,

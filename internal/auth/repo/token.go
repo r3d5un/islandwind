@@ -8,41 +8,36 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 var (
-	ErrParsingToken       = errors.New("unable to parse token")
-	ErrVerifyingToken     = errors.New("unable to parse token")
-	ErrTokenExpired       = errors.New("token expired")
-	ErrPrematureToken     = errors.New("token used before valid nbf")
-	ErrInvalidIssuedAt    = errors.New("token iat timestamp invalid")
-	ErrAudienceMismatch   = errors.New("token audience does not match requirements")
-	ErrIssuerMismatch     = errors.New("token issuer does not match requirements")
-	ErrSubscriberMismatch = errors.New("token subscriber does not match requirements")
+	ErrParsingToken    = errors.New("unable to parse token")
+	ErrVerifyingToken  = errors.New("unable to parse token")
+	ErrTokenExpired    = errors.New("token expired")
+	ErrPrematureToken  = errors.New("token used before valid nbf")
+	ErrInvalidIssuedAt = errors.New("token iat timestamp invalid")
+	ErrIssuerMismatch  = errors.New("token issuer does not match requirements")
 )
 
 type TokenRepository struct {
 	signingSecret []byte
-	Audience      string `json:"audience"`
 	Issuer        string `json:"issuer"`
-	Subscriber    string `json:"subscriber"`
+	models        *data.Models
 }
 
 func (r *TokenRepository) LogValue() slog.Value {
 	return slog.GroupValue(
-		slog.String("audience", r.Audience),
 		slog.String("issuer", r.Issuer),
-		slog.String("subscriber", r.Subscriber),
 	)
 }
 
-func NewTokenRepository(secret []byte, user string) TokenRepository {
+func NewTokenRepository(secret []byte, issuer string, models *data.Models) TokenRepository {
 	return TokenRepository{
 		signingSecret: secret,
-		Audience:      user,
-		Issuer:        user,
-		Subscriber:    user,
+		Issuer:        issuer,
+		models:        models,
 	}
 }
 
@@ -55,9 +50,7 @@ func (r *TokenRepository) NewJWT() (*string, error) {
 			"exp": time.Now().Add(time.Minute * 5).Unix(),
 			"nbf": time.Now().Unix(),
 			"iat": time.Now().Unix(),
-			"aud": r.Audience,
 			"iss": r.Issuer,
-			"sub": r.Subscriber,
 		},
 	)
 
@@ -90,6 +83,45 @@ func (r *TokenRepository) Parse(ctx context.Context, input string) (bool, error)
 	return r.verifyClaims(token)
 }
 
+func (r *TokenRepository) NewRefreshToken(ctx context.Context) (*string, error) {
+	logger := logging.LoggerFromContext(ctx)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "creating refresh token")
+	row, err := r.models.RefreshTokens.Insert(ctx, data.RefreshTokenInput{
+		Issuer:     "",
+		Expiration: time.Now().Add(time.Minute * 60),
+		IssuedAt:   time.Now(),
+		NotBefore:  time.Now(),
+	})
+	if err != nil {
+		logger.LogAttrs(
+			ctx,
+			slog.LevelError,
+			"unable to create refresh token",
+			slog.String("error", err.Error()),
+		)
+		return nil, err
+	}
+
+	token := jwt.NewWithClaims(
+		jwt.SigningMethodHS512,
+		jwt.MapClaims{
+			"jti": row.ID,
+			"exp": row.Expiration.Unix(),
+			"nbf": row.NotBefore.Unix(),
+			"iat": row.IssuedAt.Unix(),
+			"iss": r.Issuer,
+		},
+	)
+
+	tokenString, err := token.SignedString(r.signingSecret)
+	if err != nil {
+		return nil, err
+	}
+
+	return &tokenString, nil
+}
+
 func (r *TokenRepository) verifyClaims(token *jwt.Token) (bool, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
@@ -120,28 +152,12 @@ func (r *TokenRepository) verifyClaims(token *jwt.Token) (bool, error) {
 		return false, ErrPrematureToken
 	}
 
-	aud, ok := claims["aud"].(string)
-	if !ok {
-		return false, ErrVerifyingToken
-	}
-	if aud != r.Audience {
-		return false, ErrAudienceMismatch
-	}
-
 	iss, ok := claims["iss"].(string)
 	if !ok {
 		return false, ErrVerifyingToken
 	}
-	if iss != r.Audience {
+	if iss != r.Issuer {
 		return false, ErrIssuerMismatch
-	}
-
-	sub, ok := claims["sub"].(string)
-	if !ok {
-		return false, ErrVerifyingToken
-	}
-	if sub != r.Audience {
-		return false, ErrSubscriberMismatch
 	}
 
 	return true, nil

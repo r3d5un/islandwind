@@ -15,7 +15,6 @@ import (
 type RefreshToken struct {
 	ID         uuid.UUID `json:"id"`
 	Issuer     string    `json:"issuer"`
-	Audience   string    `json:"audience"`
 	Expiration time.Time `json:"expiration"`
 	IssuedAt   time.Time `json:"issuedAt"`
 	NotBefore  time.Time `json:"notBefore"`
@@ -23,7 +22,6 @@ type RefreshToken struct {
 
 type RefreshTokenInput struct {
 	Issuer     string    `json:"issuer"`
-	Audience   string    `json:"audience"`
 	Expiration time.Time `json:"expiration"`
 	IssuedAt   time.Time `json:"issuedAt"`
 	NotBefore  time.Time `json:"notBefore"`
@@ -41,19 +39,16 @@ func (m *RefreshTokenModel) insert(
 ) (*RefreshToken, error) {
 	const stmt string = `
 INSERT INTO auth.refresh_token (issuer,
-                                audience,
                                 expiration,
                                 issued_at,
                                 not_before)
 VALUES ($1::VARCHAR(512),
-        $2::VARCHAR(512),
+        $2::TIMESTAMP,
         $3::TIMESTAMP,
-        $4::TIMESTAMP,
-        $5::TIMESTAMP)
+        $4::TIMESTAMP)
 RETURNING
     id,
     issuer,
-    audience,
     expiration,
     issued_at,
     not_before;
@@ -75,14 +70,12 @@ RETURNING
 		ctx,
 		stmt,
 		input.Issuer,
-		input.Audience,
 		input.Expiration,
 		input.IssuedAt,
 		input.NotBefore,
 	).Scan(
 		&r.ID,
 		&r.Issuer,
-		&r.Audience,
 		&r.Expiration,
 		&r.IssuedAt,
 		&r.NotBefore,
@@ -119,7 +112,6 @@ func (m *RefreshTokenModel) selectOne(
 	const stmt string = `
 SELECT id,
        issuer,
-       audience,
        expiration,
        issued_at,
        not_before
@@ -146,7 +138,6 @@ WHERE id = $1::UUID;
 	).Scan(
 		&r.ID,
 		&r.Issuer,
-		&r.Audience,
 		&r.Expiration,
 		&r.IssuedAt,
 		&r.NotBefore,
@@ -182,21 +173,19 @@ func (m *RefreshTokenModel) selectMany(
 	const stmt string = `
 SELECT id,
        issuer,
-       audience,
        expiration,
        issued_at,
        not_before
 FROM auth.refresh_token
 WHERE ($2::UUID IS NULL OR id = $2::UUID)
   AND ($3::VARCHAR(512) IS NULL OR issuer = $3::VARCHAR(512))
-  AND ($4::VARCHAR(512) IS NULL OR audience = $4::VARCHAR(512))
-  AND ($5::TIMESTAMP IS NULL OR expiration <= $5::TIMESTAMP)
-  AND ($6::TIMESTAMP IS NULL OR expiration > $6::TIMESTAMP)
-  AND ($7::TIMESTAMP IS NULL OR issued_at <= $7::TIMESTAMP)
-  AND ($8::TIMESTAMP IS NULL OR issued_at > $8::TIMESTAMP)
-  AND ($9::TIMESTAMP IS NULL OR not_before <= $9::TIMESTAMP)
-  AND ($10::TIMESTAMP IS NULL OR not_before > $10::TIMESTAMP)
-  AND id > $11::UUID
+  AND ($4::TIMESTAMP IS NULL OR expiration <= $4::TIMESTAMP)
+  AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
+  AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
+  AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
+  AND ($8::TIMESTAMP IS NULL OR not_before <= $8::TIMESTAMP)
+  AND ($9::TIMESTAMP IS NULL OR not_before > $9::TIMESTAMP)
+  AND id > $10::UUID
 ORDER BY expiration, id
 LIMIT $1;
 `
@@ -217,7 +206,6 @@ LIMIT $1;
 		filter.PageSize,
 		filter.ID,
 		filter.Issuer,
-		filter.Audience,
 		filter.ExpirationFrom,
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
@@ -238,7 +226,6 @@ LIMIT $1;
 		err := rows.Scan(
 			&r.ID,
 			&r.Issuer,
-			&r.Audience,
 			&r.Expiration,
 			&r.IssuedAt,
 			&r.NotBefore,
@@ -285,7 +272,6 @@ WHERE id = $1::UUID
 RETURNING
     id,
     issuer,
-    audience,
     expiration,
     issued_at,
     not_before;
@@ -310,7 +296,6 @@ RETURNING
 	).Scan(
 		&r.ID,
 		&r.Issuer,
-		&r.Audience,
 		&r.Expiration,
 		&r.IssuedAt,
 		&r.NotBefore,
@@ -345,13 +330,12 @@ DELETE
 FROM auth.refresh_token
 WHERE ($1::UUID IS NULL OR id = $1::UUID)
   AND ($2::VARCHAR(512) IS NULL OR issuer = $2::VARCHAR(512))
-  AND ($3::VARCHAR(512) IS NULL OR audience = $3::VARCHAR(512))
-  AND ($4::TIMESTAMP IS NULL OR expiration <= $4::TIMESTAMP)
-  AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
-  AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
-  AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
-  AND ($8::TIMESTAMP IS NULL OR not_before <= $8::TIMESTAMP)
-  AND ($9::TIMESTAMP IS NULL OR not_before > $9::TIMESTAMP);
+  AND ($3::TIMESTAMP IS NULL OR expiration <= $3::TIMESTAMP)
+  AND ($4::TIMESTAMP IS NULL OR expiration > $4::TIMESTAMP)
+  AND ($5::TIMESTAMP IS NULL OR issued_at <= $5::TIMESTAMP)
+  AND ($6::TIMESTAMP IS NULL OR issued_at > $6::TIMESTAMP)
+  AND ($7::TIMESTAMP IS NULL OR not_before <= $7::TIMESTAMP)
+  AND ($8::TIMESTAMP IS NULL OR not_before > $8::TIMESTAMP);
 `
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
@@ -367,7 +351,6 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
 	err := db.DeleteManyGuardrail(
 		filter.ID,
 		filter.Issuer,
-		filter.Audience,
 		filter.ExpirationFrom,
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
@@ -385,7 +368,6 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
 		stmt,
 		filter.ID,
 		filter.Issuer,
-		filter.Audience,
 		filter.ExpirationFrom,
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
