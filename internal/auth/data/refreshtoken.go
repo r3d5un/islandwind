@@ -179,7 +179,83 @@ func (m *RefreshTokenModel) selectMany(
 	q db.Queryable,
 	filter Filter,
 ) ([]*RefreshToken, *Metadata, error) {
-	return nil, nil, nil
+	const stmt string = `
+SELECT id,
+       issuer,
+       audience,
+       expiration,
+       issued_at,
+       not_before
+FROM auth.refresh_token
+WHERE ($2::UUID IS NULL OR id = $2::UUID)
+  AND ($3::VARCHAR(512) IS NULL OR issuer = $3::VARCHAR(512))
+  AND ($4::VARCHAR(512) IS NULL OR audience = $4::VARCHAR(512))
+  AND ($5::TIMESTAMP IS NULL OR expiration <= $5::TIMESTAMP)
+  AND ($6::TIMESTAMP IS NULL OR expiration > $6::TIMESTAMP)
+  AND ($7::TIMESTAMP IS NULL OR issued_at <= $7::TIMESTAMP)
+  AND ($8::TIMESTAMP IS NULL OR issued_at > $8::TIMESTAMP)
+  AND ($9::TIMESTAMP IS NULL OR not_before <= $9::TIMESTAMP)
+  AND ($10::TIMESTAMP IS NULL OR not_before > $10::TIMESTAMP)
+  AND id > $11::UUID
+ORDER BY expiration, id
+LIMIT $1;
+`
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("statement", logging.MinifySQL(stmt)),
+		slog.Any("filter", filter),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	rows, err := q.Query(
+		ctx,
+		stmt,
+		filter.PageSize,
+		filter.ID,
+		filter.Issuer,
+		filter.Audience,
+		filter.ExpirationFrom,
+		filter.ExpirationTo,
+		filter.IssuedAtFrom,
+		filter.IssuedAtTo,
+		filter.NotBeforeFrom,
+		filter.NotBeforeTo,
+		filter.LastSeen,
+	)
+	if err != nil {
+		return nil, nil, db.HandleError(ctx, err)
+	}
+
+	var tokens []*RefreshToken
+
+	for rows.Next() {
+		var r RefreshToken
+
+		err := rows.Scan(
+			&r.ID,
+			&r.Issuer,
+			&r.Audience,
+			&r.Expiration,
+			&r.IssuedAt,
+			&r.NotBefore,
+		)
+		if err != nil {
+			return nil, nil, db.HandleError(ctx, err)
+		}
+		tokens = append(tokens, &r)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, nil, db.HandleError(ctx, err)
+	}
+	metadata := NewMetadata(tokens, filter)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "posts selected", slog.Any("metadata", metadata))
+
+	return tokens, &metadata, nil
 }
 
 func (m *RefreshTokenModel) SelectMany(

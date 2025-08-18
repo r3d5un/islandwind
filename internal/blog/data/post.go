@@ -222,10 +222,7 @@ LIMIT $1;
 		filter.LastSeen,
 	)
 	if err != nil {
-		logger.LogAttrs(
-			ctx, slog.LevelError, "unable to perform query", slog.String("error", err.Error()),
-		)
-		return nil, nil, err
+		return nil, nil, db.HandleError(ctx, err)
 	}
 
 	var posts []*Post

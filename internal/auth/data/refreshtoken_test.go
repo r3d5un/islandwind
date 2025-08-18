@@ -34,11 +34,23 @@ func TestRefreshTokenModel(t *testing.T) {
 		refreshToken = *inserted
 	})
 
-	t.Run("Select", func(t *testing.T) {
+	t.Run("SelectOne", func(t *testing.T) {
 		selected, err := models.RefreshTokens.SelectOne(ctx, refreshToken.ID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, selected)
 		assert.Equal(t, refreshToken, *selected)
+	})
+
+	t.Run("SelectMany", func(t *testing.T) {
+		selected, metadata, err := models.RefreshTokens.SelectMany(ctx, data.Filter{
+			PageSize: 1,
+			ID:       &refreshToken.ID,
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, selected)
+		assert.NotEmpty(t, selected)
+		assert.NotEmpty(t, metadata)
+		assert.Equal(t, selected[len(selected)-1].ID, metadata.LastSeen)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
