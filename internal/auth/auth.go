@@ -4,9 +4,11 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/r3d5un/islandwind/internal/config"
 	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
 )
@@ -20,6 +22,7 @@ type Module struct {
 	cfg        *config.Config
 	mux        *http.ServeMux
 	instanceID uuid.UUID
+	repo       repo.Repository
 }
 
 func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
@@ -36,6 +39,8 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	m.cfg = mono.Config()
 	m.mux = mono.Mux()
 	m.addRoutes(ctx)
+	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
+	m.repo = repo.NewRepository(m.db, &timeout)
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 
