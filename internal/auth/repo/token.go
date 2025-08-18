@@ -79,8 +79,17 @@ func (r *TokenRepository) Parse(ctx context.Context, input string) (bool, error)
 		return false, err
 	}
 	logger = logger.With(slog.Any("token", token))
+	logger.LogAttrs(ctx, slog.LevelInfo, "token parsed")
 
-	return r.verifyClaims(token)
+	logger.LogAttrs(ctx, slog.LevelInfo, "verying claims")
+	valid, err := r.verifyClaims(token)
+	if err != nil {
+		logger.LogAttrs(ctx, slog.LevelInfo, "unable to verify token claims")
+		return false, err
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "token claims verified")
+
+	return valid, nil
 }
 
 func (r *TokenRepository) NewRefreshToken(ctx context.Context) (*string, error) {
