@@ -202,7 +202,49 @@ func (m *RefreshTokenModel) delete(
 	q db.Queryable,
 	id uuid.UUID,
 ) (*RefreshToken, error) {
-	return nil, nil
+	const stmt string = `
+DELETE
+FROM auth.refresh_token
+WHERE id = $1::UUID
+RETURNING
+    id,
+    issuer,
+    audience,
+    expiration,
+    issued_at,
+    not_before;
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.String("id", id.String()),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	var r RefreshToken
+	err := q.QueryRow(
+		ctx,
+		stmt,
+		id,
+	).Scan(
+		&r.ID,
+		&r.Issuer,
+		&r.Audience,
+		&r.Expiration,
+		&r.IssuedAt,
+		&r.NotBefore,
+	)
+	if err != nil {
+		return nil, db.HandleError(ctx, err)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token selected", slog.Any("refreshToken", r))
+
+	return &r, nil
 }
 
 func (m *RefreshTokenModel) Delete(ctx context.Context, id uuid.UUID) (*RefreshToken, error) {
@@ -215,4 +257,85 @@ func (m *RefreshTokenModel) DeleteTx(
 	id uuid.UUID,
 ) (*RefreshToken, error) {
 	return m.delete(ctx, tx, id)
+}
+
+func (m *RefreshTokenModel) deleteMany(
+	ctx context.Context,
+	q db.Queryable,
+	filter Filter,
+) (*int64, error) {
+	const stmt string = `
+DELETE
+FROM auth.refresh_token
+WHERE ($1::UUID IS NULL OR id = $1::UUID)
+  AND ($2::VARCHAR(512) IS NULL OR issuer = $2::VARCHAR(512))
+  AND ($3::VARCHAR(512) IS NULL OR audience = $3::VARCHAR(512))
+  AND ($4::TIMESTAMP IS NULL OR expiration <= $4::TIMESTAMP)
+  AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
+  AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
+  AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
+  AND ($8::TIMESTAMP IS NULL OR not_before <= $8::TIMESTAMP)
+  AND ($9::TIMESTAMP IS NULL OR not_before > $9::TIMESTAMP);
+`
+
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"query",
+		slog.String("query", logging.MinifySQL(stmt)),
+		slog.Any("filter", filter),
+		slog.Duration("timeout", *m.Timeout),
+	))
+
+	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
+	defer cancel()
+
+	err := db.DeleteManyGuardrail(
+		filter.ID,
+		filter.Issuer,
+		filter.Audience,
+		filter.ExpirationFrom,
+		filter.ExpirationTo,
+		filter.IssuedAtFrom,
+		filter.IssuedAtTo,
+		filter.NotBeforeFrom,
+		filter.NotBeforeTo,
+	)
+	if err != nil {
+		return nil, db.HandleError(ctx, err)
+	}
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
+	res, err := q.Exec(
+		ctx,
+		stmt,
+		filter.ID,
+		filter.Issuer,
+		filter.Audience,
+		filter.ExpirationFrom,
+		filter.ExpirationTo,
+		filter.IssuedAtFrom,
+		filter.IssuedAtTo,
+		filter.NotBeforeFrom,
+		filter.NotBeforeTo,
+	)
+	if err != nil {
+		return nil, db.HandleError(ctx, err)
+	}
+	rowsAffected := res.RowsAffected()
+	logger.LogAttrs(
+		ctx, slog.LevelInfo, "refresh tokens deleted", slog.Int64("rowsAffected", rowsAffected),
+	)
+
+	return &rowsAffected, nil
+}
+
+func (m *RefreshTokenModel) DeleteMany(ctx context.Context, filter Filter) (*int64, error) {
+	return m.deleteMany(ctx, m.DB, filter)
+}
+
+func (m *RefreshTokenModel) DeleteManyTx(
+	ctx context.Context,
+	tx pgx.Tx,
+	filter Filter,
+) (*int64, error) {
+	return m.deleteMany(ctx, tx, filter)
 }

@@ -22,8 +22,8 @@ func TestRefreshTokenModel(t *testing.T) {
 	t.Run("Insert", func(t *testing.T) {
 		timestamp := time.Now()
 		inserted, err := models.RefreshTokens.Insert(ctx, data.RefreshTokenInput{
-			Issuer:     "http://www.islandwind.me",
-			Audience:   "http://www.islandwind.me",
+			Issuer:     "islandwind",
+			Audience:   "islandwind",
 			Expiration: timestamp,
 			IssuedAt:   timestamp,
 			NotBefore:  timestamp,
@@ -39,5 +39,22 @@ func TestRefreshTokenModel(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, selected)
 		assert.Equal(t, refreshToken, *selected)
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		deleted, err := models.RefreshTokens.Delete(ctx, refreshToken.ID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, deleted)
+		assert.Equal(t, refreshToken, *deleted)
+	})
+
+	t.Run("DeleteMany", func(t *testing.T) {
+		timestamp := time.Now()
+		rowsAffected, err := models.RefreshTokens.DeleteMany(
+			ctx,
+			data.Filter{ExpirationTo: &timestamp},
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, *rowsAffected)
 	})
 }

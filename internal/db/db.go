@@ -142,6 +142,11 @@ func HandleError(ctx context.Context, err error) error {
 		return ErrRecordNotFound
 	}
 
+	if errors.Is(err, ErrUnsafeDeleteFilter) {
+		logger.LogAttrs(ctx, slog.LevelInfo, "filter unsafe")
+		return err
+	}
+
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		logger = logger.With(slog.Group(
