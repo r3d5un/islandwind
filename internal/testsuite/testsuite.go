@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 )
@@ -38,36 +37,6 @@ func FindProjectRoot() (string, error) {
 	}
 }
 
-func ListUpMigrationScrips(dirPath string) (migrations []string, err error) {
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		return []string{}, err
-	}
-
-	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".up.sql") {
-			migrations = append(migrations, fmt.Sprintf("%s/%s", dirPath, file.Name()))
-		}
-	}
-
-	return migrations, nil
-}
-
-func ListDownMigrationScrips(dirPath string) (migrations []string, err error) {
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		return []string{}, err
-	}
-
-	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".up.sql") {
-			migrations = append(migrations, fmt.Sprintf("%s/%s", dirPath, file.Name()))
-		}
-	}
-
-	return migrations, nil
-}
-
 func NewMigrateClient(connStr string) (*migrate.Migrate, error) {
 	projectRoot, err := FindProjectRoot()
 	if err != nil {
@@ -75,10 +44,10 @@ func NewMigrateClient(connStr string) (*migrate.Migrate, error) {
 	}
 	migrationURL := fmt.Sprintf("file://%s/migrations", projectRoot)
 
-	migrate, err := migrate.New(migrationURL, connStr)
+	m, err := migrate.New(migrationURL, connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return migrate, nil
+	return m, nil
 }
