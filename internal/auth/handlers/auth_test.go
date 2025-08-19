@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,7 +21,7 @@ func TestAuthHandlers(t *testing.T) {
 		defer cancel()
 	})
 
-	var login handlers.LoginResponse
+	var login handlers.Response
 
 	t.Run("LoginHandler", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/", nil)
@@ -37,5 +38,41 @@ func TestAuthHandlers(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Log(login)
+	t.Run("RefreshHandler", func(t *testing.T) {
+		body, err := json.Marshal(handlers.RefreshRequestBody{
+			RefreshToken: login.RefreshToken,
+		})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.RefreshHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+
+		err = json.Unmarshal(rr.Body.Bytes(), &login)
+		assert.NoError(t, err)
+	})
+
+	t.Run("RefreshHandlerUnauthorized", func(t *testing.T) {
+		body, err := json.Marshal(handlers.RefreshRequestBody{
+			RefreshToken: login.AccessToken,
+		})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.RefreshHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusUnauthorized, rr.Code)
+		assert.NotNil(t, rr.Body)
+
+		err = json.Unmarshal(rr.Body.Bytes(), &login)
+		assert.NoError(t, err)
+	})
 }
