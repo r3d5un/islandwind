@@ -23,6 +23,17 @@ var (
 	ErrUnauthorized    = errors.New("token unauthorized")
 )
 
+type TokenService interface {
+	CreateAccessToken() (accessToken *string, err error)
+	Validate(ctx context.Context, input string) (valid bool, err error)
+	CreateRefreshToken(ctx context.Context) (refreshToken *string, err error)
+	Refresh(
+		ctx context.Context,
+		refreshTokenInput string,
+	) (accessToken *string, refreshToken *string, err error)
+	DeleteExpired(ctx context.Context) error
+}
+
 type TokenRepository struct {
 	signingSecret []byte
 	Issuer        string `json:"issuer"`
@@ -35,8 +46,8 @@ func (r *TokenRepository) LogValue() slog.Value {
 	)
 }
 
-func NewTokenRepository(secret []byte, issuer string, models *data.Models) TokenRepository {
-	return TokenRepository{
+func NewTokenRepository(secret []byte, issuer string, models *data.Models) TokenService {
+	return &TokenRepository{
 		signingSecret: secret,
 		Issuer:        issuer,
 		models:        models,

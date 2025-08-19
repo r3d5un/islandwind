@@ -12,7 +12,7 @@ type Repository struct {
 	db     *pgxpool.Pool
 	models data.Models
 	cfg    config.Config
-	Tokens TokenRepository
+	Tokens TokenService
 }
 
 func NewRepository(
