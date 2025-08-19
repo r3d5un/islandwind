@@ -229,7 +229,6 @@ func (r *TokenRepository) verifyClaims(token *jwt.Token) (bool, error) {
 	if err != nil {
 		return false, ErrVerifyingToken
 	}
-	slog.Info("!!!!!", slog.Any("iat", iat.UTC()), slog.Any("time", time.Now().UTC()))
 	if iat.UTC().Unix() > time.Now().UTC().Unix() {
 		return false, ErrInvalidIssuedAt
 	}
