@@ -42,7 +42,7 @@ type DeleteOptions struct {
 func PostBlogpostHandler(
 	blogposts repo.PostWriter,
 ) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var body PostRequestBody
 		if err := api.ReadJSON(r, &body); err != nil {
@@ -70,13 +70,13 @@ func PostBlogpostHandler(
 			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
-	})
+	}
 }
 
 func GetBlogpostHandler(
 	blogposts repo.PostReader,
 ) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		id, err := api.ReadPathParamID(ctx, "id", r)
@@ -105,13 +105,13 @@ func GetBlogpostHandler(
 			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
-	})
+	}
 }
 
 func ListBlogpostHandler(
 	blogposts repo.PostReader,
 ) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		v := validator.New()
@@ -153,13 +153,13 @@ func ListBlogpostHandler(
 			BlogpostListResponse{Data: blogposts, Metadata: *metadata},
 			nil,
 		)
-	})
+	}
 }
 
 func PatchBlogpostHandler(
 	blogposts repo.PostWriter,
 ) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var body PatchRequestBody
 		if err := api.ReadJSON(r, &body); err != nil {
@@ -187,13 +187,13 @@ func PatchBlogpostHandler(
 			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
-	})
+	}
 }
 
 func DeleteBlogpostHandler(
 	blogposts repo.PostWriter,
 ) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var body DeleteRequestBody
 		if err := api.ReadJSON(r, &body); err != nil {
@@ -236,5 +236,5 @@ func DeleteBlogpostHandler(
 			BlogpostResponse{Data: *blogpost},
 			nil,
 		)
-	})
+	}
 }
