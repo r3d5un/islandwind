@@ -260,3 +260,22 @@ func (r *TokenRepository) jtiFromToken(token jwt.Token) (*uuid.UUID, error) {
 	}
 	return &id, nil
 }
+
+func (r *TokenRepository) DeleteExpired(ctx context.Context) error {
+	logger := logging.LoggerFromContext(ctx)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "deleting expired tokens")
+	timestamp := time.Now().UTC()
+	affectedRows, err := r.models.RefreshTokens.DeleteMany(
+		ctx,
+		data.Filter{ExpirationFrom: &timestamp},
+	)
+	if err != nil {
+		return err
+	}
+	logger.LogAttrs(
+		ctx, slog.LevelInfo, "tokens deleted", slog.Int64("rowsAffected", *affectedRows),
+	)
+
+	return nil
+}
