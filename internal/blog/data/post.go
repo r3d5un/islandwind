@@ -78,23 +78,13 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var p Post
-	err := q.QueryRow(
+	p, err := m.scan(q.QueryRow(
 		ctx,
 		stmt,
 		input.Title,
 		input.Content,
 		input.Published,
-	).Scan(
-		&p.ID,
-		&p.Title,
-		&p.Content,
-		&p.Published,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.Deleted,
-		&p.DeletedAt,
-	)
+	))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -135,21 +125,7 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var p Post
-	err := q.QueryRow(
-		ctx,
-		stmt,
-		id,
-	).Scan(
-		&p.ID,
-		&p.Title,
-		&p.Content,
-		&p.Published,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.Deleted,
-		&p.DeletedAt,
-	)
+	p, err := m.scan(q.QueryRow(ctx, stmt, id))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -228,22 +204,11 @@ LIMIT $1;
 	var posts []*Post
 
 	for rows.Next() {
-		var b Post
-
-		err := rows.Scan(
-			&b.ID,
-			&b.Title,
-			&b.Content,
-			&b.Published,
-			&b.CreatedAt,
-			&b.UpdatedAt,
-			&b.Deleted,
-			&b.DeletedAt,
-		)
+		p, err := m.scan(rows)
 		if err != nil {
 			return nil, nil, db.HandleError(ctx, err)
 		}
-		posts = append(posts, &b)
+		posts = append(posts, &p)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, nil, db.HandleError(ctx, err)
@@ -305,8 +270,7 @@ RETURNING id,
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var p Post
-	err := q.QueryRow(
+	p, err := m.scan(q.QueryRow(
 		ctx,
 		stmt,
 		patch.ID,
@@ -314,16 +278,7 @@ RETURNING id,
 		patch.Content,
 		patch.Published,
 		patch.Deleted,
-	).Scan(
-		&p.ID,
-		&p.Title,
-		&p.Content,
-		&p.Published,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.Deleted,
-		&p.DeletedAt,
-	)
+	))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -366,21 +321,7 @@ RETURNING id,
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var p Post
-	err := q.QueryRow(
-		ctx,
-		stmt,
-		id,
-	).Scan(
-		&p.ID,
-		&p.Title,
-		&p.Content,
-		&p.Published,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-		&p.Deleted,
-		&p.DeletedAt,
-	)
+	p, err := m.scan(q.QueryRow(ctx, stmt, id))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -395,4 +336,22 @@ func (m *PostModel) Delete(ctx context.Context, id uuid.UUID) (*Post, error) {
 
 func (m *PostModel) DeleteTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Post, error) {
 	return m.delete(ctx, tx, id)
+}
+
+func (m *PostModel) scan(row pgx.Row) (Post, error) {
+	var p Post
+	err := row.Scan(
+		&p.ID,
+		&p.Title,
+		&p.Content,
+		&p.Published,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.Deleted,
+		&p.DeletedAt,
+	)
+	if err != nil {
+		return p, err
+	}
+	return p, err
 }

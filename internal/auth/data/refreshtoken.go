@@ -72,21 +72,7 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var r RefreshToken
-	err := q.QueryRow(
-		ctx,
-		stmt,
-		input.Issuer,
-		input.Expiration,
-		input.IssuedAt,
-	).Scan(
-		&r.ID,
-		&r.Issuer,
-		&r.Expiration,
-		&r.IssuedAt,
-		&r.Invalidated,
-		&r.InvalidatedBy,
-	)
+	r, err := m.scan(q.QueryRow(ctx, stmt, input.Issuer, input.Expiration, input.IssuedAt))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -107,7 +93,6 @@ func (m *RefreshTokenModel) InsertTx(
 	tx pgx.Tx,
 	input RefreshTokenInput,
 ) (*RefreshToken, error) {
-	// TODO: Implement
 	return m.insert(ctx, tx, input)
 }
 
@@ -138,19 +123,7 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var r RefreshToken
-	err := q.QueryRow(
-		ctx,
-		stmt,
-		id,
-	).Scan(
-		&r.ID,
-		&r.Issuer,
-		&r.Expiration,
-		&r.IssuedAt,
-		&r.Invalidated,
-		&r.InvalidatedBy,
-	)
+	r, err := m.scan(q.QueryRow(ctx, stmt, id))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -228,15 +201,7 @@ LIMIT $1;
 
 	for rows.Next() {
 		var r RefreshToken
-
-		err := rows.Scan(
-			&r.ID,
-			&r.Issuer,
-			&r.Expiration,
-			&r.IssuedAt,
-			&r.Invalidated,
-			&r.InvalidatedBy,
-		)
+		r, err := m.scan(rows)
 		if err != nil {
 			return nil, nil, db.HandleError(ctx, err)
 		}
@@ -298,22 +263,14 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var r RefreshToken
-	err := q.QueryRow(
+	r, err := m.scan(q.QueryRow(
 		ctx,
 		stmt,
 		input.ID,
 		input.Issuer,
 		input.Invalidated,
 		input.InvalidatedBy,
-	).Scan(
-		&r.ID,
-		&r.Issuer,
-		&r.Expiration,
-		&r.IssuedAt,
-		&r.Invalidated,
-		&r.InvalidatedBy,
-	)
+	))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -366,19 +323,7 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	var r RefreshToken
-	err := q.QueryRow(
-		ctx,
-		stmt,
-		id,
-	).Scan(
-		&r.ID,
-		&r.Issuer,
-		&r.Expiration,
-		&r.IssuedAt,
-		&r.Invalidated,
-		&r.InvalidatedBy,
-	)
+	r, err := m.scan(q.QueryRow(ctx, stmt, id))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
@@ -469,4 +414,20 @@ func (m *RefreshTokenModel) DeleteManyTx(
 	filter Filter,
 ) (*int64, error) {
 	return m.deleteMany(ctx, tx, filter)
+}
+
+func (m *RefreshTokenModel) scan(row pgx.Row) (RefreshToken, error) {
+	var r RefreshToken
+	err := row.Scan(
+		&r.ID,
+		&r.Issuer,
+		&r.Expiration,
+		&r.IssuedAt,
+		&r.Invalidated,
+		&r.InvalidatedBy,
+	)
+	if err != nil {
+		return r, err
+	}
+	return r, nil
 }
