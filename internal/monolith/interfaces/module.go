@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+	"net/http"
 )
 
 type Module interface {
@@ -29,6 +30,7 @@ type Module interface {
 
 type AuthService interface {
 	Module
+	AccessTokenMiddleware(next http.Handler) http.Handler
 }
 
 type BlogService interface {

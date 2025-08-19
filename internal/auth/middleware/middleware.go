@@ -1,12 +1,17 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/r3d5un/islandwind/internal/api"
+	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 func AccessTokenMiddleware(next http.Handler, tokens repo.TokenService) http.Handler {
@@ -44,5 +49,38 @@ func AccessTokenMiddleware(next http.Handler, tokens repo.TokenService) http.Han
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func BasicAuthMiddleware(next http.Handler, cfg config.BasicAuthConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		logger := logging.LoggerFromContext(ctx)
+
+		logger.LogAttrs(ctx, slog.LevelInfo, "authenticating request")
+		username, password, ok := r.BasicAuth()
+		if ok {
+			usernameHash := sha256.Sum256([]byte(username))
+			passwordHash := sha256.Sum256([]byte(password))
+			expectedUsernameHash := sha256.Sum256([]byte(cfg.Username))
+			expectedPasswordHash := sha256.Sum256([]byte(cfg.Password))
+			usernameMatch := subtle.ConstantTimeCompare(
+				usernameHash[:],
+				expectedUsernameHash[:],
+			) == 1
+			passwordMatch := subtle.ConstantTimeCompare(
+				passwordHash[:],
+				expectedPasswordHash[:],
+			) == 1
+
+			if usernameMatch && passwordMatch {
+				logger.LogAttrs(ctx, slog.LevelInfo, "request authenticated")
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		w.Header().Set("WWW-Authentication", `Basic realm="restricted", charset="UTF-8"`)
+		api.UnauthorizedResponse(w, r)
 	})
 }

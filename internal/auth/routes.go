@@ -8,21 +8,49 @@ import (
 
 	"github.com/justinas/alice"
 	"github.com/r3d5un/islandwind/internal/api"
+	"github.com/r3d5un/islandwind/internal/auth/handlers"
+	"github.com/r3d5un/islandwind/internal/auth/middleware"
+)
+
+type authType int
+
+const (
+	basicAuth authType = iota
+	accessToken
+	noAuth
 )
 
 func (m *Module) addRoutes(ctx context.Context) {
 	routes := []struct {
-		Path         string `json:"path"`
-		Handler      http.HandlerFunc
-		Method       string
-		AuthRequried bool
+		Path     string `json:"path"`
+		Handler  http.HandlerFunc
+		Method   string
+		authType authType
 	}{
 		// healthcheck
 		{
-			"GET /api/v1/auth/healthcheck",
+			"/api/v1/auth/healthcheck",
 			m.healthcheckHandler,
 			http.MethodGet,
-			false,
+			noAuth,
+		},
+		// login
+		{
+			"/api/v1/auth/login",
+			handlers.LoginHandler(m.repo.Tokens),
+			http.MethodPost,
+			// Basic authentication should only be used for logging in. Other resources
+			// should be accessible with access tokens.
+			basicAuth,
+		},
+		// refresh
+		{
+			"api/v1/auth/refresh",
+			handlers.RefreshHandler(m.repo.Tokens),
+			http.MethodPost,
+			// The RefreshHandler authenticates and validates the request as part of the
+			// refresh process. No extra auth required.
+			noAuth,
 		},
 	}
 
@@ -32,7 +60,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			"route",
 			slog.String("method", route.Method),
 			slog.String("path", route.Path),
-			slog.Bool("authRequired", route.AuthRequried),
+			slog.Any("authRequired", route.authType),
 		))
 
 		chain := alice.New(
@@ -49,13 +77,20 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 			// Require authentication for write requests
 			func(next http.Handler) http.Handler {
-				if !route.AuthRequried {
+				switch route.authType {
+				case noAuth:
 					return next
+				case basicAuth:
+					handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						next.ServeHTTP(w, r)
+					})
+					return middleware.BasicAuthMiddleware(handlerFunc, m.cfg.Server.BasicAuth)
+				case accessToken:
+					fallthrough
+				default:
+					return m.AccessTokenMiddleware(next)
+
 				}
-				handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					next.ServeHTTP(w, r)
-				})
-				return api.BasicAuthMiddleware(handlerFunc, m.cfg.Server.Authentication)
 			},
 		)
 

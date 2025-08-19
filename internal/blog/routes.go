@@ -20,47 +20,40 @@ func (m *Module) addRoutes(ctx context.Context) {
 	}{
 		// healthcheck
 		{
-			"GET /api/v1/blog/healthcheck",
+			"/api/v1/blog/healthcheck",
 			m.healthcheckHandler,
 			http.MethodGet,
 			false,
 		},
 		// blog posts
 		{
-			"POST /api/v1/blog/post",
+			"/api/v1/blog/post",
 			handlers.PostBlogpostHandler(m.repo.Posts),
 			http.MethodPost,
 			true,
 		},
 		{
-			"GET /api/v1/blog/post/{id}",
+			"/api/v1/blog/post/{id}",
 			handlers.GetBlogpostHandler(m.repo.Posts),
 			http.MethodGet,
 			false,
 		},
 		{
-			"GET /api/v1/blog/post",
+			"/api/v1/blog/post",
 			handlers.ListBlogpostHandler(m.repo.Posts),
 			http.MethodGet,
 			false,
 		},
 		{
-			"PATCH /api/v1/blog/post",
+			"/api/v1/blog/post",
 			handlers.PatchBlogpostHandler(m.repo.Posts),
 			http.MethodPatch,
 			true,
 		},
 		{
-			"DELETE /api/v1/blog/post",
+			"/api/v1/blog/post",
 			handlers.DeleteBlogpostHandler(m.repo.Posts),
 			http.MethodDelete,
-			true,
-		},
-		{
-			// Route for testing basic auth credentials
-			"GET /api/v1/auth/login",
-			api.EmptyHandler(),
-			http.MethodGet,
 			true,
 		},
 	}
@@ -91,10 +84,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 				if !route.AuthRequried {
 					return next
 				}
-				handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					next.ServeHTTP(w, r)
-				})
-				return api.BasicAuthMiddleware(handlerFunc, m.cfg.Server.Authentication)
+				return m.auth.AccessTokenMiddleware(next)
 			},
 		)
 

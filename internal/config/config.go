@@ -3,7 +3,6 @@ package config
 import (
 	"strings"
 
-	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/spf13/viper"
@@ -50,7 +49,9 @@ type ServerConfig struct {
 	// Set through the ISLANDWIND_SERVER_WRITETIMEOUT environment variable
 	WriteTimeout int `json:"writeTimeout"`
 	// BasicAuthConfig is used to set the administrator username and password
-	Authentication api.BasicAuthConfig `json:"authentication"`
+	BasicAuth config.BasicAuthConfig `json:"basicAuth"`
+	// AccessToken is used to set the administrator username and password
+	AccessToken config.Config `json:"accessToken"`
 }
 
 func New() (*Config, error) {

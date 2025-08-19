@@ -23,6 +23,11 @@ type Module struct {
 	repo       repo.Repository
 	mux        *http.ServeMux
 	instanceID uuid.UUID
+	auth       AuthMiddlewareService
+}
+
+type AuthMiddlewareService interface {
+	AccessTokenMiddleware(next http.Handler) http.Handler
 }
 
 func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
@@ -37,6 +42,7 @@ func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
 	m.logger = logger
 	m.db = mono.DB()
 	m.cfg = mono.Config()
+	m.auth = mono.Modules().Auth
 	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
 	m.repo = repo.NewRepository(m.db, &timeout)
 	m.mux = mono.Mux()
