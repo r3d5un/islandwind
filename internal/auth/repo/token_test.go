@@ -18,8 +18,6 @@ func TestTokenRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, newJWT)
 
-		t.Log(*newJWT)
-
 		accessToken = *newJWT
 	})
 
