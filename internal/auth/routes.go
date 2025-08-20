@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -22,46 +23,61 @@ const (
 
 func (m *Module) addRoutes(ctx context.Context) {
 	routes := []struct {
-		Path     string `json:"path"`
-		Handler  http.HandlerFunc
-		Methods  []string `json:"methods"`
-		authType authType
+		Path          string `json:"path"`
+		handler       http.HandlerFunc
+		Method        string `json:"method"`
+		authType      authType
+		CorsPreflight bool `json:"corsPreflight"`
 	}{
 		// healthcheck
 		{
-			"GET /api/v1/auth/healthcheck",
+			"/api/v1/auth/healthcheck",
 			m.healthcheckHandler,
-			[]string{http.MethodGet},
+			http.MethodGet,
 			noAuth,
+			false,
 		},
 		// login
 		{
-			"POST /api/v1/auth/login",
+			"/api/v1/auth/login",
 			handlers.LoginHandler(m.repo.Tokens),
-			[]string{http.MethodPost},
+			http.MethodPost,
 			// Basic authentication should only be used for logging in. Other resources
 			// should be accessible with access tokens.
 			basicAuth,
+			true,
 		},
 		// refresh
 		{
-			"POST /api/v1/auth/refresh",
+			"/api/v1/auth/refresh",
 			handlers.RefreshHandler(m.repo.Tokens),
-			[]string{http.MethodPost},
+			http.MethodPost,
 			// The RefreshHandler authenticates and validates the request as part of the
 			// refresh process. No extra auth required.
 			noAuth,
+			true,
 		},
 	}
 
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{
+			http.MethodPost,
+			http.MethodGet,
+			http.MethodOptions,
+			http.MethodHead,
+		},
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+	})
+
 	m.logger.LogAttrs(ctx, slog.LevelInfo, "adding routes")
 	for _, route := range routes {
-		m.logger.LogAttrs(ctx, slog.LevelInfo, "adding route", slog.Group(
-			"route",
-			slog.Any("method", route.Methods),
-			slog.String("path", route.Path),
-			slog.Any("authRequired", route.authType),
-		))
+		m.logger.LogAttrs(
+			ctx,
+			slog.LevelInfo,
+			"adding route",
+			slog.Group("route", slog.Any("route", route)),
+		)
 
 		chain := alice.New(
 			// Add logging middleware for all requests
@@ -73,15 +89,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 			// Enable CORS for all requests
 			func(next http.Handler) http.Handler {
-				c := cors.New(cors.Options{
-					AllowedOrigins:     []string{"*"},
-					AllowedMethods:     route.Methods,
-					AllowedHeaders:     []string{"Content-Type", "Authorization"},
-					AllowCredentials:   false,
-					Debug:              true,
-					OptionsPassthrough: false,
-				})
-				return c.Handler(next)
+				return corsMiddleware.Handler(next)
 			},
 			// Require authentication for write requests
 			func(next http.Handler) http.Handler {
@@ -92,7 +100,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 					handlerFunc := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						next.ServeHTTP(w, r)
 					})
-					return middleware.BasicAuthMiddleware(handlerFunc, m.cfg.Server.BasicAuth)
+					return middleware.BasicAuthMiddleware(handlerFunc, m.cfg.BasicAuth)
 				case accessToken:
 					fallthrough
 				default:
@@ -102,6 +110,16 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 		)
 
-		m.mux.Handle(route.Path, chain.Then(route.Handler))
+		if route.CorsPreflight {
+			m.mux.Handle(
+				fmt.Sprintf("%s %s", http.MethodOptions, route.Path),
+				chain.Then(api.CorsPreflightHandler()),
+			)
+		}
+
+		m.mux.Handle(
+			fmt.Sprintf("%s %s", route.Method, route.Path),
+			chain.Then(route.handler),
+		)
 	}
 }
