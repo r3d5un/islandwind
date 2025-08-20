@@ -12,10 +12,11 @@ import (
 // does not reload environment variables; you will have to use the [viper] package directly
 // where you need to read updated configuration variables.
 type Config struct {
-	App    AppConfig     `json:"app"`
-	Server ServerConfig  `json:"server"`
-	DB     db.Config     `json:"db"`
-	Auth   config.Config `json:"auth"`
+	App       AppConfig              `json:"app"`
+	Server    ServerConfig           `json:"server"`
+	DB        db.Config              `json:"db"`
+	Auth      config.Config          `json:"auth"`
+	BasicAuth config.BasicAuthConfig `json:"basicAuty"`
 }
 
 // AppConfig contains the most top-level configuration for the application.
@@ -48,10 +49,6 @@ type ServerConfig struct {
 	//
 	// Set through the ISLANDWIND_SERVER_WRITETIMEOUT environment variable
 	WriteTimeout int `json:"writeTimeout"`
-	// BasicAuthConfig is used to set the administrator username and password
-	BasicAuth config.BasicAuthConfig `json:"basicAuth"`
-	// AccessToken is used to set the administrator username and password
-	AccessToken config.Config `json:"accessToken"`
 }
 
 func New() (*Config, error) {
@@ -64,8 +61,11 @@ func New() (*Config, error) {
 	viper.SetDefault("server.idleTimeout", 60)
 	viper.SetDefault("server.readTimeout", 5)
 	viper.SetDefault("server.writeTimeout", 10)
-	viper.SetDefault("server.authentication.username", "islandwind")
-	viper.SetDefault("server.authentication.password", "islandwind")
+	// Authentication
+	viper.SetDefault("basicauth.username", "islandwind")
+	viper.SetDefault("basicauth.password", "islandwind")
+	viper.SetDefault("auth.signingsecret", "islandwind")
+	viper.SetDefault("auth.tokenissuer", "islandwind")
 	// Default Database Settings
 	viper.SetDefault(
 		"db.connstr",
