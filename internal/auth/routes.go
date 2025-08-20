@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/auth/handlers"
 	"github.com/r3d5un/islandwind/internal/auth/middleware"
+	"github.com/rs/cors"
 )
 
 type authType int
@@ -24,30 +24,30 @@ func (m *Module) addRoutes(ctx context.Context) {
 	routes := []struct {
 		Path     string `json:"path"`
 		Handler  http.HandlerFunc
-		Method   string
+		Methods  []string `json:"methods"`
 		authType authType
 	}{
 		// healthcheck
 		{
-			"/api/v1/auth/healthcheck",
+			"GET /api/v1/auth/healthcheck",
 			m.healthcheckHandler,
-			http.MethodGet,
+			[]string{http.MethodGet},
 			noAuth,
 		},
 		// login
 		{
-			"/api/v1/auth/login",
+			"POST /api/v1/auth/login",
 			handlers.LoginHandler(m.repo.Tokens),
-			http.MethodPost,
+			[]string{http.MethodPost},
 			// Basic authentication should only be used for logging in. Other resources
 			// should be accessible with access tokens.
 			basicAuth,
 		},
 		// refresh
 		{
-			"api/v1/auth/refresh",
+			"POST /api/v1/auth/refresh",
 			handlers.RefreshHandler(m.repo.Tokens),
-			http.MethodPost,
+			[]string{http.MethodPost},
 			// The RefreshHandler authenticates and validates the request as part of the
 			// refresh process. No extra auth required.
 			noAuth,
@@ -58,7 +58,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 	for _, route := range routes {
 		m.logger.LogAttrs(ctx, slog.LevelInfo, "adding route", slog.Group(
 			"route",
-			slog.String("method", route.Method),
+			slog.Any("method", route.Methods),
 			slog.String("path", route.Path),
 			slog.Any("authRequired", route.authType),
 		))
@@ -73,7 +73,15 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 			// Enable CORS for all requests
 			func(next http.Handler) http.Handler {
-				return api.CORSMiddleware(next, route.Method)
+				c := cors.New(cors.Options{
+					AllowedOrigins:     []string{"*"},
+					AllowedMethods:     route.Methods,
+					AllowedHeaders:     []string{"Content-Type", "Authorization"},
+					AllowCredentials:   false,
+					Debug:              true,
+					OptionsPassthrough: false,
+				})
+				return c.Handler(next)
 			},
 			// Require authentication for write requests
 			func(next http.Handler) http.Handler {
@@ -94,9 +102,6 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 		)
 
-		m.mux.Handle(
-			fmt.Sprintf("%s %s", route.Method, route.Path),
-			chain.Then(route.Handler),
-		)
+		m.mux.Handle(route.Path, chain.Then(route.Handler))
 	}
 }

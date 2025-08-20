@@ -9,22 +9,6 @@ import (
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
-// CORSMiddleware returns middleware enabeling Cross-Origin Resource Sharing
-func CORSMiddleware(next http.Handler, allowedMethod string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", allowedMethod)
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 type requestUrlKey string
 
 const RequestUrlKey requestUrlKey = "requestUrlKey"
