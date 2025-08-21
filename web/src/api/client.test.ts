@@ -5,6 +5,7 @@ import type { RequestFailureError } from '@/api/errors.ts'
 import { Client, type QueryResult } from 'pg'
 import { DockerComposeEnvironment, StartedDockerComposeEnvironment, Wait } from 'testcontainers'
 import { HttpClient } from '@/api/client.ts'
+import { login, Tokens } from '@/api/auth.ts'
 
 interface IBlogpostID {
   id: string
@@ -22,10 +23,9 @@ describe('BlogpostClient', () => {
 
   const baseUrl: string = 'http://localhost:14000'
   const client: HttpClient = new HttpClient(logger, baseUrl)
-  const username: string = 'islandwind'
-  const password: string = 'islandwind'
   client.blogposts.username = 'islandwind'
   client.blogposts.password = 'islandwind'
+  let tokens: Tokens | RequestFailureError
 
   let environment: StartedDockerComposeEnvironment
 
@@ -58,6 +58,13 @@ describe('BlogpostClient', () => {
                  ('Update Me', 'Update Me', false),
                  ('Delete Me', 'Delete Me', false);
       `)
+
+      logger.info('logging in')
+      tokens = await login('islandwind', 'islandwind')
+      if (!(tokens instanceof Tokens)) {
+        throw tokens
+      }
+      logger.info('logged in', { tokens: tokens })
     },
     // Timeout set to two minutes because the container environment can take some time to be ready
     120_000,
@@ -77,15 +84,22 @@ describe('BlogpostClient', () => {
 
   it('should create a blogpost', async () => {
     const input = new BlogpostInput('Created Blogpost', 'Content', false)
-    const result: Blogpost | RequestFailureError = await client.blogposts.post(input)
+    if (tokens instanceof Tokens) {
+      const result: Blogpost | RequestFailureError = await client.blogposts.post(
+        tokens.accessToken,
+        input,
+      )
 
-    expect(result).toBeInstanceOf(Blogpost)
-    if (result instanceof Blogpost) {
-      expect(result.id.length).toBeGreaterThan(0)
-      expect(result.title).toBe(input.title)
-      expect(result.content).toBe(input.content)
-      expect(result.published).toBe(input.published)
-      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(result).toBeInstanceOf(Blogpost)
+      if (result instanceof Blogpost) {
+        expect(result.id.length).toBeGreaterThan(0)
+        expect(result.title).toBe(input.title)
+        expect(result.content).toBe(input.content)
+        expect(result.published).toBe(input.published)
+        expect(result.createdAt).toBeInstanceOf(Date)
+      }
+    } else {
+      throw tokens
     }
   })
 
@@ -120,14 +134,24 @@ describe('BlogpostClient', () => {
     const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
       "SELECT id FROM blog.post WHERE title = 'Update Me';",
     )
-    const patch: BlogpostPatch = new BlogpostPatch({ id: queryResult.rows[0].id, published: true })
-    const result: Blogpost | RequestFailureError = await client.blogposts.patch(patch)
+    if (tokens instanceof Tokens) {
+      const patch: BlogpostPatch = new BlogpostPatch({
+        id: queryResult.rows[0].id,
+        published: true,
+      })
+      const result: Blogpost | RequestFailureError = await client.blogposts.patch(
+        tokens.accessToken,
+        patch,
+      )
 
-    expect(result).toBeInstanceOf(Blogpost)
-    if (result instanceof Blogpost) {
-      expect(result.id).toBe(queryResult.rows[0].id)
-      expect(result.published).toBe(true)
-      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(result).toBeInstanceOf(Blogpost)
+      if (result instanceof Blogpost) {
+        expect(result.id).toBe(queryResult.rows[0].id)
+        expect(result.published).toBe(true)
+        expect(result.createdAt).toBeInstanceOf(Date)
+      }
+    } else {
+      throw tokens
     }
   })
 
@@ -135,25 +159,21 @@ describe('BlogpostClient', () => {
     const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
       "SELECT id FROM blog.post WHERE title = 'Delete Me';",
     )
-    const result: Blogpost | RequestFailureError = await client.blogposts.delete(
-      queryResult.rows[0].id,
-      true,
-    )
-
-    expect(result).toBeInstanceOf(Blogpost)
-    if (result instanceof Blogpost) {
-      expect(result.id).toBe(queryResult.rows[0].id)
-      expect(result.deleted).toBe(true)
-      expect(result.createdAt).toBeInstanceOf(Date)
-      expect(result.deletedAt).toBeInstanceOf(Date)
-    }
-  })
-
-  it('should login', async () => {
-    const result: boolean | RequestFailureError = await client.auth.get(username, password)
-
-    if (typeof result === 'boolean') {
-      expect(result).toBeTruthy()
+    if (tokens instanceof Tokens) {
+      const result: Blogpost | RequestFailureError = await client.blogposts.delete(
+        tokens.accessToken,
+        queryResult.rows[0].id,
+        true,
+      )
+      expect(result).toBeInstanceOf(Blogpost)
+      if (result instanceof Blogpost) {
+        expect(result.id).toBe(queryResult.rows[0].id)
+        expect(result.deleted).toBe(true)
+        expect(result.createdAt).toBeInstanceOf(Date)
+        expect(result.deletedAt).toBeInstanceOf(Date)
+      }
+    } else {
+      throw tokens
     }
   })
 })

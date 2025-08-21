@@ -11,16 +11,7 @@ import {
 import { type IBlogpostListResponse, type IBlogpostResponse } from './blogposts.ts'
 import { type ILogObj, Logger } from 'tslog'
 import axios, { type AxiosResponse } from 'axios'
-import {
-  BackendServerInternalError,
-  BadRequestError,
-  ForbiddenError,
-  NetworkError,
-  NotFoundError,
-  type RequestFailureError,
-  UnauthorizedError,
-  UnexpectedStatusCodeError,
-} from '@/api/errors.ts'
+import { type RequestFailureError, UnauthorizedError, handleRequestFailure } from '@/api/errors.ts'
 
 export class BlogpostClient {
   readonly baseUrl: string
@@ -56,7 +47,7 @@ export class BlogpostClient {
       return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('unable to retrieve blogpost', { error: error })
-      return this.handleRequestFailure(error)
+      return handleRequestFailure(error)
     }
   }
 
@@ -71,11 +62,14 @@ export class BlogpostClient {
       return new BlogpostListResponse(response.data.data, response.data.metadata)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
-      return this.handleRequestFailure(error)
+      return handleRequestFailure(error)
     }
   }
 
-  public async patch(blogpost: BlogpostPatch): Promise<Blogpost | RequestFailureError> {
+  public async patch(
+    accessToken: string,
+    blogpost: BlogpostPatch,
+  ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('updating blogpost', { blogpost: blogpost })
 
     if (!this._username || !this._password) {
@@ -88,18 +82,23 @@ export class BlogpostClient {
         new BlogpostPatchBody(blogpost),
         {
           timeout: this.timeout,
-          auth: { username: this._username, password: this._password },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
       )
       this.logger.info('blogpost updated')
       return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
-      return this.handleRequestFailure(error)
+      return handleRequestFailure(error)
     }
   }
 
-  public async post(blogpost: BlogpostInput): Promise<Blogpost | RequestFailureError> {
+  public async post(
+    accessToken: string,
+    blogpost: BlogpostInput,
+  ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('creating blogpost', { blogpost: blogpost })
 
     if (!this._username || !this._password) {
@@ -112,18 +111,24 @@ export class BlogpostClient {
         new BlogpostPostBody(blogpost),
         {
           timeout: this.timeout,
-          auth: { username: this._username, password: this._password },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
       )
       this.logger.info('blogpost created')
       return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
-      return this.handleRequestFailure(error)
+      return handleRequestFailure(error)
     }
   }
 
-  public async delete(id: string, purge: boolean): Promise<Blogpost | RequestFailureError> {
+  public async delete(
+    accessToken: string,
+    id: string,
+    purge: boolean,
+  ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('deleting blogpost', { id: id })
 
     if (!this._username || !this._password) {
@@ -137,43 +142,13 @@ export class BlogpostClient {
         data: new BlogpostDeleteBody(new BlogpostDeleteOptions(id, purge)),
         timeout: this.timeout,
         auth: { username: this._username, password: this._password },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       this.logger.info('blogpost created')
       return new Blogpost(response.data.data)
     } catch (error) {
       this.logger.error('Error listing blogposts', { error: error })
-      return this.handleRequestFailure(error)
+      return handleRequestFailure(error)
     }
-  }
-
-  private handleRequestFailure(error: unknown): RequestFailureError {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            return new BadRequestError()
-          case 401:
-            return new UnauthorizedError()
-          case 403:
-            return new ForbiddenError()
-          case 404:
-            return new NotFoundError()
-          case 500:
-            return new BackendServerInternalError()
-          default:
-            return new UnexpectedStatusCodeError()
-        }
-      } else if (error.request) {
-        return new NetworkError()
-      } else {
-        return new Error('Unknown request failure')
-      }
-    }
-
-    if (error instanceof Error) {
-      return new NetworkError(error.message)
-    }
-
-    return new Error('Unknown request failure')
   }
 }

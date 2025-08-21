@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export class NetworkError extends Error {
   constructor(public message: string = 'Unhandled network error occurred') {
     super(message)
@@ -70,3 +72,34 @@ export type RequestFailureError =
   | UnexpectedStatusCodeError
   | NetworkError
   | UnknownRequestFailureError
+
+export function handleRequestFailure(error: unknown): RequestFailureError {
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      switch (error.response.status) {
+        case 400:
+          return new BadRequestError()
+        case 401:
+          return new UnauthorizedError()
+        case 403:
+          return new ForbiddenError()
+        case 404:
+          return new NotFoundError()
+        case 500:
+          return new BackendServerInternalError()
+        default:
+          return new UnexpectedStatusCodeError()
+      }
+    } else if (error.request) {
+      return new NetworkError()
+    } else {
+      return new Error('Unknown request failure')
+    }
+  }
+
+  if (error instanceof Error) {
+    return new NetworkError(error.message)
+  }
+
+  return new Error('Unknown request failure')
+}
