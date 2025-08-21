@@ -23,9 +23,16 @@ var (
 	ErrUnauthorized    = errors.New("token unauthorized")
 )
 
+type TokenType int
+
+const (
+	AccessToken TokenType = iota
+	RefreshToken
+)
+
 type TokenService interface {
 	CreateAccessToken() (accessToken *string, err error)
-	Validate(ctx context.Context, input string) (valid bool, err error)
+	Validate(ctx context.Context, tokenType TokenType, input string) (valid bool, err error)
 	CreateRefreshToken(ctx context.Context) (refreshToken *string, err error)
 	Refresh(
 		ctx context.Context,
@@ -35,9 +42,10 @@ type TokenService interface {
 }
 
 type TokenRepository struct {
-	signingSecret []byte
-	Issuer        string `json:"issuer"`
-	models        *data.Models
+	signingSecret        []byte
+	refreshSigningSecret []byte
+	Issuer               string `json:"issuer"`
+	models               *data.Models
 }
 
 func (r *TokenRepository) LogValue() slog.Value {
@@ -46,11 +54,17 @@ func (r *TokenRepository) LogValue() slog.Value {
 	)
 }
 
-func NewTokenRepository(secret []byte, issuer string, models *data.Models) TokenService {
+func NewTokenRepository(
+	accessTokenSecret []byte,
+	refreshTokenSecret []byte,
+	issuer string,
+	models *data.Models,
+) TokenService {
 	return &TokenRepository{
-		signingSecret: secret,
-		Issuer:        issuer,
-		models:        models,
+		signingSecret:        accessTokenSecret,
+		refreshSigningSecret: refreshTokenSecret,
+		Issuer:               issuer,
+		models:               models,
 	}
 }
 
@@ -65,15 +79,33 @@ func (r *TokenRepository) CreateAccessToken() (*string, error) {
 	return &tokenString, nil
 }
 
-func (r *TokenRepository) parseToken(input string) (*jwt.Token, error) {
-	token, err := jwt.Parse(input, func(token *jwt.Token) (any, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, ErrParsingToken
+func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.Token, error) {
+	var token *jwt.Token
+	var err error
+
+	switch tokenType {
+	case RefreshToken:
+		token, err = jwt.Parse(input, func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, ErrParsingToken
+			}
+			return r.signingSecret, nil
+		})
+		if err != nil {
+			return nil, err
 		}
-		return r.signingSecret, nil
-	})
-	if err != nil {
-		return nil, err
+	case AccessToken:
+		token, err = jwt.Parse(input, func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, ErrParsingToken
+			}
+			return r.signingSecret, nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("unknown token type")
 	}
 
 	valid, err := r.verifyClaims(token)
@@ -90,11 +122,15 @@ func (r *TokenRepository) parseToken(input string) (*jwt.Token, error) {
 // Validate parses a given input JWT string and validates it claims. An error is returned
 // if the token cannot be parsed. If the token is invalid in any way a false boolean
 // value is returned along with an error describing the fault.
-func (r *TokenRepository) Validate(ctx context.Context, input string) (bool, error) {
+func (r *TokenRepository) Validate(
+	ctx context.Context,
+	tokenType TokenType,
+	input string,
+) (bool, error) {
 	logger := logging.LoggerFromContext(ctx)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "verifying token")
-	_, err := r.parseToken(input)
+	_, err := r.parseToken(input, tokenType)
 	if err != nil {
 		logger.LogAttrs(
 			ctx, slog.LevelError, "error parsing token", slog.String("error", err.Error()),
@@ -134,7 +170,7 @@ func (r *TokenRepository) CreateRefreshToken(ctx context.Context) (*string, erro
 		)
 		return nil, err
 	}
-	tokenString, err := token.SignedString(r.signingSecret)
+	tokenString, err := token.SignedString(r.refreshSigningSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +188,7 @@ func (r *TokenRepository) Refresh(
 	logger := logging.LoggerFromContext(ctx)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "validating refresh token")
-	token, err := r.parseToken(refreshTokenInput)
+	token, err := r.parseToken(refreshTokenInput, RefreshToken)
 	if err != nil {
 		return nil, nil, err
 	}

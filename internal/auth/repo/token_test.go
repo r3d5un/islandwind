@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +23,7 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("Validate", func(t *testing.T) {
-		ok, err := authRepo.Tokens.Validate(ctx, accessToken)
+		ok, err := authRepo.Tokens.Validate(ctx, repo.AccessToken, accessToken)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})

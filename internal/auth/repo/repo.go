@@ -25,6 +25,11 @@ func NewRepository(
 		db:     db,
 		models: models,
 		cfg:    cfg,
-		Tokens: NewTokenRepository([]byte(cfg.SigningSecret), cfg.TokenIssuer, &models),
+		Tokens: NewTokenRepository(
+			[]byte(cfg.SigningSecret),
+			[]byte(cfg.RefreshSigningSecret),
+			cfg.TokenIssuer,
+			&models,
+		),
 	}
 }

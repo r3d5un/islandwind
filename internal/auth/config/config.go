@@ -5,8 +5,9 @@ import (
 )
 
 type Config struct {
-	SigningSecret string `json:"signingSecret"`
-	TokenIssuer   string `json:"tokenIssuer"`
+	SigningSecret        string `json:"signingSecret"`
+	RefreshSigningSecret string `json:"refreshSigningSecret"`
+	TokenIssuer          string `json:"tokenIssuer"`
 }
 
 func (c Config) LogValue() slog.Value {

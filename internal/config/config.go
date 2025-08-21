@@ -64,7 +64,8 @@ func New() (*Config, error) {
 	// Authentication
 	viper.SetDefault("basicauth.username", "islandwind")
 	viper.SetDefault("basicauth.password", "islandwind")
-	viper.SetDefault("auth.signingsecret", "islandwind")
+	viper.SetDefault("auth.signingsecret", "accessTokenSecret")
+	viper.SetDefault("auth.refreshsigningsecret", "refreshTokenSecret")
 	viper.SetDefault("auth.tokenissuer", "islandwind")
 	// Default Database Settings
 	viper.SetDefault(
