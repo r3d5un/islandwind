@@ -33,11 +33,11 @@ type Config struct {
 	TimeoutSeconds int `json:"timeoutSeconds"`
 }
 
-func (c Config) LogValue() slog.Value {
+func (c *Config) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.Int("maxOpenConns", int(c.MaxOpenConns)),
-		slog.Int("idleTimeMinutes", int(c.IdleTimeMinutes)),
-		slog.Int("timeoutSeconds", int(c.TimeoutSeconds)),
+		slog.Int("idleTimeMinutes", c.IdleTimeMinutes),
+		slog.Int("timeoutSeconds", c.TimeoutSeconds),
 	)
 }
 
@@ -86,7 +86,7 @@ var (
 //
 // WARNING: This function assumed any given value in the input slice is a
 // pointer that can be checked for nil. A non-pointer value will return
-// early, but the the filter may still be unsafe.
+// early, but the filter may still be unsafe.
 func DeleteManyGuardrail(input ...any) error {
 	for _, x := range input {
 		if v := reflect.ValueOf(x); !v.IsNil() {
@@ -97,11 +97,6 @@ func DeleteManyGuardrail(input ...any) error {
 	return ErrUnsafeDeleteFilter
 }
 
-// IsEmpty checks if a slice is nil or empty
-func IsEmpty[T comparable](x []*T) bool {
-	return len(x) < 1
-}
-
 var (
 	ErrRecordNotFound                = errors.New("record not found")
 	ErrForeignKeyConstraintViolation = errors.New("foreign key constraint violation")
@@ -109,7 +104,7 @@ var (
 	ErrUniqueConstraintViolation     = errors.New("unique constraint violation")
 	ErrNotNullConstraintViolation    = errors.New("not null constraint violation")
 	ErrCheckConstraintViolation      = errors.New("check constraint violation")
-	ErrSynatxErrorViolation          = errors.New("sql syntax errors")
+	ErrSyntaxViolation               = errors.New("sql syntax errors")
 	ErrUndefinedResource             = errors.New("undefined resource")
 )
 
@@ -128,9 +123,9 @@ const (
 	PgxCheckViolationCode = "23514"
 	// PgxSyntaxErrorCode is for general syntax errors
 	PgxSyntaxErrorCode = "42601"
-	// PgxUndefinedColumnCode is the error code for referencing columns that does not exists
+	// PgxUndefinedColumnCode is the error code for referencing columns that does not exist
 	PgxUndefinedColumnCode = "42703"
-	// PgxUndefinedTableCode is the error code for refercing tables that does not exists
+	// PgxUndefinedTableCode is the error code for referencing tables that does not exist
 	PgxUndefinedTableCode = "42P01"
 )
 
@@ -177,7 +172,7 @@ func HandleError(ctx context.Context, err error) error {
 			return ErrCheckConstraintViolation
 		case PgxSyntaxErrorCode:
 			logger.LogAttrs(ctx, slog.LevelError, "syntax error")
-			return ErrSynatxErrorViolation
+			return ErrSyntaxViolation
 		case PgxUndefinedColumnCode:
 			logger.LogAttrs(ctx, slog.LevelError, "referenced column does not exist")
 			return ErrUndefinedResource
