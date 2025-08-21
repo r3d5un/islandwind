@@ -38,4 +38,4 @@ services:
         condition: service_completed_successfully
     ports:
       - "14000:4000"
-    restart: "unless-stopped"
+    restart: "no"
