@@ -141,7 +141,6 @@ export class BlogpostClient {
         url: `${this.baseUrl}/api/v1/blog/post`,
         data: new BlogpostDeleteBody(new BlogpostDeleteOptions(id, purge)),
         timeout: this.timeout,
-        auth: { username: this._username, password: this._password },
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       this.logger.info('blogpost created')
