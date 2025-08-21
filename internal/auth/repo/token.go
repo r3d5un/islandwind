@@ -92,7 +92,12 @@ func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.To
 			return r.signingSecret, nil
 		})
 		if err != nil {
-			return nil, err
+			switch {
+			case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+				return nil, ErrUnauthorized
+			default:
+				return nil, err
+			}
 		}
 	case AccessToken:
 		token, err = jwt.Parse(input, func(token *jwt.Token) (any, error) {
@@ -102,7 +107,12 @@ func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.To
 			return r.signingSecret, nil
 		})
 		if err != nil {
-			return nil, err
+			switch {
+			case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+				return nil, ErrUnauthorized
+			default:
+				return nil, err
+			}
 		}
 	default:
 		return nil, errors.New("unknown token type")
