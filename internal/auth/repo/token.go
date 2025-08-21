@@ -89,7 +89,7 @@ func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.To
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, ErrParsingToken
 			}
-			return r.signingSecret, nil
+			return r.refreshSigningSecret, nil
 		})
 		if err != nil {
 			switch {
