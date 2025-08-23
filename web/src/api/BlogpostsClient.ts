@@ -11,7 +11,7 @@ import {
 import { type IBlogpostListResponse, type IBlogpostResponse } from './blogposts.ts'
 import { type ILogObj, Logger } from 'tslog'
 import axios, { type AxiosResponse } from 'axios'
-import { type RequestFailureError, UnauthorizedError, handleRequestFailure } from '@/api/errors.ts'
+import { type RequestFailureError, handleRequestFailure } from '@/api/errors.ts'
 
 export class BlogpostClient {
   readonly baseUrl: string
@@ -21,21 +21,8 @@ export class BlogpostClient {
   constructor(baseUrl: string, logger: Logger<ILogObj>) {
     this.baseUrl = baseUrl
     this.logger = logger
-    this._username = null
-    this._password = null
   }
 
-  private _username: string | null
-
-  set username(value: string) {
-    this._username = value
-  }
-
-  private _password: string | null
-
-  set password(value: string) {
-    this._password = value
-  }
 
   public async get(id: string): Promise<Blogpost | RequestFailureError> {
     this.logger.info('retrieving blogpost', { id: id })
@@ -72,10 +59,6 @@ export class BlogpostClient {
   ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('updating blogpost', { blogpost: blogpost })
 
-    if (!this._username || !this._password) {
-      return new UnauthorizedError('missing basic authentication credentials')
-    }
-
     try {
       const response: AxiosResponse<IBlogpostResponse, number> = await axios.patch(
         `${this.baseUrl}/api/v1/blog/post`,
@@ -100,10 +83,6 @@ export class BlogpostClient {
     blogpost: BlogpostInput,
   ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('creating blogpost', { blogpost: blogpost })
-
-    if (!this._username || !this._password) {
-      return new UnauthorizedError('missing basic authentication credentials')
-    }
 
     try {
       const response: AxiosResponse<IBlogpostResponse, number> = await axios.post(
@@ -130,10 +109,6 @@ export class BlogpostClient {
     purge: boolean,
   ): Promise<Blogpost | RequestFailureError> {
     this.logger.info('deleting blogpost', { id: id })
-
-    if (!this._username || !this._password) {
-      return new UnauthorizedError('missing basic authentication credentials')
-    }
 
     try {
       const response: AxiosResponse<IBlogpostResponse, number> = await axios({

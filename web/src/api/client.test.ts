@@ -23,8 +23,6 @@ describe('BlogpostClient', () => {
 
   const baseUrl: string = 'http://localhost:14000'
   const client: HttpClient = new HttpClient(logger, baseUrl)
-  client.blogposts.username = 'islandwind'
-  client.blogposts.password = 'islandwind'
   let tokens: Tokens | RequestFailureError
 
   let environment: StartedDockerComposeEnvironment
