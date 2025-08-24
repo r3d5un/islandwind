@@ -1,6 +1,8 @@
 import { type AxiosInstance, type AxiosResponse } from 'axios'
 import {
   Blogpost,
+  BlogpostDeleteBody,
+  BlogpostDeleteOptions,
   BlogpostInput,
   BlogpostListResponse,
   BlogpostPatch,
@@ -62,11 +64,12 @@ export class BlogpostApiClient {
     }
   }
 
-  public async delete(id: string): Promise<Blogpost | RequestFailureError> {
+  public async delete(id: string, purge: boolean): Promise<Blogpost | RequestFailureError> {
     try {
       const response: AxiosResponse<IBlogpostResponse, number> = await this.client.request({
         method: 'delete',
-        url: `/api/v1/blog/post/${id}`,
+        url: '/api/v1/blog/post',
+        data: new BlogpostDeleteBody(new BlogpostDeleteOptions(id, purge)),
       })
       return new Blogpost(response.data.data)
     } catch (error) {

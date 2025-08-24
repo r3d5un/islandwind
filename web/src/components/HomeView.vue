@@ -2,15 +2,17 @@
 import { onMounted, ref } from 'vue'
 import { BlogpostListResponse } from '@/api/blogposts.ts'
 import { useLogger } from '@/ui/logging.ts'
-import { useClient } from '@/ui/client.ts'
+import { useApiClient } from '@/ui/client.ts'
+import { BlogpostApiClient } from '@/api/blog.ts'
 
 const logger = useLogger()
-const client = useClient()
+const apiClient = useApiClient()
+const blogpostClient = new BlogpostApiClient(apiClient)
 
 logger.info('Retrieving blogposts')
 const blogposts = ref<BlogpostListResponse['data']>([])
 onMounted(async () => {
-  const response = await client.blogposts.list()
+  const response = await blogpostClient.list()
   if (response instanceof BlogpostListResponse) {
     blogposts.value = response.data
   } else {

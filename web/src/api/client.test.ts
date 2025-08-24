@@ -4,8 +4,9 @@ import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/
 import type { RequestFailureError } from '@/api/errors.ts'
 import { Client, type QueryResult } from 'pg'
 import { DockerComposeEnvironment, StartedDockerComposeEnvironment, Wait } from 'testcontainers'
-import { HttpClient } from '@/api/client.ts'
 import { login, Tokens } from '@/api/auth.ts'
+import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
+import { BlogpostApiClient } from '@/api/blog.ts'
 
 interface IBlogpostID {
   id: string
@@ -22,8 +23,25 @@ describe('BlogpostClient', () => {
   let databaseClient: Client
 
   const baseUrl: string = 'http://localhost:14000'
-  const client: HttpClient = new HttpClient(logger, baseUrl)
   let tokens: Tokens | RequestFailureError
+  const apiClient: AxiosInstance = axios.create({
+    baseURL: baseUrl,
+    timeout: 5_000,
+  })
+
+  apiClient.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+      if (tokens instanceof Tokens) {
+        config.headers = config.headers || {}
+        config.headers.Authorization = `Bearer ${tokens.accessToken}`
+      }
+      return config
+    },
+    (error: AxiosError) => {
+      return Promise.reject(error)
+    },
+  )
+  const blogpostClient = new BlogpostApiClient(apiClient)
 
   let environment: StartedDockerComposeEnvironment
 
@@ -83,10 +101,7 @@ describe('BlogpostClient', () => {
   it('should create a blogpost', async () => {
     const input = new BlogpostInput('Created Blogpost', 'Content', false)
     if (tokens instanceof Tokens) {
-      const result: Blogpost | RequestFailureError = await client.blogposts.post(
-        tokens.accessToken,
-        input,
-      )
+      const result: Blogpost | RequestFailureError = await blogpostClient.post(input)
 
       expect(result).toBeInstanceOf(Blogpost)
       if (result instanceof Blogpost) {
@@ -105,9 +120,7 @@ describe('BlogpostClient', () => {
     const queryResult: QueryResult<IBlogpostID> = await databaseClient.query(
       "SELECT id FROM blog.post WHERE title = 'Read Me';",
     )
-    const result: Blogpost | RequestFailureError = await client.blogposts.get(
-      queryResult.rows[0].id,
-    )
+    const result: Blogpost | RequestFailureError = await blogpostClient.get(queryResult.rows[0].id)
 
     expect(result).toBeInstanceOf(Blogpost)
     if (result instanceof Blogpost) {
@@ -118,7 +131,7 @@ describe('BlogpostClient', () => {
   })
 
   it('should list blogposts', async () => {
-    const result: BlogpostListResponse | RequestFailureError = await client.blogposts.list()
+    const result: BlogpostListResponse | RequestFailureError = await blogpostClient.list()
     expect(result).toBeInstanceOf(BlogpostListResponse)
 
     if (result instanceof BlogpostListResponse) {
@@ -137,10 +150,7 @@ describe('BlogpostClient', () => {
         id: queryResult.rows[0].id,
         published: true,
       })
-      const result: Blogpost | RequestFailureError = await client.blogposts.patch(
-        tokens.accessToken,
-        patch,
-      )
+      const result: Blogpost | RequestFailureError = await blogpostClient.patch(patch)
 
       expect(result).toBeInstanceOf(Blogpost)
       if (result instanceof Blogpost) {
@@ -158,11 +168,11 @@ describe('BlogpostClient', () => {
       "SELECT id FROM blog.post WHERE title = 'Delete Me';",
     )
     if (tokens instanceof Tokens) {
-      const result: Blogpost | RequestFailureError = await client.blogposts.delete(
-        tokens.accessToken,
+      const result: Blogpost | RequestFailureError = await blogpostClient.delete(
         queryResult.rows[0].id,
         true,
       )
+
       expect(result).toBeInstanceOf(Blogpost)
       if (result instanceof Blogpost) {
         expect(result.id).toBe(queryResult.rows[0].id)

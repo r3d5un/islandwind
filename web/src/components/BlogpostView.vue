@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { useRoute } from 'vue-router'
 import { onMounted, ref, watch } from 'vue'
-import { useClient } from '@/ui/client.ts'
 import { Blogpost } from '@/api/blogposts.ts'
 import { useLogger } from '@/ui/logging.ts'
+import { useApiClient } from '@/ui/client.ts'
+import { BlogpostApiClient } from '@/api/blog.ts'
 
 const logger = useLogger()
 const route = useRoute()
-const client = useClient()
+const apiClient = useApiClient()
+const blogpostClient = new BlogpostApiClient(apiClient)
 const blogpost = ref<Blogpost>()
 const content = ref('')
 
@@ -22,7 +24,7 @@ function validateRouteId(input: string | string[]): string {
 }
 
 async function retrieveBlogpost(id: string): Promise<void> {
-  const response = await client.blogposts.get(id)
+  const response = await blogpostClient.get(id)
   if (response instanceof Blogpost) {
     logger.info('retrieved blogpost', { blogpost: blogpost })
     blogpost.value = response

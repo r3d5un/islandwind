@@ -1,5 +1,3 @@
-import { useLogger } from './logging.ts'
-import { HttpClient } from '@/api/client.ts'
 import axios, {
   AxiosError,
   type AxiosInstance,
@@ -8,10 +6,6 @@ import axios, {
 } from 'axios'
 import { refresh, Tokens, useAuthStore } from '@/api/auth.ts'
 import { handleRequestFailure } from '@/api/errors.ts'
-
-const baseUrl: string = 'http://localhost:4000'
-
-const httpClient = new HttpClient(useLogger(), baseUrl)
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -72,8 +66,4 @@ apiClient.interceptors.response.use(
 
 export function useApiClient() {
   return apiClient
-}
-
-export function useClient() {
-  return httpClient
 }
