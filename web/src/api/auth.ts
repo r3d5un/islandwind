@@ -2,9 +2,13 @@ import { handleRequestFailure, type RequestFailureError } from '@/api/errors.ts'
 import axios, { type AxiosResponse } from 'axios'
 import { defineStore, type StoreDefinition } from 'pinia'
 
-export const useAuthStore: StoreDefinition<'tokens', { tokens: Tokens }> = defineStore('tokens', {
-  state: () => ({ tokens: new Tokens({ accessToken: '', refreshToken: '' }) }),
-})
+export const useAuthStore: StoreDefinition<'tokens', { tokens: Tokens; loggedIn: boolean }> =
+  defineStore('tokens', {
+    state: () => ({
+      tokens: new Tokens({ accessToken: '', refreshToken: '' }),
+      loggedIn: false,
+    }),
+  })
 
 export async function login(
   username: string,
