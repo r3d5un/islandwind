@@ -9,7 +9,6 @@ logger.info('Loading UI')
 
 <template>
   <header>
-    <h1>Islandwind</h1>
     <NavComponent />
   </header>
   <main>
