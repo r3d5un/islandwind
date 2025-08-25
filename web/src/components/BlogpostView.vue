@@ -51,8 +51,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <h2 v-if="blogpost">{{ blogpost.title }}</h2>
-  <p v-if="blogpost">{{ blogpost.createdAt }} - {{ blogpost.id }}</p>
   <div v-html="content"></div>
 </template>
 
