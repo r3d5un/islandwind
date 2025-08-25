@@ -22,7 +22,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <h2>HomeView</h2>
   <ul class="blogpost-list">
     <li v-for="post of blogposts" :key="post.id" class="blogpost-item">
       <router-link :to="{ name: 'BlogpostView', params: { id: post.id } }" class="blogpost-link">
@@ -34,6 +33,7 @@ onMounted(async () => {
 
 <style scoped>
 h2 {
+  font-family: Arial, sans-serif;
   color: #333;
   text-align: center;
   margin-bottom: 20px;
@@ -42,8 +42,9 @@ h2 {
 .blogpost-list {
   list-style: none;
   padding: 0;
-  margin: 0 auto;
   max-width: 800px;
+  margin: 50px auto 0;
+  font-family: Arial, sans-serif;
 }
 
 .blogpost-item {
