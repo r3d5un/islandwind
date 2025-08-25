@@ -19,6 +19,7 @@ const authStore = useAuthStore()
 
 <style scoped>
 nav {
+  font-family: Arial, sans-serif;
   background-color: #f8f8f8;
   padding: 10px 20px;
   position: fixed;
