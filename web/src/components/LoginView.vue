@@ -31,8 +31,8 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <h2>Login</h2>
   <div class="login-form">
+    <h2>Login</h2>
     <div v-if="loginError" class="error-banner">
       Invalid username or password. Please try again.
     </div>
@@ -52,7 +52,10 @@ const handleSubmit = async () => {
 
 <style scoped>
 .login-form {
+  font-family: Arial, sans-serif;
   max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
   border-radius: 5px;
 }
 
