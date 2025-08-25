@@ -23,13 +23,49 @@ onMounted(async () => {
 
 <template>
   <h2>HomeView</h2>
-  <ul>
-    <li v-for="post of blogposts" :key="post.id">
-      <router-link :to="{ name: 'BlogpostView', params: { id: post.id } }"
-        >{{ post.createdAt }} - {{ post.title }}</router-link
-      >
+  <ul class="blogpost-list">
+    <li v-for="post of blogposts" :key="post.id" class="blogpost-item">
+      <router-link :to="{ name: 'BlogpostView', params: { id: post.id } }" class="blogpost-link">
+        {{ post.createdAt }} - {{ post.title }}
+      </router-link>
     </li>
   </ul>
 </template>
 
-<style scoped></style>
+<style scoped>
+h2 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.blogpost-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 800px;
+}
+
+.blogpost-item {
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.blogpost-item:hover {
+  background-color: #e9e9e9;
+}
+
+.blogpost-link {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  display: block;
+}
+
+.blogpost-link:hover {
+  color: #007bff;
+}
+</style>
