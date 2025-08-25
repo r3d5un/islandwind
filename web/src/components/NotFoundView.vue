@@ -1,7 +1,15 @@
 <script lang="ts" setup></script>
 
 <template>
-  <h2>Not Found</h2>
+  <div class="content">
+    <h2>Not Found</h2>
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.content {
+  padding: 0;
+  margin: 0 auto;
+  max-width: 800px;
+}
+</style>
