@@ -4,6 +4,7 @@ import { BlogpostListResponse } from '@/api/blogposts.ts'
 import { useLogger } from '@/ui/logging.ts'
 import { useApiClient } from '@/ui/client.ts'
 import { BlogpostApiClient } from '@/api/blog.ts'
+import { formatDate } from '@/ui/time.ts'
 
 const logger = useLogger()
 const apiClient = useApiClient()
@@ -14,7 +15,7 @@ const blogposts = ref<BlogpostListResponse['data']>([])
 onMounted(async () => {
   const response = await blogpostClient.list()
   if (response instanceof BlogpostListResponse) {
-    blogposts.value = response.data
+    blogposts.value = response.data.reverse()
   } else {
     logger.error('Unable to retrieve blogposts', { error: response })
   }
@@ -25,7 +26,7 @@ onMounted(async () => {
   <ul class="blogpost-list">
     <li v-for="post of blogposts" :key="post.id" class="blogpost-item">
       <router-link :to="{ name: 'BlogpostView', params: { id: post.id } }" class="blogpost-link">
-        {{ post.createdAt }} - {{ post.title }}
+        {{ formatDate(post.createdAt) }} - {{ post.title }}
       </router-link>
     </li>
   </ul>
