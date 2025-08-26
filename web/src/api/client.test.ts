@@ -4,7 +4,7 @@ import { Blogpost, BlogpostInput, BlogpostListResponse, BlogpostPatch } from '@/
 import type { RequestFailureError } from '@/api/errors.ts'
 import { Client, type QueryResult } from 'pg'
 import { DockerComposeEnvironment, StartedDockerComposeEnvironment, Wait } from 'testcontainers'
-import { login, Tokens } from '@/api/auth.ts'
+import { invalidateRefreshToken, login, Tokens } from '@/api/auth.ts'
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import { BlogpostApiClient } from '@/api/blog.ts'
 
@@ -182,6 +182,19 @@ describe('BlogpostClient', () => {
       }
     } else {
       throw tokens
+    }
+  })
+
+  it('should invalidate refresh token', async () => {
+    tokens = await login('islandwind', 'islandwind')
+    if (!(tokens instanceof Tokens)) {
+      throw tokens
+    }
+
+    try {
+      await invalidateRefreshToken(tokens.refreshToken)
+    } catch (error) {
+      logger.error('unable to invalidate refresh token', { error: error })
     }
   })
 })

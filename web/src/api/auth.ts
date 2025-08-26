@@ -40,11 +40,17 @@ export async function refresh(refreshToken: string): Promise<Tokens | RequestFai
   }
 }
 
-export function logout(): void {
-  const authStore = useAuthStore()
-
-  authStore.loggedIn = false
-  authStore.tokens = { accessToken: '', refreshToken: '' }
+export async function invalidateRefreshToken(refreshToken: string): Promise<void> {
+  try {
+    await axios({
+      method: 'post',
+      url: `${import.meta.env.VITE_API_URL}/api/v1/auth/logout`,
+      data: new RefreshRequestBody(refreshToken),
+      timeout: import.meta.env.VITE_API_TIMEOUT,
+    })
+  } catch (error) {
+    throw handleRequestFailure(error)
+  }
 }
 
 export interface ITokens {

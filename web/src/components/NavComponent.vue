@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useAuthStore, logout } from '@/api/auth.ts'
+import { useAuthStore } from '@/api/auth.ts'
+import { logout } from '@/ui/auth.ts'
 
 const authStore = useAuthStore()
 </script>
