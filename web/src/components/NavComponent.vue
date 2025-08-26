@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/api/auth.ts'
+import { useAuthStore, logout } from '@/api/auth.ts'
 
 const authStore = useAuthStore()
 </script>
@@ -12,6 +12,7 @@ const authStore = useAuthStore()
       </div>
       <div class="nav-right">
         <router-link v-if="!authStore.loggedIn" :to="{ name: 'Login' }">Login</router-link>
+        <a v-else href="#" @click.prevent="logout">Logout</a>
       </div>
     </div>
   </nav>

@@ -40,6 +40,13 @@ export async function refresh(refreshToken: string): Promise<Tokens | RequestFai
   }
 }
 
+export function logout(): void {
+  const authStore = useAuthStore()
+
+  authStore.loggedIn = false
+  authStore.tokens = { accessToken: '', refreshToken: '' }
+}
+
 export interface ITokens {
   accessToken: string
   refreshToken: string
