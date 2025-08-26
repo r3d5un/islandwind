@@ -33,6 +33,7 @@ const (
 type TokenService interface {
 	CreateAccessToken() (accessToken *string, err error)
 	Validate(ctx context.Context, tokenType TokenType, input string) (valid bool, err error)
+	InvalidateRefreshToken(ctx context.Context, input string) error
 	CreateRefreshToken(ctx context.Context) (refreshToken *string, err error)
 	Refresh(
 		ctx context.Context,
@@ -150,6 +151,42 @@ func (r *TokenRepository) Validate(
 	logger.LogAttrs(ctx, slog.LevelInfo, "token verified")
 
 	return true, nil
+}
+
+func (r *TokenRepository) InvalidateRefreshToken(ctx context.Context, input string) error {
+	logger := logging.LoggerFromContext(ctx)
+
+	token, err := r.parseToken(input, RefreshToken)
+	if err != nil {
+		logger.LogAttrs(
+			ctx, slog.LevelError, "error parsing token", slog.String("error", err.Error()),
+		)
+		return ErrVerifyingToken
+	}
+
+	tokenID, err := r.jtiFromToken(*token)
+	if err != nil {
+		logger.LogAttrs(
+			ctx,
+			slog.LevelError,
+			"unable to read refresh token ID",
+			slog.String("error", err.Error()),
+		)
+		return ErrVerifyingToken
+	}
+
+	logger = logger.With(slog.String("jti", tokenID.String()))
+	logger.LogAttrs(ctx, slog.LevelInfo, "invalidating token")
+	_, err = r.models.RefreshTokens.Update(
+		ctx,
+		data.RefreshTokenPatch{ID: *tokenID, Invalidated: sql.NullBool{Valid: true, Bool: true}},
+	)
+	if err != nil {
+		return err
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "token invalidated")
+
+	return nil
 }
 
 func (r *TokenRepository) newRefreshToken(ctx context.Context) (*jwt.Token, error) {

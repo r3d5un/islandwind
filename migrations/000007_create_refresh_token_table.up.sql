@@ -8,6 +8,5 @@ CREATE TABLE IF NOT EXISTS auth.refresh_token
     invalidated_by UUID    DEFAULT NULL NULL,
     CONSTRAINT pk_refresh_token_id PRIMARY KEY (id),
     CONSTRAINT fk_refresh_token_invalidated_by FOREIGN KEY (invalidated_by)
-        REFERENCES auth.refresh_token (id),
-    CONSTRAINT chk_invalidated_by CHECK (invalidated = FALSE OR invalidated_by IS NOT NULL)
+        REFERENCES auth.refresh_token (id)
 );

@@ -41,9 +41,15 @@ func TestTokenRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, a)
 		assert.NotEmpty(t, r)
+	})
 
-		accessToken = *a
-		refreshToken = *r
+	t.Run("InvalidateRefreshToken", func(t *testing.T) {
+		token, err := authRepo.Tokens.CreateRefreshToken(ctx)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, token)
+
+		err = authRepo.Tokens.InvalidateRefreshToken(ctx, *token)
+		assert.NoError(t, err)
 	})
 
 	t.Run("DeleteExpired", func(t *testing.T) {

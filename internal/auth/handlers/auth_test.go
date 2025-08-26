@@ -14,7 +14,7 @@ import (
 )
 
 func TestAuthHandlers(t *testing.T) {
-	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	t.Cleanup(func() {
 		t.Logf("cleaning up test: %s", t.Name())
@@ -29,6 +29,25 @@ func TestAuthHandlers(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		handler := handlers.LoginHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+
+		err = json.Unmarshal(rr.Body.Bytes(), &login)
+		assert.NoError(t, err)
+	})
+
+	t.Run("LogoutHandler", func(t *testing.T) {
+		token, err := authRepo.Tokens.CreateRefreshToken(ctx)
+		assert.NoError(t, err)
+		body, err := json.Marshal(handlers.RefreshRequestBody{RefreshToken: *token})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.LogoutHandler(authRepo.Tokens)
 		handler.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code)

@@ -47,6 +47,16 @@ func (m *Module) addRoutes(ctx context.Context) {
 			basicAuth,
 			true,
 		},
+		// logout
+		{
+			"/api/v1/auth/logout",
+			handlers.LogoutHandler(m.repo.Tokens),
+			http.MethodPost,
+			// Basic authentication should only be used for logging in. Other resources
+			// should be accessible with access tokens.
+			noAuth,
+			true,
+		},
 		// refresh
 		{
 			"/api/v1/auth/refresh",
