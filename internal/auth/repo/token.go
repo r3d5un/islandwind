@@ -191,7 +191,7 @@ func (r *TokenRepository) InvalidateRefreshToken(ctx context.Context, input stri
 
 func (r *TokenRepository) newRefreshToken(ctx context.Context) (*jwt.Token, error) {
 	row, err := r.models.RefreshTokens.Insert(ctx, data.RefreshTokenInput{
-		Issuer:     "",
+		Issuer:     r.Issuer,
 		Expiration: time.Now().UTC().Add(time.Minute * 60),
 		IssuedAt:   time.Now().UTC(),
 	})
