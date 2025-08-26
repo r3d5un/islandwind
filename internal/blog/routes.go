@@ -34,12 +34,6 @@ func (m *Module) addRoutes(ctx context.Context) {
 			true,
 		},
 		{
-			"/api/v1/blog/post/{id}",
-			handlers.GetBlogpostHandler(m.repo.Posts),
-			http.MethodGet,
-			false,
-		},
-		{
 			"/api/v1/blog/post",
 			handlers.ListBlogpostHandler(m.repo.Posts),
 			http.MethodGet,
@@ -59,6 +53,18 @@ func (m *Module) addRoutes(ctx context.Context) {
 		},
 		{
 			"/api/v1/blog/post",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			false,
+		},
+		{
+			"/api/v1/blog/post/{id}",
+			handlers.GetBlogpostHandler(m.repo.Posts),
+			http.MethodGet,
+			false,
+		},
+		{
+			"/api/v1/blog/post/{id}",
 			api.CorsPreflightHandler(),
 			http.MethodOptions,
 			false,
