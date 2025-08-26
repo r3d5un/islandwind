@@ -8,13 +8,9 @@ const authStore = useAuthStore()
 <template>
   <nav>
     <div class="nav-container">
-      <div class="nav-left">
-        <router-link :to="{ name: 'Home' }">Islandwind</router-link>
-      </div>
-      <div class="nav-right">
-        <router-link v-if="!authStore.loggedIn" :to="{ name: 'Login' }">Login</router-link>
-        <a v-else href="#" @click.prevent="logout">Logout</a>
-      </div>
+      <router-link :to="{ name: 'Home' }">Islandwind</router-link>
+      <router-link v-if="!authStore.loggedIn" :to="{ name: 'Login' }">Login</router-link>
+      <a v-else href="#" @click.prevent="logout">Logout</a>
     </div>
   </nav>
 </template>
@@ -30,21 +26,10 @@ nav {
 }
 .nav-container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   max-width: 800px;
   margin: auto;
   width: 100%;
-}
-.nav-left {
-  display: flex;
-  align-items: start;
-  gap: 10px;
-}
-.nav-right {
-  display: flex;
-  align-items: start;
-  gap: 10px;
 }
 nav h1 {
   margin: 0;
@@ -60,21 +45,5 @@ nav a {
 }
 nav a:hover {
   background-color: #ddd;
-}
-
-/* Media query for smaller screens */
-@media (max-width: 850px) {
-  .nav-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .nav-right {
-    margin-top: 10px;
-    width: 100%;
-  }
-  .nav-left,
-  .nav-right {
-    width: 100%;
-  }
 }
 </style>
