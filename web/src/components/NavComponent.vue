@@ -21,10 +21,9 @@ const authStore = useAuthStore()
 nav {
   font-family: Arial, sans-serif;
   background-color: #f8f8f8;
-  padding: 10px 20px;
+  padding: 10px 0;
   position: fixed;
   width: 100%;
-  top: 0;
   z-index: 1000;
 }
 .nav-container {
@@ -32,15 +31,17 @@ nav {
   justify-content: space-between;
   align-items: center;
   max-width: 800px;
-  margin: 0 auto;
+  margin: auto;
   width: 100%;
 }
-.nav-left,
-.nav-right {
+.nav-left {
   display: flex;
-  align-items: center;
+  align-items: start;
+  gap: 10px;
 }
 .nav-right {
+  display: flex;
+  align-items: start;
   gap: 10px;
 }
 nav h1 {
@@ -50,9 +51,9 @@ nav h1 {
 nav a {
   text-decoration: none;
   color: #333;
-  font-weight: bold;
+  font-weight: lighter;
   padding: 5px 10px;
-  border-radius: 4px;
+  border-radius: 10px;
   transition: background-color 0.3s;
 }
 nav a:hover {
