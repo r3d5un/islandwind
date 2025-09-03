@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/r3d5un/islandwind/internal/api"
@@ -9,8 +10,13 @@ import (
 )
 
 type Response struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	RequestID    uuid.UUID `json:"requestId"`
+	AccessToken  string    `json:"accessToken"`
+	RefreshToken string    `json:"refreshToken"`
+}
+
+type LogoutResponse struct {
+	RequestID uuid.UUID `json:"requestId"`
 }
 
 type RefreshRequestBody struct {
@@ -19,12 +25,13 @@ type RefreshRequestBody struct {
 
 func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		accessToken, err := tokens.CreateAccessToken()
 		if err != nil {
 			api.ServerErrorResponse(w, r, err)
 			return
 		}
-		refreshToken, err := tokens.CreateRefreshToken(r.Context())
+		refreshToken, err := tokens.CreateRefreshToken(ctx)
 		if err != nil {
 			api.ServerErrorResponse(w, r, err)
 			return
@@ -35,6 +42,7 @@ func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			Response{
+				RequestID:    api.RequestIDFromContext(ctx),
 				AccessToken:  *accessToken,
 				RefreshToken: *refreshToken,
 			},
@@ -45,13 +53,14 @@ func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 
 func LogoutHandler(tokens repo.TokenService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		var body RefreshRequestBody
 		if err := api.ReadJSON(r, &body); err != nil {
 			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
 			return
 		}
 
-		err := tokens.InvalidateRefreshToken(r.Context(), body.RefreshToken)
+		err := tokens.InvalidateRefreshToken(ctx, body.RefreshToken)
 		if err != nil {
 			switch {
 			case errors.Is(err, repo.ErrVerifyingToken), errors.Is(err, repo.ErrParsingToken):
@@ -72,7 +81,7 @@ func LogoutHandler(tokens repo.TokenService) http.HandlerFunc {
 			w,
 			r,
 			http.StatusOK,
-			nil,
+			LogoutResponse{RequestID: api.RequestIDFromContext(ctx)},
 			nil,
 		)
 	}
@@ -80,13 +89,14 @@ func LogoutHandler(tokens repo.TokenService) http.HandlerFunc {
 
 func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		var body RefreshRequestBody
 		if err := api.ReadJSON(r, &body); err != nil {
 			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
 			return
 		}
 
-		accessToken, refreshToken, err := tokens.Refresh(r.Context(), body.RefreshToken)
+		accessToken, refreshToken, err := tokens.Refresh(ctx, body.RefreshToken)
 		if err != nil {
 			switch {
 			case errors.Is(err, repo.ErrVerifyingToken), errors.Is(err, repo.ErrParsingToken):
@@ -108,6 +118,7 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			Response{
+				RequestID:    api.RequestIDFromContext(ctx),
 				AccessToken:  *accessToken,
 				RefreshToken: *refreshToken,
 			},

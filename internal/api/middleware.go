@@ -3,20 +3,22 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
-type requestUrlKey string
+type requestIDKey string
 
-const RequestUrlKey requestUrlKey = "requestUrlKey"
+const RequestIDKey requestIDKey = "requestIDKey"
 
 // LogRequestMiddleware returns a middleware which adds a [slog.Logger] to the request context
 func LogRequestMiddleware(next http.Handler, logger slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		requestID := uuid.New()
 		logger := logger.With(
 			slog.Group(
 				"request",
@@ -26,12 +28,19 @@ func LogRequestMiddleware(next http.Handler, logger slog.Logger) http.Handler {
 			),
 		)
 		ctx = logging.WithLogger(ctx, logger)
-		ctx = context.WithValue(ctx, RequestUrlKey, r.URL.Path)
+		ctx = context.WithValue(ctx, RequestIDKey, requestID)
 
 		logger.LogAttrs(ctx, slog.LevelInfo, "received request")
 		next.ServeHTTP(w, r.WithContext(ctx))
 		logger.LogAttrs(ctx, slog.LevelInfo, "request completed")
 	})
+}
+
+func RequestIDFromContext(ctx context.Context) uuid.UUID {
+	if id, ok := ctx.Value(RequestIDKey).(uuid.UUID); ok {
+		return id
+	}
+	return uuid.UUID{}
 }
 
 // RecoverPanicMiddleware returns a middleware that recovers in case of a panic further down
