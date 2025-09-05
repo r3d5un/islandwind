@@ -56,13 +56,6 @@ export class UnknownRequestFailureError extends Error {
   }
 }
 
-export class LoginError extends Error {
-  constructor(public message: string = 'Unable to login') {
-    super(message)
-    this.name = 'LoginError'
-  }
-}
-
 export type RequestFailureError =
   | BadRequestError
   | UnauthorizedError
