@@ -5,7 +5,7 @@ import { defineStore, type StoreDefinition } from 'pinia'
 export const useAuthStore: StoreDefinition<'tokens', { tokens: Tokens; loggedIn: boolean }> =
   defineStore('tokens', {
     state: () => ({
-      tokens: new Tokens({ accessToken: '', refreshToken: '' }),
+      tokens: new Tokens({ requestId: '', accessToken: '', refreshToken: '' }),
       loggedIn: false,
     }),
   })
@@ -54,15 +54,18 @@ export async function invalidateRefreshToken(refreshToken: string): Promise<void
 }
 
 export interface ITokens {
+  requestId: string
   accessToken: string
   refreshToken: string
 }
 
 export class Tokens {
+  public requestId: string
   public accessToken: string
   public refreshToken: string
 
   constructor(input: ITokens) {
+    this.requestId = input.requestId
     this.accessToken = input.accessToken
     this.refreshToken = input.refreshToken
   }

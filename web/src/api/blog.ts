@@ -34,7 +34,7 @@ export class BlogpostApiClient {
     try {
       const response: AxiosResponse<IBlogpostListResponse, number> =
         await this.client.get('/api/v1/blog/post')
-      return new BlogpostListResponse(response.data.data, response.data.metadata)
+      return new BlogpostListResponse(response.data.requestId, response.data.data, response.data.metadata)
     } catch (error) {
       return handleRequestFailure(error)
     }

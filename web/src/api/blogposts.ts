@@ -1,10 +1,12 @@
 import { marked } from 'marked'
 
 export interface IBlogpostResponse {
+  requestId: string
   data: IBlogpost
 }
 
 export interface IBlogpostListResponse {
+  requestId: string
   data: IBlogpost[]
   metadata: IMetadata
 }
@@ -30,10 +32,12 @@ export class BlogpostInput {
 }
 
 export class BlogpostListResponse {
+  public requestId: string
   public data: Blogpost[]
   public metadata: Metadata
 
-  constructor(data: IBlogpost[], metadata: IMetadata) {
+  constructor(requestId: string, data: IBlogpost[], metadata: IMetadata) {
+    this.requestId = requestId
     this.data = []
     for (const input of data) {
       this.data.push(new Blogpost(input))
@@ -43,6 +47,7 @@ export class BlogpostListResponse {
 }
 
 export interface IBlogpost {
+  requestId: string
   id: string
   title: string
   content: string
@@ -54,6 +59,7 @@ export interface IBlogpost {
 }
 
 export class Blogpost {
+  requestId: string
   id: string
   title: string
   content: string
@@ -64,6 +70,7 @@ export class Blogpost {
   deletedAt: Date
 
   constructor(blogpost: IBlogpost) {
+    this.requestId = blogpost.requestId
     this.id = blogpost.id
     this.title = blogpost.title
     this.content = blogpost.content
