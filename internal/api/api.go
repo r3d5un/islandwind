@@ -26,7 +26,8 @@ const (
 )
 
 type ErrorMessage struct {
-	Message any `json:"message"`
+	RequestID uuid.UUID `json:"requestId"`
+	Message   any       `json:"message"`
 }
 
 func ErrorResponse(
@@ -42,7 +43,13 @@ func ErrorResponse(
 		slog.Int("status", status),
 		slog.Any("message", message),
 	)
-	RespondWithJSON(w, r, status, ErrorMessage{Message: message}, nil)
+	RespondWithJSON(
+		w,
+		r,
+		status,
+		ErrorMessage{RequestID: RequestIDFromContext(ctx), Message: message},
+		nil,
+	)
 }
 
 func LogError(r *http.Request, err error) {
@@ -106,6 +113,7 @@ func RespondWithJSON(
 
 	logger.LogAttrs(r.Context(), slog.LevelInfo, "writing response")
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-Request-ID", RequestIDFromContext(r.Context()).String())
 	w.WriteHeader(status)
 	if _, err = w.Write(js); err != nil {
 		ServerErrorResponse(w, r, err)
@@ -192,22 +200,6 @@ func ValidationFailedResponse(
 		http.StatusUnprocessableEntity,
 		fmt.Sprintf("filter validation failed: %v", validationErrors),
 	)
-}
-
-func ReadRequiredQueryBoolean(
-	qs url.Values,
-	key string,
-	defaultValue bool,
-) bool {
-	s := qs.Get(key)
-	if s == "" {
-		return defaultValue
-	}
-	b, err := strconv.ParseBool(s)
-	if err != nil {
-		return defaultValue
-	}
-	return b
 }
 
 func ReadOptionalQueryBoolean(qs url.Values, key string) *bool {
