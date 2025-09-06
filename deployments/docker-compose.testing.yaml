@@ -2,7 +2,7 @@ services:
   database:
     image: "postgres:17.6"
     ports:
-      - 15432:5432
+      - "15432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
