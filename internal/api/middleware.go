@@ -3,10 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 

@@ -102,7 +102,6 @@ var (
 	ErrForeignKeyConstraintViolation = errors.New("foreign key constraint violation")
 	ErrConstraintViolation           = errors.New("schema constraint violation")
 	ErrUniqueConstraintViolation     = errors.New("unique constraint violation")
-	ErrNotNullConstraintViolation    = errors.New("not null constraint violation")
 	ErrCheckConstraintViolation      = errors.New("check constraint violation")
 	ErrSyntaxViolation               = errors.New("sql syntax errors")
 	ErrUndefinedResource             = errors.New("undefined resource")
