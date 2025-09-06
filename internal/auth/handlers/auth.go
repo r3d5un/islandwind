@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/r3d5un/islandwind/internal/testsuite"
 
 	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
@@ -26,16 +28,24 @@ type RefreshRequestBody struct {
 func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+
 		accessToken, err := tokens.CreateAccessToken()
 		if err != nil {
 			api.ServerErrorResponse(w, r, err)
 			return
 		}
+		testsuite.Assert(
+			accessToken != nil, "accessToken should never be nil without errors", accessToken,
+		)
+
 		refreshToken, err := tokens.CreateRefreshToken(ctx)
 		if err != nil {
 			api.ServerErrorResponse(w, r, err)
 			return
 		}
+		testsuite.Assert(
+			refreshToken != nil, "refreshToken should never be nil without errors", refreshToken,
+		)
 
 		api.RespondWithJSON(
 			w,
@@ -112,6 +122,12 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 			}
 			return
 		}
+		testsuite.Assert(
+			accessToken != nil, "accessToken should never be nil without errors", accessToken,
+		)
+		testsuite.Assert(
+			refreshToken != nil, "refreshToken should never be nil without errors", refreshToken,
+		)
 
 		api.RespondWithJSON(
 			w,

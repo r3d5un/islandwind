@@ -10,6 +10,7 @@ import (
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/testsuite"
 	"github.com/r3d5un/islandwind/internal/validator"
 )
 
@@ -64,6 +65,7 @@ func PostBlogpostHandler(
 			}
 			return
 		}
+		testsuite.Assert(blogpost != nil, "blogpost should not be nil without errors", blogpost)
 
 		api.RespondWithJSON(
 			w,
@@ -102,6 +104,7 @@ func GetBlogpostHandler(
 			}
 			return
 		}
+		testsuite.Assert(blogpost != nil, "blogpost should not be nil without errors", blogpost)
 
 		api.RespondWithJSON(
 			w,
@@ -153,6 +156,7 @@ func ListBlogpostHandler(
 			}
 			return
 		}
+		testsuite.Assert(blogposts != nil, "blogpost should not be nil without errors", blogposts)
 
 		api.RespondWithJSON(
 			w,
@@ -191,6 +195,7 @@ func PatchBlogpostHandler(
 			}
 			return
 		}
+		testsuite.Assert(blogposts != nil, "blogpost should not be nil without errors", blogposts)
 
 		api.RespondWithJSON(
 			w,
@@ -243,6 +248,7 @@ func DeleteBlogpostHandler(
 			}
 			return
 		}
+		testsuite.Assert(blogposts != nil, "blogpost should not be nil without errors", blogposts)
 
 		api.RespondWithJSON(
 			w,
