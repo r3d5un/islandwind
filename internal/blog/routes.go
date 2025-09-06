@@ -17,7 +17,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 		Path         string `json:"path"`
 		handler      http.HandlerFunc
 		Method       string `json:"methods"`
-		AuthRequried bool   `json:"authRequried"`
+		AuthRequired bool   `json:"authRequired"`
 	}{
 		// healthcheck
 		{
@@ -107,7 +107,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 			},
 			// Require authentication for write requests
 			func(next http.Handler) http.Handler {
-				if !route.AuthRequried {
+				if !route.AuthRequired {
 					return next
 				}
 				return m.auth.AccessTokenMiddleware(next)

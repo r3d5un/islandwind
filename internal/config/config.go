@@ -16,7 +16,7 @@ type Config struct {
 	Server    ServerConfig           `json:"server"`
 	DB        db.Config              `json:"db"`
 	Auth      config.Config          `json:"auth"`
-	BasicAuth config.BasicAuthConfig `json:"basicAuty"`
+	BasicAuth config.BasicAuthConfig `json:"basicAuth"`
 }
 
 // AppConfig contains the most top-level configuration for the application.
@@ -62,11 +62,11 @@ func New() (*Config, error) {
 	viper.SetDefault("server.readTimeout", 5)
 	viper.SetDefault("server.writeTimeout", 10)
 	// Authentication
-	viper.SetDefault("basicauth.username", "islandwind")
-	viper.SetDefault("basicauth.password", "islandwind")
-	viper.SetDefault("auth.signingsecret", "accessTokenSecret")
-	viper.SetDefault("auth.refreshsigningsecret", "refreshTokenSecret")
-	viper.SetDefault("auth.tokenissuer", "islandwind")
+	viper.SetDefault("basicAuth.username", "islandwind")
+	viper.SetDefault("basicAuth.password", "islandwind")
+	viper.SetDefault("auth.signingSecret", "accessTokenSecret")
+	viper.SetDefault("auth.refreshSigningSecret", "refreshTokenSecret")
+	viper.SetDefault("auth.tokenIssuer", "islandwind")
 	// Default Database Settings
 	viper.SetDefault(
 		"db.connstr",

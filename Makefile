@@ -28,7 +28,7 @@ db/migrations/up: confirm
 	@echo 'Running up migrations...'
 	migrate -path ./migrations -database="${ISLANDWIND_DB_CONNSTR}" up
 
-## db/migrations/goto number=$1: target versiont to migrate to
+## db/migrations/goto number=$1: target version to migrate to
 .PHONY: db/migrations/goto
 db/migrations/goto: confirm
 	@echo 'Running down migrations...'
@@ -54,7 +54,7 @@ format/backend:
 # ==================================================================================== #
 
 .PHONY: test/backend/staticcheck
-test/backend/staticcheck:
+test/backend/staticCheck:
 	@echo 'Performing static analysis'
 	staticcheck ./...
 
@@ -64,7 +64,7 @@ test/backend/vet:
 	go vet ./...
 
 .PHONY: test/backend
-test/backend: test/backend/staticcheck test/backend/vet
+test/backend: test/backend/staticCheck test/backend/vet
 	@echo 'Running tests...'
 	go test -race -vet=off ./...
 

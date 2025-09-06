@@ -57,7 +57,7 @@ func PostBlogpostHandler(
 		if err != nil {
 			switch {
 			case errors.Is(err, db.ErrUniqueConstraintViolation):
-				api.ConstraintViolationResponse(w, r, err, "blostpost ID already exists")
+				api.ConstraintViolationResponse(w, r, err, "blogpost ID already exists")
 			case errors.Is(err, context.DeadlineExceeded):
 				api.TimeoutResponse(ctx, w, r)
 			default:
@@ -187,7 +187,7 @@ func PatchBlogpostHandler(
 		if err != nil {
 			switch {
 			case errors.Is(err, db.ErrUniqueConstraintViolation):
-				api.ConstraintViolationResponse(w, r, err, "blostpost ID already exists")
+				api.ConstraintViolationResponse(w, r, err, "blogpost ID already exists")
 			case errors.Is(err, context.DeadlineExceeded):
 				api.TimeoutResponse(ctx, w, r)
 			default:
@@ -236,7 +236,7 @@ func DeleteBlogpostHandler(
 		if err != nil {
 			switch {
 			case errors.Is(err, db.ErrUniqueConstraintViolation):
-				api.ConstraintViolationResponse(w, r, err, "blostpost ID already exists")
+				api.ConstraintViolationResponse(w, r, err, "blogpost ID already exists")
 			case errors.Is(err, db.ErrForeignKeyConstraintViolation):
 				api.ConstraintViolationResponse(w, r, err, "blogpost referenced by other resources")
 			case errors.Is(err, db.ErrRecordNotFound):
