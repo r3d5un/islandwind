@@ -195,6 +195,7 @@ describe('BlogpostClient', () => {
       await invalidateRefreshToken(tokens.refreshToken)
     } catch (error) {
       logger.error('unable to invalidate refresh token', { error: error })
+      throw error
     }
   })
 })
