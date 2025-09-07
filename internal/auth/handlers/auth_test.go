@@ -94,4 +94,19 @@ func TestAuthHandlers(t *testing.T) {
 		err = json.Unmarshal(rr.Body.Bytes(), &login)
 		assert.NoError(t, err)
 	})
+
+	t.Run("ListRefreshTokenHandler", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, "/", nil)
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.ListRefreshTokenHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotEmpty(t, rr.Body)
+
+		var response handlers.RefreshTokenListResponse
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+	})
 }

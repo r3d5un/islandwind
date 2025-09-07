@@ -166,7 +166,9 @@ WHERE ($2::UUID IS NULL OR id = $2::UUID)
   AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
   AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
   AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
-  AND id > $8::UUID
+  AND ($8::BOOLEAN IS NULL OR invalidated = $8::BOOLEAN)
+  AND ($9::UUID IS NULL OR invalidated_by = $9::UUID)
+  AND id > $10::UUID
 ORDER BY expiration, id
 LIMIT $1;
 `
@@ -191,6 +193,8 @@ LIMIT $1;
 		filter.ExpirationTo,
 		filter.IssuedAtFrom,
 		filter.IssuedAtTo,
+		filter.Invalidated,
+		filter.InvalidatedBy,
 		filter.LastSeen,
 	)
 	if err != nil {

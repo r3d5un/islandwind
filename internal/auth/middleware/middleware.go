@@ -42,7 +42,7 @@ func AccessTokenMiddleware(next http.Handler, tokens repo.TokenService) http.Han
 			return
 		}
 
-		valid, err := tokens.Validate(r.Context(), repo.AccessToken, accessTokenString[1])
+		valid, err := tokens.Validate(r.Context(), repo.AccessTokenType, accessTokenString[1])
 		if err != nil || !valid {
 			api.UnauthorizedResponse(w, r)
 			return

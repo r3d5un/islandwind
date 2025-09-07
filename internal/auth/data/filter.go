@@ -9,6 +9,8 @@ import (
 type Filter struct {
 	ID             *uuid.UUID `json:"id"`
 	Issuer         *string    `json:"issuer"`
+	Invalidated    *bool      `json:"invalidated"`
+	InvalidatedBy  *uuid.UUID `json:"invalidatedBy"`
 	IssuedAtFrom   *time.Time `json:"issuedAtFrom"`
 	IssuedAtTo     *time.Time `json:"issuedAtTo"`
 	ExpirationFrom *time.Time `json:"expirationFrom"`

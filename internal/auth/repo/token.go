@@ -12,7 +12,28 @@ import (
 	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/logging"
+	"github.com/r3d5un/islandwind/internal/testsuite"
 )
+
+type RefreshToken struct {
+	ID            uuid.UUID  `json:"id"`
+	Issuer        string     `json:"issuer"`
+	Expiration    time.Time  `json:"expiration"`
+	IssuedAt      time.Time  `json:"issuedAt"`
+	Invalidated   bool       `json:"invalidated"`
+	InvalidatedBy *uuid.UUID `json:"invalidatedBy"`
+}
+
+func newRefreshTokenFromRow(row *data.RefreshToken) *RefreshToken {
+	return &RefreshToken{
+		ID:            row.ID,
+		Issuer:        row.Issuer,
+		Expiration:    row.Expiration,
+		IssuedAt:      row.IssuedAt,
+		Invalidated:   row.Invalidated,
+		InvalidatedBy: db.NullUUIDToPtr(row.InvalidatedBy),
+	}
+}
 
 var (
 	ErrParsingToken    = errors.New("unable to parse token")
@@ -26,8 +47,8 @@ var (
 type TokenType int
 
 const (
-	AccessToken TokenType = iota
-	RefreshToken
+	AccessTokenType TokenType = iota
+	RefreshTokenType
 )
 
 type TokenService interface {
@@ -40,6 +61,7 @@ type TokenService interface {
 		refreshTokenInput string,
 	) (accessToken *string, refreshToken *string, err error)
 	DeleteExpired(ctx context.Context) error
+	List(ctx context.Context, filter data.Filter) ([]*RefreshToken, *data.Metadata, error)
 }
 
 type TokenRepository struct {
@@ -69,6 +91,32 @@ func NewTokenRepository(
 	}
 }
 
+func (r *TokenRepository) List(
+	ctx context.Context,
+	filter data.Filter,
+) ([]*RefreshToken, *data.Metadata, error) {
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"posts",
+		slog.Any("filter", filter),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "reading refresh tokens")
+	rows, metadata, err := r.models.RefreshTokens.SelectMany(ctx, filter)
+	if err != nil {
+		return nil, nil, err
+	}
+	testsuite.Assert(rows != nil, "refresh token list is nil", nil)
+	testsuite.Assert(metadata != nil, "refresh token metadata are nil", nil)
+
+	tokens := make([]*RefreshToken, metadata.ResponseLength)
+	for i, row := range rows {
+		tokens[i] = newRefreshTokenFromRow(row)
+	}
+	logger.LogAttrs(ctx, slog.LevelInfo, "refresh tokens retrieved")
+
+	return tokens, metadata, nil
+}
+
 // CreateAccessToken create a new signed JWT token string.
 func (r *TokenRepository) CreateAccessToken() (*string, error) {
 	token := r.newToken(uuid.New(), time.Now().UTC().Add(time.Minute*5), time.Now().UTC())
@@ -85,7 +133,7 @@ func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.To
 	var err error
 
 	switch tokenType {
-	case RefreshToken:
+	case RefreshTokenType:
 		token, err = jwt.Parse(input, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, ErrParsingToken
@@ -100,7 +148,7 @@ func (r *TokenRepository) parseToken(input string, tokenType TokenType) (*jwt.To
 				return nil, err
 			}
 		}
-	case AccessToken:
+	case AccessTokenType:
 		token, err = jwt.Parse(input, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, ErrParsingToken
@@ -156,7 +204,7 @@ func (r *TokenRepository) Validate(
 func (r *TokenRepository) InvalidateRefreshToken(ctx context.Context, input string) error {
 	logger := logging.LoggerFromContext(ctx)
 
-	token, err := r.parseToken(input, RefreshToken)
+	token, err := r.parseToken(input, RefreshTokenType)
 	if err != nil {
 		logger.LogAttrs(
 			ctx, slog.LevelError, "error parsing token", slog.String("error", err.Error()),
@@ -235,7 +283,7 @@ func (r *TokenRepository) Refresh(
 	logger := logging.LoggerFromContext(ctx)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "validating refresh token")
-	token, err := r.parseToken(refreshTokenInput, RefreshToken)
+	token, err := r.parseToken(refreshTokenInput, RefreshTokenType)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("Validate", func(t *testing.T) {
-		ok, err := authRepo.Tokens.Validate(ctx, repo.AccessToken, accessToken)
+		ok, err := authRepo.Tokens.Validate(ctx, repo.AccessTokenType, accessToken)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 	})
@@ -52,8 +53,16 @@ func TestTokenRepository(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("ListRefreshTokens", func(t *testing.T) {
+		tokens, metadata, err := authRepo.Tokens.List(ctx, data.Filter{PageSize: 100})
+		assert.NoError(t, err)
+		assert.NotEmpty(t, metadata)
+		assert.NotEmpty(t, tokens)
+	})
+
 	t.Run("DeleteExpired", func(t *testing.T) {
 		err := authRepo.Tokens.DeleteExpired(ctx)
 		assert.NoError(t, err)
 	})
+
 }

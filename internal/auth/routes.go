@@ -67,6 +67,13 @@ func (m *Module) addRoutes(ctx context.Context) {
 			noAuth,
 			true,
 		},
+		{
+			"/api/v1/auth/refreshToken",
+			handlers.ListRefreshTokenHandler(m.repo.Tokens),
+			http.MethodGet,
+			accessToken,
+			true,
+		},
 	}
 
 	corsMiddleware := cors.New(cors.Options{
