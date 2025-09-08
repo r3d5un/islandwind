@@ -3,6 +3,7 @@ package repo_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
@@ -58,6 +59,13 @@ func TestTokenRepository(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, metadata)
 		assert.NotEmpty(t, tokens)
+	})
+
+	t.Run("Delete", func(t *testing.T) {
+		timestamp := time.Now().UTC()
+		affected, err := authRepo.Tokens.Delete(ctx, data.Filter{ExpirationFrom: &timestamp})
+		assert.NoError(t, err)
+		assert.NotNil(t, affected)
 	})
 
 	t.Run("DeleteExpired", func(t *testing.T) {

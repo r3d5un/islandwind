@@ -62,6 +62,7 @@ type TokenService interface {
 	) (accessToken *string, refreshToken *string, err error)
 	DeleteExpired(ctx context.Context) error
 	List(ctx context.Context, filter data.Filter) ([]*RefreshToken, *data.Metadata, error)
+	Delete(ctx context.Context, filter data.Filter) (int64, error)
 }
 
 type TokenRepository struct {
@@ -115,6 +116,25 @@ func (r *TokenRepository) List(
 	logger.LogAttrs(ctx, slog.LevelInfo, "refresh tokens retrieved")
 
 	return tokens, metadata, nil
+}
+
+func (r *TokenRepository) Delete(ctx context.Context, filter data.Filter) (int64, error) {
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"posts",
+		slog.Any("filter", filter),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "deleting refresh tokens")
+	affected, err := r.models.RefreshTokens.DeleteMany(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	testsuite.Assert(affected != nil, "affected row count cannot be nil without errors", nil)
+	logger.LogAttrs(
+		ctx, slog.LevelInfo, "refresh tokens deleted", slog.Int64("affected", *affected),
+	)
+
+	return *affected, nil
 }
 
 // CreateAccessToken create a new signed JWT token string.
