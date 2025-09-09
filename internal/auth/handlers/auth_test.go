@@ -109,4 +109,23 @@ func TestAuthHandlers(t *testing.T) {
 		var response handlers.RefreshTokenListResponse
 		err = json.Unmarshal(rr.Body.Bytes(), &response)
 	})
+
+	t.Run("DeleteRefreshTokenHandler", func(t *testing.T) {
+		req, err := http.NewRequest(
+			http.MethodDelete,
+			"/?id=00000000-0000-0000-0000-000000000000",
+			nil,
+		)
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.DeleteRefreshTokenHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotEmpty(t, rr.Body)
+
+		var response handlers.RefreshTokenDeleteResponse
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+	})
 }
