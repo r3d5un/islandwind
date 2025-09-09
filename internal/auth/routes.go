@@ -74,6 +74,13 @@ func (m *Module) addRoutes(ctx context.Context) {
 			accessToken,
 			true,
 		},
+		{
+			"/api/v1/auth/refreshToken",
+			handlers.DeleteRefreshTokenHandler(m.repo.Tokens),
+			http.MethodDelete,
+			accessToken,
+			true,
+		},
 	}
 
 	corsMiddleware := cors.New(cors.Options{
@@ -81,6 +88,7 @@ func (m *Module) addRoutes(ctx context.Context) {
 		AllowedMethods: []string{
 			http.MethodPost,
 			http.MethodGet,
+			http.MethodDelete,
 			http.MethodOptions,
 			http.MethodHead,
 		},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/auth/data"
@@ -34,6 +35,13 @@ type RefreshTokenListResponse struct {
 	RefreshTokens []*repo.RefreshToken `json:"refreshTokens,omitzero"`
 }
 
+type RefreshTokenDeleteResponse struct {
+	RequestID uuid.UUID `json:"requestId"`
+	Data      struct {
+		NumberDeleted int64 `json:"numberDeleted"`
+	} `json:"data"`
+}
+
 func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -42,16 +50,7 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 		qs := r.URL.Query()
 		filters := data.Filter{}
 
-		filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
-		filters.ID = api.ReadOptionalQueryUUID(qs, "id", v)
-		filters.Issuer = api.ReadOptionalQueryString(qs, "id")
-		filters.IssuedAtFrom = api.ReadOptionalQueryDate(qs, "issued_at_from", v)
-		filters.IssuedAtTo = api.ReadOptionalQueryDate(qs, "issued_at_to", v)
-		filters.ExpirationFrom = api.ReadOptionalQueryDate(qs, "expiration_from", v)
-		filters.ExpirationTo = api.ReadOptionalQueryDate(qs, "expiration_to", v)
-		filters.Invalidated = api.ReadOptionalQueryBoolean(qs, "invalidated")
-		filters.InvalidatedBy = api.ReadOptionalQueryUUID(qs, "invalidated_by", v)
-
+		addFilters(&filters, qs, v)
 		if !v.Valid() {
 			api.ValidationFailedResponse(ctx, w, r, v.Errors)
 			return
@@ -82,6 +81,48 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 				RequestID:     api.RequestIDFromContext(ctx),
 				Metadata:      *metadata,
 				RefreshTokens: refreshTokens,
+			},
+			nil,
+		)
+	}
+}
+
+func DeleteRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		v := validator.New()
+		qs := r.URL.Query()
+		filters := data.Filter{}
+
+		addFilters(&filters, qs, v)
+		if !v.Valid() {
+			api.ValidationFailedResponse(ctx, w, r, v.Errors)
+			return
+		}
+
+		numberDeleted, err := tokens.Delete(ctx, filters)
+		if err != nil {
+			switch {
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		api.RespondWithJSON(
+			w,
+			r,
+			http.StatusOK,
+			RefreshTokenDeleteResponse{
+				RequestID: api.RequestIDFromContext(ctx),
+				Data: struct {
+					NumberDeleted int64 `json:"numberDeleted"`
+				}{
+					NumberDeleted: numberDeleted,
+				},
 			},
 			nil,
 		)
@@ -204,4 +245,16 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 			nil,
 		)
 	}
+}
+
+func addFilters(filters *data.Filter, qs url.Values, v *validator.Validator) {
+	filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
+	filters.ID = api.ReadOptionalQueryUUID(qs, "id", v)
+	filters.Issuer = api.ReadOptionalQueryString(qs, "id")
+	filters.IssuedAtFrom = api.ReadOptionalQueryDate(qs, "issued_at_from", v)
+	filters.IssuedAtTo = api.ReadOptionalQueryDate(qs, "issued_at_to", v)
+	filters.ExpirationFrom = api.ReadOptionalQueryDate(qs, "expiration_from", v)
+	filters.ExpirationTo = api.ReadOptionalQueryDate(qs, "expiration_to", v)
+	filters.Invalidated = api.ReadOptionalQueryBoolean(qs, "invalidated")
+	filters.InvalidatedBy = api.ReadOptionalQueryUUID(qs, "invalidated_by", v)
 }
