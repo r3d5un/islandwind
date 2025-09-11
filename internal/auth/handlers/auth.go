@@ -29,6 +29,14 @@ type RefreshRequestBody struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type RefreshTokenResponse struct {
+	Data repo.RefreshToken `json:"data"`
+}
+
+type RefreshTokenPatchBody struct {
+	Data repo.RefreshTokenPatch `json:"data"`
+}
+
 type RefreshTokenListResponse struct {
 	RequestID     uuid.UUID            `json:"requestId"`
 	Metadata      data.Metadata        `json:"metadata"`
@@ -81,6 +89,44 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 				RequestID:     api.RequestIDFromContext(ctx),
 				Metadata:      *metadata,
 				RefreshTokens: refreshTokens,
+			},
+			nil,
+		)
+	}
+}
+
+func PatchRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var body RefreshTokenPatchBody
+		if err := api.ReadJSON(r, &body); err != nil {
+			api.BadRequestResponse(w, r, err, "unable to parse JSON request body")
+			return
+		}
+
+		refreshToken, err := tokens.Update(ctx, body.Data)
+		if err != nil {
+			switch {
+			case errors.Is(err, context.DeadlineExceeded):
+				api.TimeoutResponse(ctx, w, r)
+			default:
+				api.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+		testsuite.Assert(
+			refreshToken != nil,
+			"refresh refreshToken should not be nil without errors",
+			refreshToken,
+		)
+
+		api.RespondWithJSON(
+			w,
+			r,
+			http.StatusOK,
+			RefreshTokenResponse{
+				Data: *refreshToken,
 			},
 			nil,
 		)

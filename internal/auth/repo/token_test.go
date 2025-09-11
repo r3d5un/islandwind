@@ -15,6 +15,7 @@ func TestTokenRepository(t *testing.T) {
 
 	var accessToken string
 	var refreshToken string
+	var tokens []*repo.RefreshToken
 
 	t.Run("CreateAccessToken", func(t *testing.T) {
 		newJWT, err := authRepo.Tokens.CreateAccessToken()
@@ -55,10 +56,22 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("ListRefreshTokens", func(t *testing.T) {
-		tokens, metadata, err := authRepo.Tokens.List(ctx, data.Filter{PageSize: 100})
+		refreshTokens, metadata, err := authRepo.Tokens.List(ctx, data.Filter{PageSize: 100})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, metadata)
-		assert.NotEmpty(t, tokens)
+		assert.NotEmpty(t, refreshTokens)
+
+		tokens = refreshTokens
+	})
+
+	t.Run("UpdateRefreshToken", func(t *testing.T) {
+		invalidated := true
+		token, err := authRepo.Tokens.Update(ctx, repo.RefreshTokenPatch{
+			ID:          tokens[0].ID,
+			Invalidated: &invalidated,
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, token)
 	})
 
 	t.Run("Delete", func(t *testing.T) {

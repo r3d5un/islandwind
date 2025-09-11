@@ -35,6 +35,22 @@ func newRefreshTokenFromRow(row *data.RefreshToken) *RefreshToken {
 	}
 }
 
+type RefreshTokenPatch struct {
+	ID            uuid.UUID  `json:"id"`
+	Issuer        *string    `json:"issuer"`
+	Invalidated   *bool      `json:"invalidated"`
+	InvalidatedBy *uuid.UUID `json:"invalidatedBy"`
+}
+
+func (t *RefreshTokenPatch) Row() data.RefreshTokenPatch {
+	return data.RefreshTokenPatch{
+		ID:            t.ID,
+		Issuer:        db.NewNullString(t.Issuer),
+		Invalidated:   db.NewNullBool(t.Invalidated),
+		InvalidatedBy: db.NewNullUUID(t.InvalidatedBy),
+	}
+}
+
 var (
 	ErrParsingToken    = errors.New("unable to parse token")
 	ErrVerifyingToken  = errors.New("unable to parse token")
@@ -60,6 +76,7 @@ type TokenService interface {
 		ctx context.Context,
 		refreshTokenInput string,
 	) (accessToken *string, refreshToken *string, err error)
+	Update(ctx context.Context, input RefreshTokenPatch) (*RefreshToken, error)
 	DeleteExpired(ctx context.Context) error
 	List(ctx context.Context, filter data.Filter) ([]*RefreshToken, *data.Metadata, error)
 	Delete(ctx context.Context, filter data.Filter) (int64, error)
@@ -116,6 +133,26 @@ func (r *TokenRepository) List(
 	logger.LogAttrs(ctx, slog.LevelInfo, "refresh tokens retrieved")
 
 	return tokens, metadata, nil
+}
+
+func (r *TokenRepository) Update(
+	ctx context.Context,
+	input RefreshTokenPatch,
+) (*RefreshToken, error) {
+	logger := logging.LoggerFromContext(ctx).With(slog.Group(
+		"posts",
+		slog.Any("input", input),
+	))
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "updating refresh token")
+	row, err := r.models.RefreshTokens.Update(ctx, input.Row())
+	if err != nil {
+		return nil, err
+	}
+	testsuite.Assert(row != nil, "row cannot be nil without an error", nil)
+	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token updated")
+
+	return newRefreshTokenFromRow(row), nil
 }
 
 func (r *TokenRepository) Delete(ctx context.Context, filter data.Filter) (int64, error) {

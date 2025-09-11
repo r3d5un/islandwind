@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/r3d5un/islandwind/internal/auth/handlers"
+	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,6 +23,7 @@ func TestAuthHandlers(t *testing.T) {
 	})
 
 	var login handlers.Response
+	var tokenList []*repo.RefreshToken
 
 	t.Run("LoginHandler", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/", nil)
@@ -108,6 +110,31 @@ func TestAuthHandlers(t *testing.T) {
 
 		var response handlers.RefreshTokenListResponse
 		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		tokenList = response.RefreshTokens
+	})
+
+	t.Run("PatchRefreshTokenHandler", func(t *testing.T) {
+		invalidated := true
+		body, err := json.Marshal(handlers.RefreshTokenPatchBody{
+			Data: repo.RefreshTokenPatch{
+				ID:          tokenList[0].ID,
+				Invalidated: &invalidated,
+			},
+		})
+		assert.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPatch, "/", strings.NewReader(string(body)))
+		assert.NoError(t, err)
+
+		rr := httptest.NewRecorder()
+		handler := handlers.PatchRefreshTokenHandler(authRepo.Tokens)
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotEmpty(t, rr.Body)
+
+		var response handlers.RefreshTokenResponse
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		assert.True(t, response.Data.Invalidated)
 	})
 
 	t.Run("DeleteRefreshTokenHandler", func(t *testing.T) {
