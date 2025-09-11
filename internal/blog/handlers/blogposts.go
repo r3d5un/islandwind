@@ -139,7 +139,9 @@ func ListBlogpostHandler(
 		filters.Deleted = api.ReadOptionalQueryBoolean(qs, "deleted")
 		filters.DeletedAtFrom = api.ReadOptionalQueryDate(qs, "deleted_at_from", v)
 		filters.DeletedAtTo = api.ReadOptionalQueryDate(qs, "deleted_at_to", v)
-		filters.LastSeen = *api.ReadRequiredQueryUUID(qs, "deleted_at_to", v, uuid.MustParse("00000000-0000-0000-0000-000000000000"))
+		filters.LastSeen = *api.ReadRequiredQueryUUID(
+			qs, "last_seen", v, uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+		)
 
 		if !v.Valid() {
 			api.ValidationFailedResponse(ctx, w, r, v.Errors)
