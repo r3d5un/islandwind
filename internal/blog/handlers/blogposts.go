@@ -15,14 +15,12 @@ import (
 )
 
 type BlogpostResponse struct {
-	RequestID uuid.UUID `json:"requestId"`
-	Data      repo.Post `json:"data"`
+	Data repo.Post `json:"data"`
 }
 
 type BlogpostListResponse struct {
-	RequestID uuid.UUID     `json:"requestId"`
-	Metadata  data.Metadata `json:"metadata"`
-	Data      []*repo.Post  `json:"data"`
+	Metadata data.Metadata `json:"metadata"`
+	Data     []*repo.Post  `json:"data"`
 }
 
 type PostRequestBody struct {
@@ -72,8 +70,7 @@ func PostBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostResponse{
-				RequestID: api.RequestIDFromContext(ctx),
-				Data:      *blogpost,
+				Data: *blogpost,
 			},
 			nil,
 		)
@@ -111,8 +108,7 @@ func GetBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostResponse{
-				RequestID: api.RequestIDFromContext(ctx),
-				Data:      *blogpost,
+				Data: *blogpost,
 			},
 			nil,
 		)
@@ -165,9 +161,8 @@ func ListBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostListResponse{
-				RequestID: api.RequestIDFromContext(ctx),
-				Data:      blogposts,
-				Metadata:  *metadata,
+				Data:     blogposts,
+				Metadata: *metadata,
 			},
 			nil,
 		)
@@ -204,8 +199,7 @@ func PatchBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostResponse{
-				RequestID: api.RequestIDFromContext(ctx),
-				Data:      *blogpost,
+				Data: *blogpost,
 			},
 			nil,
 		)
@@ -257,8 +251,7 @@ func DeleteBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostResponse{
-				RequestID: api.RequestIDFromContext(ctx),
-				Data:      *blogpost,
+				Data: *blogpost,
 			},
 			nil,
 		)

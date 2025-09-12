@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/testsuite"
 	"github.com/r3d5un/islandwind/internal/validator"
@@ -16,13 +15,8 @@ import (
 )
 
 type Response struct {
-	RequestID    uuid.UUID `json:"requestId"`
-	AccessToken  string    `json:"accessToken"`
-	RefreshToken string    `json:"refreshToken"`
-}
-
-type LogoutResponse struct {
-	RequestID uuid.UUID `json:"requestId"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 type RefreshRequestBody struct {
@@ -38,14 +32,12 @@ type RefreshTokenPatchBody struct {
 }
 
 type RefreshTokenListResponse struct {
-	RequestID     uuid.UUID            `json:"requestId"`
 	Metadata      data.Metadata        `json:"metadata"`
 	RefreshTokens []*repo.RefreshToken `json:"refreshTokens,omitzero"`
 }
 
 type RefreshTokenDeleteResponse struct {
-	RequestID uuid.UUID `json:"requestId"`
-	Data      struct {
+	Data struct {
 		NumberDeleted int64 `json:"numberDeleted"`
 	} `json:"data"`
 }
@@ -86,7 +78,6 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			RefreshTokenListResponse{
-				RequestID:     api.RequestIDFromContext(ctx),
 				Metadata:      *metadata,
 				RefreshTokens: refreshTokens,
 			},
@@ -163,7 +154,6 @@ func DeleteRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			RefreshTokenDeleteResponse{
-				RequestID: api.RequestIDFromContext(ctx),
 				Data: struct {
 					NumberDeleted int64 `json:"numberDeleted"`
 				}{
@@ -202,7 +192,6 @@ func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			Response{
-				RequestID:    api.RequestIDFromContext(ctx),
 				AccessToken:  *accessToken,
 				RefreshToken: *refreshToken,
 			},
@@ -241,7 +230,7 @@ func LogoutHandler(tokens repo.TokenService) http.HandlerFunc {
 			w,
 			r,
 			http.StatusOK,
-			LogoutResponse{RequestID: api.RequestIDFromContext(ctx)},
+			nil,
 			nil,
 		)
 	}
@@ -284,7 +273,6 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 			r,
 			http.StatusOK,
 			Response{
-				RequestID:    api.RequestIDFromContext(ctx),
 				AccessToken:  *accessToken,
 				RefreshToken: *refreshToken,
 			},

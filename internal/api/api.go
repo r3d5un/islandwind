@@ -26,8 +26,7 @@ const (
 )
 
 type ErrorMessage struct {
-	RequestID uuid.UUID `json:"requestId"`
-	Message   any       `json:"message"`
+	Message any `json:"message"`
 }
 
 func ErrorResponse(
@@ -47,7 +46,7 @@ func ErrorResponse(
 		w,
 		r,
 		status,
-		ErrorMessage{RequestID: RequestIDFromContext(ctx), Message: message},
+		ErrorMessage{Message: message},
 		nil,
 	)
 }
