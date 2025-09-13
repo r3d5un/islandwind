@@ -23,21 +23,31 @@ const (
 
 func (m *Module) addRoutes(ctx context.Context) {
 	routes := []struct {
-		Path          string `json:"path"`
-		handler       http.HandlerFunc
-		Method        string `json:"method"`
-		authType      authType
-		CorsPreflight bool `json:"corsPreflight"`
+		Path     string `json:"path"`
+		handler  http.HandlerFunc
+		Method   string `json:"method"`
+		authType authType
 	}{
 		// healthcheck
+		{
+			"/api/v1/auth/healthcheck",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			noAuth,
+		},
 		{
 			"/api/v1/auth/healthcheck",
 			m.healthcheckHandler,
 			http.MethodGet,
 			noAuth,
-			false,
 		},
 		// login
+		{
+			"/api/v1/auth/login",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			noAuth,
+		},
 		{
 			"/api/v1/auth/login",
 			handlers.LoginHandler(m.repo.Tokens),
@@ -45,9 +55,14 @@ func (m *Module) addRoutes(ctx context.Context) {
 			// Basic authentication should only be used for logging in. Other resources
 			// should be accessible with access tokens.
 			basicAuth,
-			true,
 		},
 		// logout
+		{
+			"/api/v1/auth/logout",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			noAuth,
+		},
 		{
 			"/api/v1/auth/logout",
 			handlers.LogoutHandler(m.repo.Tokens),
@@ -55,9 +70,14 @@ func (m *Module) addRoutes(ctx context.Context) {
 			// Basic authentication should only be used for logging in. Other resources
 			// should be accessible with access tokens.
 			noAuth,
-			true,
 		},
 		// refresh
+		{
+			"/api/v1/auth/refresh",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			noAuth,
+		},
 		{
 			"/api/v1/auth/refresh",
 			handlers.RefreshHandler(m.repo.Tokens),
@@ -65,21 +85,30 @@ func (m *Module) addRoutes(ctx context.Context) {
 			// The RefreshHandler authenticates and validates the request as part of the
 			// refresh process. No extra auth required.
 			noAuth,
-			true,
+		},
+		{
+			"/api/v1/auth/refreshToken",
+			api.CorsPreflightHandler(),
+			http.MethodOptions,
+			noAuth,
 		},
 		{
 			"/api/v1/auth/refreshToken",
 			handlers.ListRefreshTokenHandler(m.repo.Tokens),
 			http.MethodGet,
 			accessToken,
-			true,
+		},
+		{
+			"/api/v1/auth/refreshToken",
+			handlers.PatchRefreshTokenHandler(m.repo.Tokens),
+			http.MethodPatch,
+			accessToken,
 		},
 		{
 			"/api/v1/auth/refreshToken",
 			handlers.DeleteRefreshTokenHandler(m.repo.Tokens),
 			http.MethodDelete,
 			accessToken,
-			true,
 		},
 	}
 
@@ -87,8 +116,9 @@ func (m *Module) addRoutes(ctx context.Context) {
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{
 			http.MethodPost,
-			http.MethodGet,
+			http.MethodPatch,
 			http.MethodDelete,
+			http.MethodGet,
 			http.MethodOptions,
 			http.MethodHead,
 		},
@@ -134,13 +164,6 @@ func (m *Module) addRoutes(ctx context.Context) {
 				}
 			},
 		)
-
-		if route.CorsPreflight {
-			m.mux.Handle(
-				fmt.Sprintf("%s %s", http.MethodOptions, route.Path),
-				chain.Then(api.CorsPreflightHandler()),
-			)
-		}
 
 		m.mux.Handle(
 			fmt.Sprintf("%s %s", route.Method, route.Path),
