@@ -110,6 +110,7 @@ func TestAuthHandlers(t *testing.T) {
 
 		var response handlers.RefreshTokenListResponse
 		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		assert.NoError(t, err)
 		tokenList = response.RefreshTokens
 	})
 
@@ -134,6 +135,7 @@ func TestAuthHandlers(t *testing.T) {
 
 		var response handlers.RefreshTokenResponse
 		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		assert.NoError(t, err)
 		assert.True(t, response.Data.Invalidated)
 	})
 
@@ -154,5 +156,6 @@ func TestAuthHandlers(t *testing.T) {
 
 		var response handlers.RefreshTokenDeleteResponse
 		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		assert.NoError(t, err)
 	})
 }
