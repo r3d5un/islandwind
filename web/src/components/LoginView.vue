@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useLogger } from '@/ui/logging.ts'
-import { login, Tokens, useAuthStore } from '@/api/auth.ts'
+import { useAuthStore } from '@/api/auth.ts'
 import { useRouter } from 'vue-router'
 
-const logger = useLogger()
 const authStore = useAuthStore()
 const route = useRouter()
 
@@ -13,20 +11,8 @@ const password = ref('')
 const loginError = ref(false)
 
 const handleSubmit = async () => {
-  logger.info('Username:', username.value)
-  logger.info('Password:', password.value)
-
-  logger.info('logging in', { username: username.value, password: password.value })
-  const result = await login(username.value, password.value)
-  if (result instanceof Tokens) {
-    logger.info('logged in', { tokens: result })
-    authStore.loggedIn = true
-    authStore.tokens = result
-    await route.push('/')
-  } else {
-    logger.error('Unable to login', { result: result })
-    loginError.value = true
-  }
+  await authStore.login(username.value, password.value)
+  await route.push('/')
 }
 </script>
 
