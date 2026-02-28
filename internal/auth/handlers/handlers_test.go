@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 	logger.Info("creating PostgreSQL container")
 	dbContainer, err := postgres.Run(
 		ctx,
-		"postgres:17.4",
+		"postgres:18.3",
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
