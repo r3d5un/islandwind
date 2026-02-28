@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"reflect"
 	"time"
@@ -12,6 +13,10 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/logging"
+	"github.com/r3d5un/islandwind/internal/testsuite"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type Config struct {
@@ -67,6 +72,26 @@ func OpenPool(ctx context.Context, config Config) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+func NewTestPool(
+	ctx context.Context,
+	dbContainer *postgres.PostgresContainer,
+) (*pgxpool.Pool, *Config, error) {
+	connStr, err := dbContainer.ConnectionString(ctx, "sslmode=disable", "application_name=rosetta")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cfg := Config{
+		ConnStr:         connStr,
+		MaxOpenConns:    20,
+		IdleTimeMinutes: 1,
+		TimeoutSeconds:  30,
+	}
+	pool, err := OpenPool(ctx, cfg)
+
+	return pool, &cfg, nil
 }
 
 type Queryable interface {
@@ -188,4 +213,78 @@ func HandleError(ctx context.Context, err error) error {
 		ctx, slog.LevelError, "unhandled database error", slog.String("error", err.Error()),
 	)
 	return err
+}
+
+const (
+	applicationName string = "islandwind"
+	postgresVersion string = "postgres:18.3"
+	dbName          string = "postgres"
+	dbUser          string = "postgres"
+	dbPassword      string = "postgres"
+)
+
+func NewPostgresTestcontainer(ctx context.Context) (*postgres.PostgresContainer, func(), error) {
+	container, err := postgres.Run(
+		ctx,
+		"postgres:18.3",
+		postgres.WithDatabase(dbName),
+		postgres.WithUsername(dbUser),
+		postgres.WithPassword(dbPassword),
+		testcontainers.WithLogger(log.Default()),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(30*time.Second),
+		),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	connStr, err := container.ConnectionString(
+		ctx, "sslmode=disable", fmt.Sprintf("application_name=%s", applicationName),
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	migrate, err := testsuite.NewMigrateClient(connStr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = migrate.Up()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	shutdown := func() {
+		defer func() {
+			if err := testcontainers.TerminateContainer(container); err != nil {
+				slog.Default().LogAttrs(ctx, slog.LevelError,
+					"failed to terminate container", slog.String("error", err.Error()),
+				)
+			}
+		}()
+
+		defer func() {
+			err = migrate.Drop()
+			if err != nil {
+				slog.Default().LogAttrs(ctx, slog.LevelError,
+					"unable to drop database schemas", slog.String("error", err.Error()),
+				)
+			}
+		}()
+		defer func() {
+			err = migrate.Down()
+			if err != nil {
+				slog.Default().LogAttrs(ctx, slog.LevelError,
+					"up migrations failed", slog.String("error", err.Error()),
+				)
+				return
+			}
+		}()
+	}
+
+	return container, shutdown, nil
 }

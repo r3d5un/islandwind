@@ -51,3 +51,14 @@ func NewMigrateClient(connStr string) (*migrate.Migrate, error) {
 
 	return m, nil
 }
+
+func NewTestLogger() slog.Logger {
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: true,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	return *logger
+}
