@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/r3d5un/islandwind/internal/config"
-	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 const moduleName string = "auth"
@@ -25,23 +25,26 @@ type Module struct {
 	repo       repo.Repository
 }
 
-func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
-	logger := mono.Logger().With(slog.Group(
-		"module",
-		slog.String("name", moduleName),
-	))
+func NewModule(ctx context.Context, cfg *config.Config, db *pgxpool.Pool) (*Module, error) {
+	ctx, logger := logging.ContextLogger(ctx, slog.Group("module", slog.String("name", moduleName)))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "setting up module")
-	m.instanceID = mono.InstanceID()
-	m.name = moduleName
-	m.logger = logger
-	m.db = mono.DB()
-	m.cfg = mono.Config()
-	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
-	m.repo = repo.NewRepository(m.db, &timeout, m.cfg.Auth)
-	m.mux = mono.Mux()
-	m.addRoutes(ctx)
+	timeout := time.Duration(cfg.DB.TimeoutSeconds) * time.Second
+	module := Module{
+		name:   moduleName,
+		logger: logger,
+		db:     db,
+		cfg:    cfg,
+		repo:   repo.NewRepository(db, &timeout, cfg.Auth),
+	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
+
+	return &module, nil
+}
+
+func (m *Module) Start(ctx context.Context, mux *http.ServeMux) {
+	m.mux = mux
+	m.addRoutes(ctx)
 }
 
 func (m *Module) Shutdown() {

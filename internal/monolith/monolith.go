@@ -9,7 +9,6 @@ import (
 	"net/http/pprof"
 	"os"
 	"os/signal"
-	"reflect"
 	"syscall"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 	"github.com/r3d5un/islandwind/internal/blog"
 	"github.com/r3d5un/islandwind/internal/config"
 	database "github.com/r3d5un/islandwind/internal/db"
-	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
+	"github.com/r3d5un/islandwind/internal/logging"
 	"github.com/spf13/viper"
 )
 
@@ -31,82 +30,79 @@ type Monolith struct {
 	logger  *slog.Logger
 	db      *pgxpool.Pool
 	id      uuid.UUID
-	modules *interfaces.Modules
+	modules []Module
 }
 
-func (m *Monolith) InstanceID() uuid.UUID {
-	return m.id
-}
+func NewMonolith(ctx context.Context) (context.Context, *Monolith, error) {
+	var monolith Monolith
+	var modules []Module
 
-func (m *Monolith) DB() *pgxpool.Pool {
-	return m.db
-}
-
-func (m *Monolith) Mux() *http.ServeMux {
-	return m.mux
-}
-
-func (m *Monolith) Logger() *slog.Logger {
-	return m.logger
-}
-
-func (m *Monolith) Config() *config.Config {
-	return m.cfg
-}
-
-func (m *Monolith) Modules() *interfaces.Modules {
-	return m.modules
-}
-
-func NewMonolith() (*Monolith, error) {
-	ctx := context.Background()
 	cfg, err := config.New()
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	instanceID := uuid.New()
+
+	logger := monolith.setupLogger(*cfg, instanceID)
+	ctx = logging.WithLogger(ctx, logger)
+
+	logger.LogAttrs(ctx, slog.LevelInfo, "creating database pool", slog.Any("cfg", cfg.DB))
+	db, err := database.OpenPool(ctx, cfg.DB)
+	if err != nil {
+		return ctx, nil, err
+	}
+
+	authModule, err := auth.NewModule(ctx, cfg, db)
+	if err != nil {
+		return ctx, nil, err
+	}
+	modules = append(modules, authModule)
+
+	blogModule, err := blog.NewModule(ctx, cfg, db, authModule)
+	if err != nil {
+		return ctx, nil, err
+	}
+	modules = append(modules, blogModule)
+
+	monolith = Monolith{
+		id:      instanceID,
+		cfg:     cfg,
+		mux:     http.NewServeMux(),
+		logger:  slog.Default(),
+		db:      db,
+		modules: modules,
+	}
+
+	return ctx, &monolith, nil
+}
+
+func (m *Monolith) setupLogger(cfg config.Config, instanceID uuid.UUID) *slog.Logger {
 	logGroup := slog.Group(
 		"instance",
 		slog.String("name", viper.GetString("app.name")),
 		slog.String("environment", viper.GetString("app.environment")),
 		slog.String("id", instanceID.String()),
 	)
-	var handler slog.Handler
+	var logHandler slog.Handler
 	switch cfg.App.Environment {
-	case "testing":
-		fallthrough
-	case "production":
-		handler = slog.NewJSONHandler(os.Stderr, nil)
+	case config.LocalEnvironment:
+		logHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource:   true,
+			Level:       slog.LevelDebug,
+			ReplaceAttr: nil,
+		})
 	default:
-		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level:     slog.LevelDebug,
-			AddSource: true,
+		logHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource:   false,
+			Level:       slog.LevelInfo,
+			ReplaceAttr: nil,
 		})
 	}
-	logger := slog.New(handler).With(logGroup)
+	logger := slog.New(logHandler).With(logGroup)
 	slog.SetDefault(logger)
 
-	logger.LogAttrs(ctx, slog.LevelInfo, "creating database pool", slog.Any("cfg", cfg.DB))
-	db, err := database.OpenPool(ctx, cfg.DB)
-	if err != nil {
-		return nil, err
-	}
-
-	mono := Monolith{
-		id:     instanceID,
-		cfg:    cfg,
-		mux:    http.NewServeMux(),
-		logger: slog.Default(),
-		db:     db,
-		modules: &interfaces.Modules{
-			Auth: &auth.Module{},
-			Blog: &blog.Module{},
-		},
-	}
-	mono.SetupModules(ctx)
-
-	return &mono, nil
+	return logger
 }
 
 func (m *Monolith) Serve() error {
@@ -183,38 +179,14 @@ func (m *Monolith) routes() http.Handler {
 
 func (m *Monolith) SetupModules(ctx context.Context) {
 	m.logger.LogAttrs(ctx, slog.LevelInfo, "setting up modules")
-	val := reflect.ValueOf(m.modules)
-
-	if val.Kind() == reflect.Pointer {
-		val = val.Elem()
-	}
-
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-
-		if module, ok := field.Interface().(interfaces.Module); ok {
-			module.Setup(ctx, m)
-		}
+	for _, module := range m.modules {
+		module.Start(ctx, m.mux)
 	}
 }
 
 func (m *Monolith) Shutdown() {
-	ctx := context.Background()
-	m.logger.LogAttrs(ctx, slog.LevelInfo, "shutting down modules")
-	val := reflect.ValueOf(m.modules)
-
-	if val.Kind() == reflect.Pointer {
-		val = val.Elem()
+	defer m.db.Close()
+	for _, module := range m.modules {
+		module.Shutdown()
 	}
-
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-
-		if module, ok := field.Interface().(interfaces.Module); ok {
-			module.Shutdown()
-		}
-	}
-
-	m.logger.LogAttrs(ctx, slog.LevelInfo, "closing database connection pool")
-	m.db.Close()
 }

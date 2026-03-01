@@ -6,48 +6,52 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
 	"github.com/r3d5un/islandwind/internal/config"
-	"github.com/r3d5un/islandwind/internal/monolith/interfaces"
+	"github.com/r3d5un/islandwind/internal/logging"
 )
 
 const moduleName string = "blog"
 
 type Module struct {
-	name       string
-	logger     *slog.Logger
-	db         *pgxpool.Pool
-	cfg        *config.Config
-	repo       repo.Repository
-	mux        *http.ServeMux
-	instanceID uuid.UUID
-	auth       AuthMiddlewareService
+	name   string
+	logger *slog.Logger
+	db     *pgxpool.Pool
+	cfg    *config.Config
+	repo   repo.Repository
+	mux    *http.ServeMux
+	auth   AuthMiddlewareService
 }
 
 type AuthMiddlewareService interface {
 	AccessTokenMiddleware(next http.Handler) http.Handler
 }
 
-func (m *Module) Setup(ctx context.Context, mono interfaces.Monolith) {
-	logger := mono.Logger().With(slog.Group(
-		"module",
-		slog.String("name", moduleName),
-	))
+func NewModule(
+	ctx context.Context,
+	cfg *config.Config,
+	db *pgxpool.Pool,
+	authModule AuthMiddlewareService,
+) (*Module, error) {
+	ctx, logger := logging.ContextLogger(ctx, slog.Group("module", slog.String("name", moduleName)))
 
-	logger.LogAttrs(ctx, slog.LevelInfo, "setting up module")
-	m.instanceID = mono.InstanceID()
-	m.name = moduleName
-	m.logger = logger
-	m.db = mono.DB()
-	m.cfg = mono.Config()
-	m.auth = mono.Modules().Auth
-	timeout := time.Duration(m.cfg.DB.TimeoutSeconds) * time.Second
-	m.repo = repo.NewRepository(m.db, &timeout)
-	m.mux = mono.Mux()
+	timeout := time.Duration(cfg.DB.TimeoutSeconds) * time.Second
+	module := Module{
+		name:   moduleName,
+		logger: logger,
+		db:     db,
+		cfg:    cfg,
+		repo:   repo.NewRepository(db, &timeout),
+		auth:   authModule,
+	}
+
+	return &module, nil
+}
+
+func (m *Module) Start(ctx context.Context, mux *http.ServeMux) {
+	m.mux = mux
 	m.addRoutes(ctx)
-	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 }
 
 func (m *Module) Shutdown() {

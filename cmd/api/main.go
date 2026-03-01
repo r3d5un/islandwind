@@ -23,11 +23,12 @@ func main() {
 }
 
 func run() error {
-	mono, err := monolith.NewMonolith()
+	ctx, mono, err := monolith.NewMonolith(context.Background())
 	if err != nil {
 		return err
 	}
 
+	mono.SetupModules(ctx)
 	err = mono.Serve()
 	if err != nil {
 		return err

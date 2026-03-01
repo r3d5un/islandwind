@@ -8,7 +8,6 @@ import (
 
 type HealthCheckMessage struct {
 	Module      string `json:"module"`
-	InstanceID  string `json:"instanceId"`
 	Environment string `json:"environment"`
 	Status      string `json:"status"`
 }
@@ -20,7 +19,6 @@ func (m *Module) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 		http.StatusOK,
 		HealthCheckMessage{
 			Module:      moduleName,
-			InstanceID:  m.instanceID.String(),
 			Environment: m.cfg.App.Environment,
 			Status:      "available",
 		},

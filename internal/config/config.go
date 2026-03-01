@@ -8,6 +8,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	LocalEnvironment       string = "local"
+	DevelopmentEnvironment string = "development"
+	TestingEnvironment     string = "testing"
+	StagingEnvironment     string = "staging"
+	ProductionEnvironment  string = "production"
+)
+
 // Config contains the configuration loaded at startup of the application. The configuration
 // does not reload environment variables; you will have to use the [viper] package directly
 // where you need to read updated configuration variables.

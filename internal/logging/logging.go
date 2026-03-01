@@ -30,3 +30,13 @@ func LoggerFromContext(ctx context.Context) *slog.Logger {
 func MinifySQL(query string) string {
 	return strings.TrimSpace(regexp.MustCompile(`\s+`).ReplaceAllString(query, " "))
 }
+
+// ContextLogger accepts a context.Context and a slog.Attr, and returns a new enriched context
+// and a logger object.
+//
+// It's a convenience function wrapping the functionality of LoggerFromContext and WithLogger
+// in a single call.
+func ContextLogger(ctx context.Context, attr slog.Attr) (context.Context, *slog.Logger) {
+	logger := LoggerFromContext(ctx).With(attr)
+	return WithLogger(ctx, logger), logger
+}
