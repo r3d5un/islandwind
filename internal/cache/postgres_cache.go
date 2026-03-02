@@ -22,8 +22,8 @@ type PostgresCache struct {
 	done       chan struct{}
 }
 
-func NewPostgresCache(db *pgxpool.Pool, logger *slog.Logger) PostgresCache {
-	return PostgresCache{
+func NewPostgresCache(db *pgxpool.Pool, logger *slog.Logger) *PostgresCache {
+	return &PostgresCache{
 		db:         db,
 		logger:     logger,
 		setChan:    make(chan postgresSetCacheMessage, 64),

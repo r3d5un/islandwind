@@ -14,7 +14,7 @@ import (
 	"github.com/r3d5un/islandwind/internal/testsuite"
 )
 
-var postgresCache cache.PostgresCache
+var postgresCache *cache.PostgresCache
 var logger slog.Logger
 
 func TestMain(m *testing.M) {

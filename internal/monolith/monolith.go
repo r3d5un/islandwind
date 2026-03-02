@@ -18,6 +18,7 @@ import (
 	"github.com/r3d5un/islandwind/internal/api"
 	"github.com/r3d5un/islandwind/internal/auth"
 	"github.com/r3d5un/islandwind/internal/blog"
+	"github.com/r3d5un/islandwind/internal/cache"
 	"github.com/r3d5un/islandwind/internal/config"
 	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/logging"
@@ -29,6 +30,7 @@ type Monolith struct {
 	mux     *http.ServeMux
 	logger  *slog.Logger
 	db      *pgxpool.Pool
+	cache   cache.Cache
 	id      uuid.UUID
 	modules []Module
 }
@@ -71,6 +73,7 @@ func NewMonolith(ctx context.Context) (context.Context, *Monolith, error) {
 		mux:     http.NewServeMux(),
 		logger:  slog.Default(),
 		db:      db,
+		cache:   cache.NewPostgresCache(db, logger),
 		modules: modules,
 	}
 
