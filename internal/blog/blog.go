@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
+	"github.com/r3d5un/islandwind/internal/cache"
 	"github.com/r3d5un/islandwind/internal/config"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
@@ -18,6 +19,7 @@ type Module struct {
 	name   string
 	logger *slog.Logger
 	db     *pgxpool.Pool
+	cache  cache.Cache
 	cfg    *config.Config
 	repo   repo.Repository
 	mux    *http.ServeMux
@@ -32,6 +34,7 @@ func NewModule(
 	ctx context.Context,
 	cfg *config.Config,
 	db *pgxpool.Pool,
+	cache cache.Cache,
 	authModule AuthMiddlewareService,
 ) (*Module, error) {
 	ctx, logger := logging.ContextLogger(ctx, slog.Group("module", slog.String("name", moduleName)))
@@ -41,8 +44,9 @@ func NewModule(
 		name:   moduleName,
 		logger: logger,
 		db:     db,
+		cache:  cache,
 		cfg:    cfg,
-		repo:   repo.NewRepository(db, &timeout),
+		repo:   repo.NewRepository(db, cache, &timeout),
 		auth:   authModule,
 	}
 

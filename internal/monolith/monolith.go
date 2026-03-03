@@ -54,6 +54,7 @@ func NewMonolith(ctx context.Context) (context.Context, *Monolith, error) {
 	if err != nil {
 		return ctx, nil, err
 	}
+	postgresCache := cache.NewPostgresCache(db, logger)
 
 	authModule, err := auth.NewModule(ctx, cfg, db)
 	if err != nil {
@@ -61,7 +62,7 @@ func NewMonolith(ctx context.Context) (context.Context, *Monolith, error) {
 	}
 	modules = append(modules, authModule)
 
-	blogModule, err := blog.NewModule(ctx, cfg, db, authModule)
+	blogModule, err := blog.NewModule(ctx, cfg, db, postgresCache, authModule)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -73,7 +74,7 @@ func NewMonolith(ctx context.Context) (context.Context, *Monolith, error) {
 		mux:     http.NewServeMux(),
 		logger:  slog.Default(),
 		db:      db,
-		cache:   cache.NewPostgresCache(db, logger),
+		cache:   postgresCache,
 		modules: modules,
 	}
 

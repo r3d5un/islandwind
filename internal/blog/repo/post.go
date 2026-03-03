@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/data"
+	"github.com/r3d5un/islandwind/internal/cache"
 	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/logging"
 	"github.com/r3d5un/islandwind/internal/testsuite"
@@ -89,12 +90,14 @@ type PostReaderWriter interface {
 
 type PostRepository struct {
 	db     *pgxpool.Pool
+	cache  cache.Cache
 	models data.Models
 }
 
-func newPostRepository(db *pgxpool.Pool, timeout *time.Duration) PostReaderWriter {
+func newPostRepository(db *pgxpool.Pool, c cache.Cache, timeout *time.Duration) PostReaderWriter {
 	return &PostRepository{
 		db:     db,
+		cache:  c,
 		models: data.NewModels(db, timeout),
 	}
 }
