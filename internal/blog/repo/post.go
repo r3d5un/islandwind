@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -36,6 +37,17 @@ func newPostFromRow(row data.Post) *Post {
 		Deleted:   row.Deleted,
 		DeletedAt: db.NullTimeToPtr(row.DeletedAt),
 	}
+}
+
+func newPost(row data.Post, post *Post) {
+	post.ID = row.ID
+	post.Title = row.Title
+	post.Content = row.Content
+	post.Published = row.Published
+	post.CreatedAt = row.CreatedAt
+	post.UpdatedAt = row.UpdatedAt
+	post.Deleted = row.Deleted
+	post.DeletedAt = db.NullTimeToPtr(row.DeletedAt)
 }
 
 type PostInput struct {
@@ -109,15 +121,14 @@ func (r *PostRepository) Read(ctx context.Context, ID uuid.UUID) (*Post, error) 
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "reading blog post")
-	row, err := r.models.Posts.SelectOne(ctx, ID)
+	var post Post
+	err := readBlogpost(ctx, logger, &r.models, r.cache, ID, &post)
 	if err != nil {
 		return nil, err
 	}
-	testsuite.Assert(row != nil, "blog post database record is nil", nil)
-	post := newPostFromRow(*row)
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post retrieved")
 
-	return post, nil
+	return &post, nil
 }
 
 func (r *PostRepository) List(
@@ -189,10 +200,9 @@ func (r *PostRepository) SoftDelete(ctx context.Context, ID uuid.UUID) (*Post, e
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "soft deleting blog post")
-	state := true
 	row, err := r.models.Posts.Update(
 		ctx,
-		data.PostPatch{ID: ID, Deleted: &state},
+		data.PostPatch{ID: ID, Deleted: new(true)},
 	)
 	if err != nil {
 		return nil, err
@@ -211,10 +221,9 @@ func (r *PostRepository) Restore(ctx context.Context, ID uuid.UUID) (*Post, erro
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "restoring blog post")
-	state := false
 	row, err := r.models.Posts.Update(
 		ctx,
-		data.PostPatch{ID: ID, Deleted: &state},
+		data.PostPatch{ID: ID, Deleted: new(false)},
 	)
 	if err != nil {
 		return nil, err
@@ -240,11 +249,10 @@ func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error
 	defer rollback()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "deleting blog post")
-	state := true
 	row, err := r.models.Posts.UpdateTx(
 		ctx,
 		tx,
-		data.PostPatch{ID: ID, Deleted: &state},
+		data.PostPatch{ID: ID, Deleted: new(true)},
 	)
 	if err != nil {
 		return nil, err
@@ -264,4 +272,33 @@ func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post deleted")
 
 	return post, nil
+}
+
+func readBlogpost(
+	ctx context.Context,
+	logger *slog.Logger,
+	models *data.Models,
+	c cache.Cache,
+	ID uuid.UUID,
+	post *Post,
+) error {
+	var err error
+	if err = c.Get(ID, post); err == nil {
+		return nil
+	}
+	switch {
+	case errors.Is(err, cache.ErrCacheMiss):
+		logger.LogAttrs(ctx, slog.LevelInfo, "cache miss")
+	default:
+		logger.LogAttrs(ctx, slog.LevelError, "unable to use cache")
+	}
+
+	row, err := models.Posts.SelectOne(ctx, ID)
+	if err != nil {
+		return err
+	}
+	newPost(*row, post)
+	c.Set(ID, post)
+
+	return nil
 }
