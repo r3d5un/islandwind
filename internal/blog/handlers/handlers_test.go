@@ -10,14 +10,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/r3d5un/islandwind/internal/blog/repo"
+	"github.com/r3d5un/islandwind/internal/cache"
 	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/testsuite"
-)
-
-const (
-	dbName     string = "postgres"
-	dbUser     string = "postgres"
-	dbPassword string = "postgres"
 )
 
 var blogReaderWriter repo.PostReaderWriter
@@ -41,8 +36,16 @@ func TestMain(m *testing.M) {
 		logger.Error("unable to create database connection pool", slog.String("error", err.Error()))
 		return
 	}
+
+	postgresCache := cache.NewPostgresCache(db, &logger)
+	if err := postgresCache.Start(); err != nil {
+		logger.Error("unable to start cache", slog.String("error", err.Error()))
+		return
+	}
+	defer postgresCache.Shutdown()
+
 	timeout := cfg.TimeoutDuration()
-	repository := repo.NewRepository(db, &timeout)
+	repository := repo.NewRepository(db, postgresCache, &timeout)
 	blogReaderWriter = repository.Posts
 
 	exitCode := m.Run()

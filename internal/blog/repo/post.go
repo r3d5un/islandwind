@@ -182,12 +182,10 @@ func (r *PostRepository) Update(ctx context.Context, patch PostPatch) (*Post, er
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "updating blog post")
-	row, err := r.models.Posts.Update(ctx, patch.postPatchRow())
+	post, err := updateBlogpost(ctx, &r.models, r.cache, patch)
 	if err != nil {
 		return nil, err
 	}
-	testsuite.Assert(row != nil, "blog post database record is nil", nil)
-	post := newPostFromRow(*row)
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post updated")
 
 	return post, nil
@@ -301,4 +299,21 @@ func readBlogpost(
 	c.Set(ID, post)
 
 	return nil
+}
+
+func updateBlogpost(
+	ctx context.Context,
+	models *data.Models,
+	c cache.Cache,
+	input PostPatch,
+) (*Post, error) {
+	row, err := models.Posts.Update(ctx, input.postPatchRow())
+	if err != nil {
+		return nil, err
+	}
+	post := newPostFromRow(*row)
+
+	c.Delete(post.ID)
+
+	return post, nil
 }
