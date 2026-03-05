@@ -234,19 +234,22 @@ func (r *PostRepository) Restore(ctx context.Context, ID uuid.UUID) (*Post, erro
 }
 
 func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error) {
+	// TODO: Refactor the Delete method
+	//  - Implement a Purge method. It should be called through a custom PURGE HTTP code
+	//  - Add a softDelete helper function
+	//  - Add a delete helper function
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"blogpost",
 		slog.String("id", ID.String()),
 	))
 
-	logger.LogAttrs(ctx, slog.LevelInfo, "starting database transaction")
+	logger.LogAttrs(ctx, slog.LevelInfo, "deleting blog post")
 	tx, rollback, err := r.models.BeginTx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer rollback()
 
-	logger.LogAttrs(ctx, slog.LevelInfo, "deleting blog post")
 	row, err := r.models.Posts.UpdateTx(
 		ctx,
 		tx,
@@ -260,6 +263,7 @@ func (r *PostRepository) Delete(ctx context.Context, ID uuid.UUID) (*Post, error
 		return nil, err
 	}
 	testsuite.Assert(row != nil, "blog post database record is nil", nil)
+	r.cache.Delete(ID)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "committing changes")
 	if err := tx.Commit(ctx); err != nil {
