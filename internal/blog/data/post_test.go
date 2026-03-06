@@ -65,7 +65,7 @@ func TestBlogModel(t *testing.T) {
 		post = *updated
 	})
 
-	t.Run("Delete", func(t *testing.T) {
+	t.Run("Purge", func(t *testing.T) {
 		deleted, err := models.Posts.Delete(ctx, post.ID)
 		assert.NoError(t, err)
 		assert.NotNil(t, deleted)

@@ -217,14 +217,18 @@ func DeleteBlogpostHandler(
 			return
 		}
 
-		var blogpost *repo.Post
+		// TODO: Implement a X-Purge header
+		// TODO: Use BlogpostService.Delete for soft deletions
+		// TODO: Use BlogpostService.Purge for hard deletions
+		// TODO: Respond with 204 NoContent
 		var err error
+		var blogpost repo.Post
 		switch body.Data.Purge {
 		case true:
-			blogpost, err = blogposts.Delete(ctx, body.Data.ID)
+			err = blogposts.Purge(ctx, body.Data.ID)
 		default:
 			change := true
-			blogpost, err = blogposts.Update(
+			_, err = blogposts.Update(
 				ctx,
 				repo.PostPatch{ID: body.Data.ID, Deleted: &change},
 			)
@@ -251,7 +255,7 @@ func DeleteBlogpostHandler(
 			r,
 			http.StatusOK,
 			BlogpostResponse{
-				Data: *blogpost,
+				Data: blogpost,
 			},
 			nil,
 		)

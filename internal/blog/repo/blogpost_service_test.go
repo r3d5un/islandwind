@@ -72,16 +72,9 @@ func TestPostRepository(t *testing.T) {
 		post = *updated
 	})
 
-	t.Run("SoftDelete", func(t *testing.T) {
-		deleted, err := blog.Posts.SoftDelete(ctx, post.ID)
+	t.Run("Delete", func(t *testing.T) {
+		err := blog.Posts.Delete(ctx, post.ID)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, deleted)
-		assert.Equal(t, post.ID, deleted.ID)
-		assert.True(t, deleted.Deleted)
-		assert.NotNil(t, deleted.DeletedAt)
-		assert.Equal(t, post.ID, deleted.ID)
-
-		post = *deleted
 	})
 
 	t.Run("Restore", func(t *testing.T) {
@@ -96,16 +89,8 @@ func TestPostRepository(t *testing.T) {
 		post = *restored
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		deleted, err := blog.Posts.Delete(ctx, post.ID)
+	t.Run("Purge", func(t *testing.T) {
+		err := blog.Posts.Purge(ctx, post.ID)
 		assert.NoError(t, err)
-		assert.NotNil(t, deleted)
-		assert.Equal(t, post.ID, deleted.ID)
-		assert.NotNil(t, deleted.DeletedAt)
-		assert.Equal(t, post.ID, deleted.ID)
-
-		t.Log(deleted)
-
-		post = *deleted
 	})
 }

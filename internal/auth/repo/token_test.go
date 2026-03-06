@@ -74,7 +74,7 @@ func TestTokenRepository(t *testing.T) {
 		assert.NotNil(t, token)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
+	t.Run("Purge", func(t *testing.T) {
 		timestamp := time.Now().UTC()
 		affected, err := authRepo.Tokens.Delete(ctx, data.Filter{ExpirationFrom: &timestamp})
 		assert.NoError(t, err)
