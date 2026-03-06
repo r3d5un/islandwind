@@ -76,7 +76,11 @@ func (s *blogpostStore) Update(ctx context.Context, patch PostPatch) (*Post, err
 		return nil, err
 	}
 	blogpost := s.newPostFromRow(*row)
-	s.cache.Delete(blogpost.ID)
+
+	if err := s.cache.Delete(blogpost.ID); err != nil {
+		logging.LoggerFromContext(ctx).
+			Error("unable to invalidate cache", slog.String("error", err.Error()))
+	}
 
 	return blogpost, nil
 }
@@ -88,6 +92,10 @@ func (s *blogpostStore) Delete(ctx context.Context, ID uuid.UUID) error {
 	)
 	if err != nil {
 		return err
+	}
+	if err := s.cache.Delete(ID); err != nil {
+		logging.LoggerFromContext(ctx).
+			Error("unable to invalidate cache", slog.String("error", err.Error()))
 	}
 
 	return nil
@@ -109,7 +117,10 @@ func (s *blogpostStore) Purge(ctx context.Context, tx pgx.Tx, ID uuid.UUID) erro
 	if err != nil {
 		return err
 	}
-	s.cache.Delete(ID)
+	if err := s.cache.Delete(ID); err != nil {
+		logging.LoggerFromContext(ctx).
+			Error("unable to invalidate cache", slog.String("error", err.Error()))
+	}
 
 	return nil
 }

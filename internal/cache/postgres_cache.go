@@ -15,20 +15,18 @@ import (
 )
 
 type PostgresCache struct {
-	db         *pgxpool.Pool
-	logger     *slog.Logger
-	setChan    chan postgresSetCacheMessage
-	deleteChan chan uuid.UUID
-	done       chan struct{}
+	db      *pgxpool.Pool
+	logger  *slog.Logger
+	setChan chan postgresSetCacheMessage
+	done    chan struct{}
 }
 
 func NewPostgresCache(db *pgxpool.Pool, logger *slog.Logger) *PostgresCache {
 	return &PostgresCache{
-		db:         db,
-		logger:     logger,
-		setChan:    make(chan postgresSetCacheMessage, 64),
-		deleteChan: make(chan uuid.UUID, 64),
-		done:       make(chan struct{}),
+		db:      db,
+		logger:  logger,
+		setChan: make(chan postgresSetCacheMessage, 64),
+		done:    make(chan struct{}),
 	}
 }
 
@@ -47,17 +45,6 @@ func (c *PostgresCache) Start() error {
 						"unable to cache data",
 						slog.String("error", err.Error()),
 						slog.Any("msg", msg),
-					)
-				}
-			case ID, ok := <-c.deleteChan:
-				if !ok {
-					return
-				}
-				if err := c.delete(ID); err != nil {
-					c.logger.Error(
-						"unable to invalidate cache entry",
-						slog.String("error", err.Error()),
-						slog.Any("id", ID),
 					)
 				}
 			}
@@ -159,11 +146,7 @@ WHERE id = $1;
 	return nil
 }
 
-func (c *PostgresCache) Delete(ID uuid.UUID) {
-	c.deleteChan <- ID
-}
-
-func (c *PostgresCache) delete(ID uuid.UUID) error {
+func (c *PostgresCache) Delete(ID uuid.UUID) error {
 	const stmt string = `
 DELETE
 FROM cache.general

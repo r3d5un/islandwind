@@ -9,7 +9,7 @@ import (
 type Cache interface {
 	Set(uuid.UUID, any)
 	Get(uuid.UUID, any) error
-	Delete(uuid.UUID)
+	Delete(uuid.UUID) error
 }
 
 var (
