@@ -51,7 +51,7 @@ func TestPostgresCache(t *testing.T) {
 		assert.Equal(t, data.Field, read.Field)
 
 		t.Cleanup(func() {
-			postgresCache.Delete(resourceID)
+			assert.NoError(t, postgresCache.Delete(resourceID))
 		})
 	})
 }
