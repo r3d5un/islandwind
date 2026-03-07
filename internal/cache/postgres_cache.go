@@ -147,6 +147,14 @@ WHERE id = $1;
 }
 
 func (c *PostgresCache) Delete(ID uuid.UUID) error {
+	return c.delete(c.db, ID)
+}
+
+func (c *PostgresCache) DeleteTx(tx pgx.Tx, ID uuid.UUID) error {
+	return c.delete(tx, ID)
+}
+
+func (c *PostgresCache) delete(q database.Queryable, ID uuid.UUID) error {
 	const stmt string = `
 DELETE
 FROM cache.general
@@ -163,7 +171,7 @@ WHERE id = $1;
 	defer cancel()
 
 	logger.Info("performing query")
-	if _, err := c.db.Exec(ctx, stmt, ID); err != nil {
+	if _, err := q.Exec(ctx, stmt, ID); err != nil {
 		logger.Error("unable to insert the cache data", slog.String("error", err.Error()))
 		return err
 	}
