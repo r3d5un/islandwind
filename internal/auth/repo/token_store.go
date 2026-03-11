@@ -33,6 +33,16 @@ func (s *tokenStore) Create(ctx context.Context, issuer string) (*jwt.Token, err
 	return &token, nil
 }
 
+func (s *tokenStore) Read(ctx context.Context, ID uuid.UUID) (*RefreshToken, error) {
+	row, err := s.models.RefreshTokens.SelectOne(ctx, ID)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken := newRefreshTokenFromRow(row)
+
+	return refreshToken, nil
+}
+
 func (r *tokenStore) newToken(
 	jti uuid.UUID,
 	exp time.Time,
@@ -43,4 +53,15 @@ func (r *tokenStore) newToken(
 		jwt.SigningMethodHS512,
 		jwt.MapClaims{"jti": jti.String(), "exp": exp.Unix(), "iat": iat.Unix(), "iss": issuer},
 	)
+}
+
+func (r *tokenStore) newRefreshTokenFromRow(row *data.RefreshToken) data.RefreshToken {
+	return data.RefreshToken{
+		ID:            row.ID,
+		Issuer:        row.Issuer,
+		Expiration:    row.Expiration,
+		IssuedAt:      row.IssuedAt,
+		Invalidated:   row.Invalidated,
+		InvalidatedBy: row.InvalidatedBy,
+	}
 }
