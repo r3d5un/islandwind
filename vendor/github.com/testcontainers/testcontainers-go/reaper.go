@@ -70,12 +70,7 @@ type ReaperProvider interface {
 //
 // The caller must call Connect at least once on the returned Reaper and use the returned
 // result otherwise the reaper will be kept open until the process exits.
-func NewReaper(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-	_ string,
-) (*Reaper, error) {
+func NewReaper(ctx context.Context, sessionID string, provider ReaperProvider, _ string) (*Reaper, error) {
 	reaper, err := spawner.reaper(ctx, sessionID, provider)
 	if err != nil {
 		return nil, fmt.Errorf("reaper: %w", err)
@@ -125,9 +120,7 @@ func (r *reaperSpawner) backoff() *backoff.ExponentialBackOff {
 		Multiplier:          backoff.DefaultMultiplier,
 		// Adjust MaxInterval to compensate for randomization factor which can be added to
 		// returned interval so we have a maximum of 250ms.
-		MaxInterval: time.Duration(
-			float64(time.Millisecond*250) * backoff.DefaultRandomizationFactor,
-		),
+		MaxInterval:    time.Duration(float64(time.Millisecond*250) * backoff.DefaultRandomizationFactor),
 		MaxElapsedTime: time.Second * 20,
 		Stop:           backoff.Stop,
 		Clock:          backoff.SystemClock,
@@ -162,10 +155,7 @@ func (r *reaperSpawner) cleanupLocked() error {
 // it's found in the running state, and including the labels for sessionID, reaper, and ryuk.
 // It will perform a retry with exponential backoff to allow for the container to be started and
 // avoid potential false negatives.
-func (r *reaperSpawner) lookupContainer(
-	ctx context.Context,
-	sessionID string,
-) (*DockerContainer, error) {
+func (r *reaperSpawner) lookupContainer(ctx context.Context, sessionID string) (*DockerContainer, error) {
 	dockerClient, err := NewDockerClientWithOpts(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("new client: %w", err)
@@ -202,11 +192,7 @@ func (r *reaperSpawner) lookupContainer(
 			}
 
 			if len(resp) > 1 {
-				return nil, fmt.Errorf(
-					"found %d reaper containers for session ID %q",
-					len(resp),
-					sessionID,
-				)
+				return nil, fmt.Errorf("found %d reaper containers for session ID %q", len(resp), sessionID)
 			}
 
 			r, err := provider.ContainerFromType(ctx, resp[0])
@@ -274,11 +260,7 @@ func (r *reaperSpawner) retryError(err error) error {
 // Returns an error if config.RyukDisabled is true.
 //
 // Safe for concurrent calls.
-func (r *reaperSpawner) reaper(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-) (*Reaper, error) {
+func (r *reaperSpawner) reaper(ctx context.Context, sessionID string, provider ReaperProvider) (*Reaper, error) {
 	if config.Read().RyukDisabled {
 		return nil, errReaperDisabled
 	}
@@ -295,11 +277,7 @@ func (r *reaperSpawner) reaper(
 // retryLocked returns a function that can be used to create or reuse a reaper container.
 // If connect is true, the reaper will be connected to the reaper container.
 // It must be called with the lock held.
-func (r *reaperSpawner) retryLocked(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-) func() (*Reaper, error) {
+func (r *reaperSpawner) retryLocked(ctx context.Context, sessionID string, provider ReaperProvider) func() (*Reaper, error) {
 	return func() (reaper *Reaper, err error) {
 		reaper, err = r.reuseOrCreate(ctx, sessionID, provider)
 		// Ensure that the reaper is terminated if an error occurred.
@@ -334,11 +312,7 @@ func (r *reaperSpawner) retryLocked(
 }
 
 // reuseOrCreate returns an existing Reaper instance if it exists, otherwise a new Reaper instance.
-func (r *reaperSpawner) reuseOrCreate(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-) (*Reaper, error) {
+func (r *reaperSpawner) reuseOrCreate(ctx context.Context, sessionID string, provider ReaperProvider) (*Reaper, error) {
 	if r.instance != nil {
 		// We already have an associated reaper.
 		return r.instance, nil
@@ -371,12 +345,7 @@ func (r *reaperSpawner) reuseOrCreate(
 }
 
 // fromContainer constructs a Reaper from an already running reaper DockerContainer.
-func (r *reaperSpawner) fromContainer(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-	dockerContainer *DockerContainer,
-) (*Reaper, error) {
+func (r *reaperSpawner) fromContainer(ctx context.Context, sessionID string, provider ReaperProvider, dockerContainer *DockerContainer) (*Reaper, error) {
 	log.Printf("⏳ Waiting for Reaper %q to be ready", dockerContainer.ID[:8])
 
 	// Reusing an existing container so we determine the port from the container's exposed ports.
@@ -404,11 +373,7 @@ func (r *reaperSpawner) fromContainer(
 
 // newReaper creates a connected Reaper with a sessionID to identify containers
 // and a provider to use.
-func (r *reaperSpawner) newReaper(
-	ctx context.Context,
-	sessionID string,
-	provider ReaperProvider,
-) (reaper *Reaper, err error) {
+func (r *reaperSpawner) newReaper(ctx context.Context, sessionID string, provider ReaperProvider) (reaper *Reaper, err error) {
 	dockerHostMount := core.MustExtractDockerSocket(ctx)
 
 	port := r.port()

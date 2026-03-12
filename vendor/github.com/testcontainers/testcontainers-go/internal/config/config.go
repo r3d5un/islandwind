@@ -157,10 +157,7 @@ func read() Config {
 	}
 
 	if err := properties.Decode(&config); err != nil {
-		fmt.Printf(
-			"invalid testcontainers properties file, returning an empty Testcontainers configuration: %v\n",
-			err,
-		)
+		fmt.Printf("invalid testcontainers properties file, returning an empty Testcontainers configuration: %v\n", err)
 		return applyEnvironmentConfiguration(config)
 	}
 

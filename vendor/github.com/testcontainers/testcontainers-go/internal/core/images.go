@@ -27,10 +27,7 @@ const (
 var rxURL = regexp.MustCompile(URL)
 
 // ExtractImagesFromDockerfile extracts images from the Dockerfile sourced from dockerfile.
-func ExtractImagesFromDockerfile(
-	dockerfile string,
-	buildArgs map[string]*string,
-) ([]string, error) {
+func ExtractImagesFromDockerfile(dockerfile string, buildArgs map[string]*string) ([]string, error) {
 	file, err := os.Open(dockerfile)
 	if err != nil {
 		return nil, err
@@ -96,8 +93,7 @@ func ExtractImagesFromReader(r io.Reader, buildArgs map[string]*string) ([]strin
 // - registry:port/image
 // Once extracted the registry, it is validated to check if it is a valid URL or an IP address.
 func ExtractRegistry(image string, fallback string) string {
-	exp := regexp.MustCompile(`^(?:(?P<registry>(https?://)?[^/]+)(?::(?P<port>\d+))?/)?(?:(?P<repository>[^/]+)/)?(?P<image>[^:]+)(?::(?P<tag>.+))?$`).
-		FindStringSubmatch(image)
+	exp := regexp.MustCompile(`^(?:(?P<registry>(https?://)?[^/]+)(?::(?P<port>\d+))?/)?(?:(?P<repository>[^/]+)/)?(?P<image>[^:]+)(?::(?P<tag>.+))?$`).FindStringSubmatch(image)
 	if len(exp) == 0 {
 		return ""
 	}
@@ -114,8 +110,7 @@ func ExtractRegistry(image string, fallback string) string {
 // IsURL checks if the string is a URL.
 // Extracted from https://github.com/asaskevich/govalidator/blob/f21760c49a8d/validator.go#L104
 func IsURL(str string) bool {
-	if str == "" || utf8.RuneCountInString(str) >= maxURLRuneCount || len(str) <= minURLRuneCount ||
-		strings.HasPrefix(str, ".") {
+	if str == "" || utf8.RuneCountInString(str) >= maxURLRuneCount || len(str) <= minURLRuneCount || strings.HasPrefix(str, ".") {
 		return false
 	}
 	strTemp := str

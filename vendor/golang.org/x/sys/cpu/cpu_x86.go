@@ -191,8 +191,7 @@ func archInit() {
 	X86.HasRDSEED = isSet(ebx7, cpuid_RDSEED)
 	X86.HasADX = isSet(ebx7, cpuid_ADX)
 
-	X86.HasAVX512 = isSet(ebx7, cpuid_AVX512F) &&
-		osSupportsAVX512 // Because avx-512 foundation is the core required extension
+	X86.HasAVX512 = isSet(ebx7, cpuid_AVX512F) && osSupportsAVX512 // Because avx-512 foundation is the core required extension
 	if X86.HasAVX512 {
 		X86.HasAVX512F = true
 		X86.HasAVX512CD = isSet(ebx7, cpuid_AVX512CD)

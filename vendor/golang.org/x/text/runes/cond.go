@@ -174,11 +174,7 @@ func (t *cond) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err error
 				break
 			}
 		}
-		nDst2, nSrc2, err2 := current.Transform(
-			dst[nDst:],
-			src[nSrc:p],
-			atEnd || (atEOF && p == len(src)),
-		)
+		nDst2, nSrc2, err2 := current.Transform(dst[nDst:], src[nSrc:p], atEnd || (atEOF && p == len(src)))
 		nDst += nDst2
 		nSrc += nSrc2
 		if err2 != nil {

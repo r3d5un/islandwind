@@ -62,9 +62,7 @@ func CreateParser(initialState string, evtHandler AnsiEventHandler, opts ...Opti
 	ap.csiParam = csiParamState{baseState{name: "CsiParam", parser: ap}}
 	ap.dcsEntry = dcsEntryState{baseState{name: "DcsEntry", parser: ap}}
 	ap.escape = escapeState{baseState{name: "Escape", parser: ap}}
-	ap.escapeIntermediate = escapeIntermediateState{
-		baseState{name: "EscapeIntermediate", parser: ap},
-	}
+	ap.escapeIntermediate = escapeIntermediateState{baseState{name: "EscapeIntermediate", parser: ap}}
 	ap.error = errorState{baseState{name: "Error", parser: ap}}
 	ap.ground = groundState{baseState{name: "Ground", parser: ap}}
 	ap.oscString = oscStringState{baseState{name: "OscString", parser: ap}}
@@ -138,12 +136,7 @@ func (ap *AnsiParser) changeState(newState state) error {
 
 	// Perform transition action
 	if err := ap.currState.Transition(newState); err != nil {
-		ap.logf(
-			"Transition from '%s' to '%s' failed with: '%v'",
-			ap.currState.Name(),
-			newState.Name,
-			err,
-		)
+		ap.logf("Transition from '%s' to '%s' failed with: '%v'", ap.currState.Name(), newState.Name, err)
 		return err
 	}
 

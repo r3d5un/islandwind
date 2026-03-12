@@ -27,33 +27,11 @@ type seqVals struct {
 func (s seq) String() string {
 	if s.offset <= 3 {
 		if s.offset == 0 {
-			return fmt.Sprint(
-				"litLen:",
-				s.litLen,
-				", matchLen:",
-				s.matchLen+zstdMinMatch,
-				", offset: INVALID (0)",
-			)
+			return fmt.Sprint("litLen:", s.litLen, ", matchLen:", s.matchLen+zstdMinMatch, ", offset: INVALID (0)")
 		}
-		return fmt.Sprint(
-			"litLen:",
-			s.litLen,
-			", matchLen:",
-			s.matchLen+zstdMinMatch,
-			", offset:",
-			s.offset,
-			" (repeat)",
-		)
+		return fmt.Sprint("litLen:", s.litLen, ", matchLen:", s.matchLen+zstdMinMatch, ", offset:", s.offset, " (repeat)")
 	}
-	return fmt.Sprint(
-		"litLen:",
-		s.litLen,
-		", matchLen:",
-		s.matchLen+zstdMinMatch,
-		", offset:",
-		s.offset-3,
-		" (new)",
-	)
+	return fmt.Sprint("litLen:", s.litLen, ", matchLen:", s.matchLen+zstdMinMatch, ", offset:", s.offset-3, " (new)")
 }
 
 type seqCompMode uint8
@@ -151,14 +129,7 @@ func (s *sequenceDecs) execute(seqs []seqVals, hist []byte) error {
 	}
 
 	if debugDecoder {
-		printf(
-			"Execute %d seqs with hist %d, dict %d, literals: %d into %d bytes\n",
-			len(seqs),
-			len(hist),
-			len(s.dict),
-			len(s.literals),
-			s.seqSize,
-		)
+		printf("Execute %d seqs with hist %d, dict %d, literals: %d into %d bytes\n", len(seqs), len(hist), len(s.dict), len(s.literals), s.seqSize)
 	}
 
 	var t = len(s.out)
@@ -173,21 +144,13 @@ func (s *sequenceDecs) execute(seqs []seqVals, hist []byte) error {
 		// Copy from dictionary...
 		if seq.mo > t+len(hist) || seq.mo > s.windowSize {
 			if len(s.dict) == 0 {
-				return fmt.Errorf(
-					"match offset (%d) bigger than current history (%d)",
-					seq.mo,
-					t+len(hist),
-				)
+				return fmt.Errorf("match offset (%d) bigger than current history (%d)", seq.mo, t+len(hist))
 			}
 
 			// we may be in dictionary.
 			dictO := len(s.dict) - (seq.mo - (t + len(hist)))
 			if dictO < 0 || dictO >= len(s.dict) {
-				return fmt.Errorf(
-					"match offset (%d) bigger than current history+dict (%d)",
-					seq.mo,
-					t+len(hist)+len(s.dict),
-				)
+				return fmt.Errorf("match offset (%d) bigger than current history+dict (%d)", seq.mo, t+len(hist)+len(s.dict))
 			}
 			end := dictO + seq.ml
 			if end > len(s.dict) {
@@ -275,11 +238,7 @@ func (s *sequenceDecs) decodeSync(hist []byte) error {
 	}
 	for i := seqs - 1; i >= 0; i-- {
 		if br.overread() {
-			printf(
-				"reading sequence %d, exceeded available data. Overread by %d\n",
-				seqs-i,
-				-br.remain(),
-			)
+			printf("reading sequence %d, exceeded available data. Overread by %d\n", seqs-i, -br.remain())
 			return io.ErrUnexpectedEOF
 		}
 		var ll, mo, ml int
@@ -351,11 +310,7 @@ func (s *sequenceDecs) decodeSync(hist []byte) error {
 		}
 
 		if ll > len(s.literals) {
-			return fmt.Errorf(
-				"unexpected literal count, want %d bytes, but only %d is available",
-				ll,
-				len(s.literals),
-			)
+			return fmt.Errorf("unexpected literal count, want %d bytes, but only %d is available", ll, len(s.literals))
 		}
 		size := ll + ml + len(out)
 		if size-startSize > maxBlockSize {
@@ -389,21 +344,13 @@ func (s *sequenceDecs) decodeSync(hist []byte) error {
 
 		if mo > len(out)+len(hist) || mo > s.windowSize {
 			if len(s.dict) == 0 {
-				return fmt.Errorf(
-					"match offset (%d) bigger than current history (%d)",
-					mo,
-					len(out)+len(hist)-startSize,
-				)
+				return fmt.Errorf("match offset (%d) bigger than current history (%d)", mo, len(out)+len(hist)-startSize)
 			}
 
 			// we may be in dictionary.
 			dictO := len(s.dict) - (mo - (len(out) + len(hist)))
 			if dictO < 0 || dictO >= len(s.dict) {
-				return fmt.Errorf(
-					"match offset (%d) bigger than current history (%d)",
-					mo,
-					len(out)+len(hist)-startSize,
-				)
+				return fmt.Errorf("match offset (%d) bigger than current history (%d)", mo, len(out)+len(hist)-startSize)
 			}
 			end := dictO + ml
 			if end > len(s.dict) {

@@ -102,22 +102,8 @@ func (rsa *RawSockaddrNFCLLCP) SetServiceNameLen(length int) {
 
 // Linux on s390x uses the old mmap interface, which requires arguments to be passed in a struct.
 // mmap2 also requires arguments to be passed in a struct; it is currently not exposed in <asm/unistd.h>.
-func mmap(
-	addr uintptr,
-	length uintptr,
-	prot int,
-	flags int,
-	fd int,
-	offset int64,
-) (xaddr uintptr, err error) {
-	mmap_args := [6]uintptr{
-		addr,
-		length,
-		uintptr(prot),
-		uintptr(flags),
-		uintptr(fd),
-		uintptr(offset),
-	}
+func mmap(addr uintptr, length uintptr, prot int, flags int, fd int, offset int64) (xaddr uintptr, err error) {
+	mmap_args := [6]uintptr{addr, length, uintptr(prot), uintptr(flags), uintptr(fd), uintptr(offset)}
 	r0, _, e1 := Syscall(SYS_MMAP, uintptr(unsafe.Pointer(&mmap_args[0])), 0, 0)
 	xaddr = uintptr(r0)
 	if e1 != 0 {
@@ -154,12 +140,7 @@ const (
 )
 
 func accept4(s int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (int, error) {
-	args := [4]uintptr{
-		uintptr(s),
-		uintptr(unsafe.Pointer(rsa)),
-		uintptr(unsafe.Pointer(addrlen)),
-		uintptr(flags),
-	}
+	args := [4]uintptr{uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)), uintptr(flags)}
 	fd, _, err := Syscall(SYS_SOCKETCALL, netAccept4, uintptr(unsafe.Pointer(&args)), 0)
 	if err != 0 {
 		return 0, err
@@ -222,13 +203,7 @@ func socket(domain int, typ int, proto int) (int, error) {
 }
 
 func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen) error {
-	args := [5]uintptr{
-		uintptr(s),
-		uintptr(level),
-		uintptr(name),
-		uintptr(val),
-		uintptr(unsafe.Pointer(vallen)),
-	}
+	args := [5]uintptr{uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(unsafe.Pointer(vallen))}
 	_, _, err := Syscall(SYS_SOCKETCALL, netGetSockOpt, uintptr(unsafe.Pointer(&args)), 0)
 	if err != 0 {
 		return err
@@ -250,14 +225,7 @@ func recvfrom(s int, p []byte, flags int, from *RawSockaddrAny, fromlen *_Sockle
 	if len(p) > 0 {
 		base = uintptr(unsafe.Pointer(&p[0]))
 	}
-	args := [6]uintptr{
-		uintptr(s),
-		base,
-		uintptr(len(p)),
-		uintptr(flags),
-		uintptr(unsafe.Pointer(from)),
-		uintptr(unsafe.Pointer(fromlen)),
-	}
+	args := [6]uintptr{uintptr(s), base, uintptr(len(p)), uintptr(flags), uintptr(unsafe.Pointer(from)), uintptr(unsafe.Pointer(fromlen))}
 	n, _, err := Syscall(SYS_SOCKETCALL, netRecvFrom, uintptr(unsafe.Pointer(&args)), 0)
 	if err != 0 {
 		return 0, err
@@ -270,14 +238,7 @@ func sendto(s int, p []byte, flags int, to unsafe.Pointer, addrlen _Socklen) err
 	if len(p) > 0 {
 		base = uintptr(unsafe.Pointer(&p[0]))
 	}
-	args := [6]uintptr{
-		uintptr(s),
-		base,
-		uintptr(len(p)),
-		uintptr(flags),
-		uintptr(to),
-		uintptr(addrlen),
-	}
+	args := [6]uintptr{uintptr(s), base, uintptr(len(p)), uintptr(flags), uintptr(to), uintptr(addrlen)}
 	_, _, err := Syscall(SYS_SOCKETCALL, netSendTo, uintptr(unsafe.Pointer(&args)), 0)
 	if err != 0 {
 		return err

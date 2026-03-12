@@ -27,12 +27,7 @@ import (
 )
 
 // Set the reader error and return 0.
-func yaml_parser_set_reader_error(
-	parser *yaml_parser_t,
-	problem string,
-	offset int,
-	value int,
-) bool {
+func yaml_parser_set_reader_error(parser *yaml_parser_t, problem string, offset int, value int) bool {
 	parser.error = yaml_READER_ERROR
 	parser.problem = problem
 	parser.problem_offset = offset
@@ -101,10 +96,7 @@ func yaml_parser_update_raw_buffer(parser *yaml_parser_t) bool {
 	parser.raw_buffer_pos = 0
 
 	// Call the read handler to fill the buffer.
-	size_read, err := parser.read_handler(
-		parser,
-		parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)],
-	)
+	size_read, err := parser.read_handler(parser, parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)])
 	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)+size_read]
 	if err == io.EOF {
 		parser.eof = true

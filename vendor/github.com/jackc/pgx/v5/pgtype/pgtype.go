@@ -476,13 +476,7 @@ func (plan *scanPlanFail) Scan(src []byte, dst any) error {
 		dataTypeName = "unknown type"
 	}
 
-	return fmt.Errorf(
-		"cannot scan %s (OID %d) in %v format into %T",
-		dataTypeName,
-		plan.oid,
-		format,
-		dst,
-	)
+	return fmt.Errorf("cannot scan %s (OID %d) in %v format into %T", dataTypeName, plan.oid, format, dst)
 }
 
 // TryWrapScanPlanFunc is a function that tries to create a wrapper plan for target. If successful it returns a plan
@@ -511,9 +505,7 @@ func (plan *pointerPointerScanPlan) Scan(src []byte, dst any) error {
 
 // TryPointerPointerScanPlan handles a pointer to a pointer by setting the target to nil for SQL NULL and allocating and
 // scanning for non-NULL.
-func TryPointerPointerScanPlan(
-	target any,
-) (plan WrappedScanPlanNextSetter, nextTarget any, ok bool) {
+func TryPointerPointerScanPlan(target any) (plan WrappedScanPlanNextSetter, nextTarget any, ok bool) {
 	if dstValue := reflect.ValueOf(target); dstValue.Kind() == reflect.Ptr {
 		elemValue := dstValue.Elem()
 		if elemValue.Kind() == reflect.Ptr {
@@ -587,20 +579,12 @@ func TryFindUnderlyingTypeScanPlan(dst any) (plan WrappedScanPlanNextSetter, nex
 			// Get underlying type of any array.
 			// https://github.com/jackc/pgx/issues/2107
 			if elemValue.Kind() == reflect.Array {
-				nextDstType = reflect.PointerTo(
-					reflect.ArrayOf(elemValue.Len(), elemValue.Type().Elem()),
-				)
+				nextDstType = reflect.PointerTo(reflect.ArrayOf(elemValue.Len(), elemValue.Type().Elem()))
 			}
 		}
 
-		if nextDstType != nil && dstValue.Type() != nextDstType &&
-			dstValue.CanConvert(nextDstType) {
-			return &underlyingTypeScanPlan{
-					dstType:     dstValue.Type(),
-					nextDstType: nextDstType,
-				}, dstValue.Convert(nextDstType).
-					Interface(),
-				true
+		if nextDstType != nil && dstValue.Type() != nextDstType && dstValue.CanConvert(nextDstType) {
+			return &underlyingTypeScanPlan{dstType: dstValue.Type(), nextDstType: nextDstType}, dstValue.Convert(nextDstType).Interface(), true
 		}
 	}
 
@@ -1018,9 +1002,7 @@ func (plan *wrapPtrSliceReflectScanPlan) Scan(src []byte, target any) error {
 }
 
 // TryWrapPtrMultiDimSliceScanPlan tries to wrap a pointer to a multi-dimension slice.
-func TryWrapPtrMultiDimSliceScanPlan(
-	target any,
-) (plan WrappedScanPlanNextSetter, nextValue any, ok bool) {
+func TryWrapPtrMultiDimSliceScanPlan(target any) (plan WrappedScanPlanNextSetter, nextValue any, ok bool) {
 	targetValue := reflect.ValueOf(target)
 	if targetValue.Kind() != reflect.Ptr {
 		return nil, nil, false
@@ -1032,9 +1014,7 @@ func TryWrapPtrMultiDimSliceScanPlan(
 		elemElemKind := targetElemValue.Type().Elem().Kind()
 		if elemElemKind == reflect.Slice {
 			if !isRagged(targetElemValue) {
-				return &wrapPtrMultiDimSliceScanPlan{}, &anyMultiDimSliceArray{
-					slice: targetValue.Elem(),
-				}, true
+				return &wrapPtrMultiDimSliceScanPlan{}, &anyMultiDimSliceArray{slice: targetValue.Elem()}, true
 			}
 		}
 	}
@@ -1191,13 +1171,7 @@ func codecScan(codec Codec, m *Map, oid uint32, format int16, src []byte, dst an
 	return scanPlan.Scan(src, dst)
 }
 
-func codecDecodeToTextFormat(
-	codec Codec,
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func codecDecodeToTextFormat(codec Codec, m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}
@@ -1300,10 +1274,7 @@ func (encodePlanStringToAnyTextFormat) Encode(value any, buf []byte) (newBuf []b
 
 type encodePlanTextValuerToAnyTextFormat struct{}
 
-func (encodePlanTextValuerToAnyTextFormat) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanTextValuerToAnyTextFormat) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	t, err := value.(TextValuer).TextValue()
 	if err != nil {
 		return nil, err
@@ -1352,10 +1323,7 @@ func (plan *encodePlanDriverValuer) Encode(value any, buf []byte) (newBuf []byte
 
 	// Prevent infinite loop. We can't encode this. See https://github.com/jackc/pgx/issues/1331.
 	if reflect.TypeOf(value) == reflect.TypeOf(scannedValue) {
-		return nil, fmt.Errorf(
-			"tried to encode %v via encoding to text and scanning but failed due to receiving same type back",
-			value,
-		)
+		return nil, fmt.Errorf("tried to encode %v via encoding to text and scanning but failed due to receiving same type back", value)
 	}
 
 	var err2 error
@@ -1391,9 +1359,7 @@ func (plan *derefPointerEncodePlan) Encode(value any, buf []byte) (newBuf []byte
 
 // TryWrapDerefPointerEncodePlan tries to dereference a pointer. e.g. If value was of type *string then a wrapper plan
 // would be returned that dereferences the value.
-func TryWrapDerefPointerEncodePlan(
-	value any,
-) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
+func TryWrapDerefPointerEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
 	if _, ok := value.(driver.Valuer); ok {
 		return nil, nil, false
 	}
@@ -1437,9 +1403,7 @@ func (plan *underlyingTypeEncodePlan) Encode(value any, buf []byte) (newBuf []by
 
 // TryWrapFindUnderlyingTypeEncodePlan tries to convert to a Go builtin type. e.g. If value was of type MyString and
 // MyString was defined as a string then a wrapper plan would be returned that converts MyString to string.
-func TryWrapFindUnderlyingTypeEncodePlan(
-	value any,
-) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
+func TryWrapFindUnderlyingTypeEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
 	if value == nil {
 		return nil, nil, false
 	}
@@ -1456,11 +1420,7 @@ func TryWrapFindUnderlyingTypeEncodePlan(
 
 	nextValueType := kindToTypes[refValue.Kind()]
 	if nextValueType != nil && refValue.Type() != nextValueType {
-		return &underlyingTypeEncodePlan{
-				nextValueType: nextValueType,
-			}, refValue.Convert(nextValueType).
-				Interface(),
-			true
+		return &underlyingTypeEncodePlan{nextValueType: nextValueType}, refValue.Convert(nextValueType).Interface(), true
 	}
 
 	// []byte is a special case. It is a slice but we treat it as a scalar type. In the case of a named type like
@@ -1469,11 +1429,7 @@ func TryWrapFindUnderlyingTypeEncodePlan(
 	//
 	// https://github.com/jackc/pgx/issues/1763
 	if refValue.Type() != byteSliceType && refValue.Type().AssignableTo(byteSliceType) {
-		return &underlyingTypeEncodePlan{
-				nextValueType: byteSliceType,
-			}, refValue.Convert(byteSliceType).
-				Interface(),
-			true
+		return &underlyingTypeEncodePlan{nextValueType: byteSliceType}, refValue.Convert(byteSliceType).Interface(), true
 	}
 
 	// Get underlying type of any array.
@@ -1481,11 +1437,7 @@ func TryWrapFindUnderlyingTypeEncodePlan(
 	if refValue.Kind() == reflect.Array {
 		underlyingArrayType := reflect.ArrayOf(refValue.Len(), refValue.Type().Elem())
 		if refValue.Type() != underlyingArrayType {
-			return &underlyingTypeEncodePlan{
-					nextValueType: underlyingArrayType,
-				}, refValue.Convert(underlyingArrayType).
-					Interface(),
-				true
+			return &underlyingTypeEncodePlan{nextValueType: underlyingArrayType}, refValue.Convert(underlyingArrayType).Interface(), true
 		}
 	}
 
@@ -1500,9 +1452,7 @@ type WrappedEncodePlanNextSetter interface {
 // TryWrapBuiltinTypeEncodePlan tries to wrap a builtin type with a wrapper that provides additional methods. e.g. If
 // value was of type int32 then a wrapper plan would be returned that converts value to a type that implements
 // Int64Valuer.
-func TryWrapBuiltinTypeEncodePlan(
-	value any,
-) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
+func TryWrapBuiltinTypeEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
 	if _, ok := value.(driver.Valuer); ok {
 		return nil, nil, false
 	}
@@ -1757,10 +1707,7 @@ type wrapMapStringToPointerStringEncodePlan struct {
 
 func (plan *wrapMapStringToPointerStringEncodePlan) SetNext(next EncodePlan) { plan.next = next }
 
-func (plan *wrapMapStringToPointerStringEncodePlan) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *wrapMapStringToPointerStringEncodePlan) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	return plan.next.Encode(mapStringToPointerStringWrapper(value.(map[string]*string)), buf)
 }
 
@@ -1770,10 +1717,7 @@ type wrapMapStringToStringEncodePlan struct {
 
 func (plan *wrapMapStringToStringEncodePlan) SetNext(next EncodePlan) { plan.next = next }
 
-func (plan *wrapMapStringToStringEncodePlan) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *wrapMapStringToStringEncodePlan) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	return plan.next.Encode(mapStringToStringWrapper(value.(map[string]string)), buf)
 }
 
@@ -1914,9 +1858,7 @@ func (plan *wrapSliceEncodeReflectPlan) Encode(value any, buf []byte) (newBuf []
 	return plan.next.Encode(w, buf)
 }
 
-func TryWrapMultiDimSliceEncodePlan(
-	value any,
-) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
+func TryWrapMultiDimSliceEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
 	if _, ok := value.(driver.Valuer); ok {
 		return nil, nil, false
 	}
@@ -1999,31 +1941,16 @@ func newEncodeError(value any, m *Map, oid uint32, formatCode int16, err error) 
 		dataTypeName = "unknown type"
 	}
 
-	return fmt.Errorf(
-		"unable to encode %#v into %s format for %s (OID %d): %w",
-		value,
-		format,
-		dataTypeName,
-		oid,
-		err,
-	)
+	return fmt.Errorf("unable to encode %#v into %s format for %s (OID %d): %w", value, format, dataTypeName, oid, err)
 }
 
 // Encode appends the encoded bytes of value to buf. If value is the SQL value NULL then append nothing and return
 // (nil, nil). The caller of Encode is responsible for writing the correct NULL value or the length of the data
 // written.
-func (m *Map) Encode(
-	oid uint32,
-	formatCode int16,
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (m *Map) Encode(oid uint32, formatCode int16, value any, buf []byte) (newBuf []byte, err error) {
 	if isNil, callNilDriverValuer := isNilDriverValuer(value); isNil {
 		if callNilDriverValuer {
-			newBuf, err = (&encodePlanDriverValuer{m: m, oid: oid, formatCode: formatCode}).Encode(
-				value,
-				buf,
-			)
+			newBuf, err = (&encodePlanDriverValuer{m: m, oid: oid, formatCode: formatCode}).Encode(value, buf)
 			if err != nil {
 				return nil, newEncodeError(value, m, oid, formatCode, err)
 			}
@@ -2099,13 +2026,7 @@ func isNilDriverValuer(value any) (isNil, callNilDriverValuer bool) {
 	refVal := reflect.ValueOf(value)
 	kind := refVal.Kind()
 	switch kind {
-	case reflect.Chan,
-		reflect.Func,
-		reflect.Map,
-		reflect.Ptr,
-		reflect.UnsafePointer,
-		reflect.Interface,
-		reflect.Slice:
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
 		if !refVal.IsNil() {
 			return false, false
 		}

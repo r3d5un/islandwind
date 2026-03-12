@@ -204,12 +204,7 @@ func (s pipeAddress) String() string {
 }
 
 // tryDialPipe attempts to dial the pipe at `path` until `ctx` cancellation or timeout.
-func tryDialPipe(
-	ctx context.Context,
-	path *string,
-	access fs.AccessMask,
-	impLevel PipeImpLevel,
-) (windows.Handle, error) {
+func tryDialPipe(ctx context.Context, path *string, access fs.AccessMask, impLevel PipeImpLevel) (windows.Handle, error) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -281,12 +276,7 @@ func DialPipeAccess(ctx context.Context, path string, access uint32) (net.Conn, 
 // DialPipeAccessImpLevel attempts to connect to a named pipe by `path` with
 // `access` at `impLevel` until `ctx` cancellation or timeout. The other
 // DialPipe* implementations use PipeImpLevelAnonymous.
-func DialPipeAccessImpLevel(
-	ctx context.Context,
-	path string,
-	access uint32,
-	impLevel PipeImpLevel,
-) (net.Conn, error) {
+func DialPipeAccessImpLevel(ctx context.Context, path string, access uint32, impLevel PipeImpLevel) (net.Conn, error) {
 	var err error
 	var h windows.Handle
 	h, err = tryDialPipe(ctx, &path, fs.AccessMask(access), impLevel)
@@ -330,12 +320,7 @@ type win32PipeListener struct {
 	doneCh      chan int
 }
 
-func makeServerPipeHandle(
-	path string,
-	sd []byte,
-	c *PipeConfig,
-	first bool,
-) (windows.Handle, error) {
+func makeServerPipeHandle(path string, sd []byte, c *PipeConfig, first bool) (windows.Handle, error) {
 	path16, err := windows.UTF16FromString(path)
 	if err != nil {
 		return 0, &os.PathError{Op: "open", Path: path, Err: err}
@@ -363,11 +348,7 @@ func makeServerPipeHandle(
 			l := uint32(len(sd))
 			sdb, err := windows.LocalAlloc(0, l)
 			if err != nil {
-				return 0, fmt.Errorf(
-					"LocalAlloc for security descriptor with of length %d: %w",
-					l,
-					err,
-				)
+				return 0, fmt.Errorf("LocalAlloc for security descriptor with of length %d: %w", l, err)
 			}
 			defer windows.LocalFree(windows.Handle(sdb)) //nolint:errcheck
 			copy((*[0xffff]byte)(unsafe.Pointer(sdb))[:], sd)

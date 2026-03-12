@@ -54,11 +54,7 @@ func (p *Parser) Parse(tokenString string, keyFunc Keyfunc) (*Token, error) {
 // Note: If you provide a custom claim implementation that embeds one of the standard claims (such as RegisteredClaims),
 // make sure that a) you either embed a non-pointer version of the claims or b) if you are using a pointer, allocate the
 // proper memory for it before passing in the overall claims, otherwise you might run into a panic.
-func (p *Parser) ParseWithClaims(
-	tokenString string,
-	claims Claims,
-	keyFunc Keyfunc,
-) (*Token, error) {
+func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc) (*Token, error) {
 	token, parts, err := p.ParseUnverified(tokenString, claims)
 	if err != nil {
 		return token, err
@@ -76,10 +72,7 @@ func (p *Parser) ParseWithClaims(
 		}
 		if !signingMethodValid {
 			// signing method is not in the listed set
-			return token, newError(
-				fmt.Sprintf("signing method %v is invalid", alg),
-				ErrTokenSignatureInvalid,
-			)
+			return token, newError(fmt.Sprintf("signing method %v is invalid", alg), ErrTokenSignatureInvalid)
 		}
 	}
 
@@ -140,10 +133,7 @@ func (p *Parser) ParseWithClaims(
 //
 // It's only ever useful in cases where you know the signature is valid (since it has already
 // been or will be checked elsewhere in the stack) and you want to extract values from it.
-func (p *Parser) ParseUnverified(
-	tokenString string,
-	claims Claims,
-) (token *Token, parts []string, err error) {
+func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Token, parts []string, err error) {
 	var ok bool
 	parts, ok = splitToken(tokenString)
 	if !ok {
@@ -196,10 +186,7 @@ func (p *Parser) ParseUnverified(
 	// Lookup signature method
 	if method, ok := token.Header["alg"].(string); ok {
 		if token.Method = GetSigningMethod(method); token.Method == nil {
-			return token, parts, newError(
-				"signing method (alg) is unavailable",
-				ErrTokenUnverifiable,
-			)
+			return token, parts, newError("signing method (alg) is unavailable", ErrTokenUnverifiable)
 		}
 	} else {
 		return token, parts, newError("signing method (alg) is unspecified", ErrTokenUnverifiable)
@@ -278,11 +265,6 @@ func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token
 // embed a non-pointer version of the claims or b) if you are using a pointer,
 // allocate the proper memory for it before passing in the overall claims,
 // otherwise you might run into a panic.
-func ParseWithClaims(
-	tokenString string,
-	claims Claims,
-	keyFunc Keyfunc,
-	options ...ParserOption,
-) (*Token, error) {
+func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
 }

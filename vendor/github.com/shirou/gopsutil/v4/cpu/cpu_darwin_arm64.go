@@ -33,11 +33,7 @@ func getFrequency() (float64, error) {
 	}
 	defer iokit.IOObjectRelease(iterator)
 
-	pCorekey := corefoundation.CFStringCreateWithCString(
-		common.KCFAllocatorDefault,
-		"voltage-states5-sram",
-		common.KCFStringEncodingUTF8,
-	)
+	pCorekey := corefoundation.CFStringCreateWithCString(common.KCFAllocatorDefault, "voltage-states5-sram", common.KCFStringEncodingUTF8)
 	defer corefoundation.CFRelease(uintptr(pCorekey))
 
 	var pCoreHz uint32
@@ -51,12 +47,7 @@ func getFrequency() (float64, error) {
 		iokit.IORegistryEntryGetName(service, buf)
 
 		if buf.GoString() == "pmgr" {
-			pCoreRef := iokit.IORegistryEntryCreateCFProperty(
-				service,
-				uintptr(pCorekey),
-				common.KCFAllocatorDefault,
-				common.KNilOptions,
-			)
+			pCoreRef := iokit.IORegistryEntryCreateCFProperty(service, uintptr(pCorekey), common.KCFAllocatorDefault, common.KNilOptions)
 			length := corefoundation.CFDataGetLength(uintptr(pCoreRef))
 			data := corefoundation.CFDataGetBytePtr(uintptr(pCoreRef))
 

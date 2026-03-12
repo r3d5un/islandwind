@@ -63,10 +63,7 @@ type cipherMode struct {
 	create  func(key, iv []byte, macKey []byte, algs DirectionAlgorithms) (packetCipher, error)
 }
 
-func streamCipherMode(
-	skip int,
-	createFunc func(key, iv []byte) (cipher.Stream, error),
-) func(key, iv []byte, macKey []byte, algs DirectionAlgorithms) (packetCipher, error) {
+func streamCipherMode(skip int, createFunc func(key, iv []byte) (cipher.Stream, error)) func(key, iv []byte, macKey []byte, algs DirectionAlgorithms) (packetCipher, error) {
 	return func(key, iv, macKey []byte, algs DirectionAlgorithms) (packetCipher, error) {
 		stream, err := createFunc(key, iv)
 		if err != nil {
@@ -226,12 +223,7 @@ func (s *streamPacketCipher) readCipherPacket(seqNum uint32, r io.Reader) ([]byt
 }
 
 // writeCipherPacket encrypts and sends a packet of data to the writer argument
-func (s *streamPacketCipher) writeCipherPacket(
-	seqNum uint32,
-	w io.Writer,
-	rand io.Reader,
-	packet []byte,
-) error {
+func (s *streamPacketCipher) writeCipherPacket(seqNum uint32, w io.Writer, rand io.Reader, packet []byte) error {
 	if len(packet) > maxPacket {
 		return errors.New("ssh: packet too large")
 	}
@@ -317,10 +309,7 @@ type gcmCipher struct {
 	buf    []byte
 }
 
-func newGCMCipher(
-	key, iv, unusedMacKey []byte,
-	unusedAlgs DirectionAlgorithms,
-) (packetCipher, error) {
+func newGCMCipher(key, iv, unusedMacKey []byte, unusedAlgs DirectionAlgorithms) (packetCipher, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -339,12 +328,7 @@ func newGCMCipher(
 
 const gcmTagSize = 16
 
-func (c *gcmCipher) writeCipherPacket(
-	seqNum uint32,
-	w io.Writer,
-	rand io.Reader,
-	packet []byte,
-) error {
+func (c *gcmCipher) writeCipherPacket(seqNum uint32, w io.Writer, rand io.Reader, packet []byte) error {
 	// Pad out to multiple of 16 bytes. This is different from the
 	// stream cipher because that encrypts the length too.
 	padding := byte(packetSizeMultiple - (1+len(packet))%packetSizeMultiple)
@@ -447,11 +431,7 @@ type cbcCipher struct {
 	oracleCamouflage uint32
 }
 
-func newCBCCipher(
-	c cipher.Block,
-	key, iv, macKey []byte,
-	algs DirectionAlgorithms,
-) (packetCipher, error) {
+func newCBCCipher(c cipher.Block, key, iv, macKey []byte, algs DirectionAlgorithms) (packetCipher, error) {
 	cbc := &cbcCipher{
 		mac:        macModes[algs.MAC].new(macKey),
 		decrypter:  cipher.NewCBCDecrypter(c, iv),
@@ -601,12 +581,7 @@ func (c *cbcCipher) readCipherPacketLeaky(seqNum uint32, r io.Reader) ([]byte, e
 	return c.packetData[prefixLen:paddingStart], nil
 }
 
-func (c *cbcCipher) writeCipherPacket(
-	seqNum uint32,
-	w io.Writer,
-	rand io.Reader,
-	packet []byte,
-) error {
+func (c *cbcCipher) writeCipherPacket(seqNum uint32, w io.Writer, rand io.Reader, packet []byte) error {
 	effectiveBlockSize := maxUInt32(cbcMinPacketSizeMultiple, c.encrypter.BlockSize())
 
 	// Length of encrypted portion of the packet (header, payload, padding).
@@ -675,10 +650,7 @@ type chacha20Poly1305Cipher struct {
 	buf        []byte
 }
 
-func newChaCha20Cipher(
-	key, unusedIV, unusedMACKey []byte,
-	unusedAlgs DirectionAlgorithms,
-) (packetCipher, error) {
+func newChaCha20Cipher(key, unusedIV, unusedMACKey []byte, unusedAlgs DirectionAlgorithms) (packetCipher, error) {
 	if len(key) != 64 {
 		panic(len(key))
 	}
@@ -762,12 +734,7 @@ func (c *chacha20Poly1305Cipher) readCipherPacket(seqNum uint32, r io.Reader) ([
 	return plain, nil
 }
 
-func (c *chacha20Poly1305Cipher) writeCipherPacket(
-	seqNum uint32,
-	w io.Writer,
-	rand io.Reader,
-	payload []byte,
-) error {
+func (c *chacha20Poly1305Cipher) writeCipherPacket(seqNum uint32, w io.Writer, rand io.Reader, payload []byte) error {
 	nonce := make([]byte, 12)
 	binary.BigEndian.PutUint32(nonce[8:], seqNum)
 	s, err := chacha20.NewUnauthenticatedCipher(c.contentKey[:], nonce)

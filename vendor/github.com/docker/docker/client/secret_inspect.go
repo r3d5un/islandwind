@@ -10,10 +10,7 @@ import (
 )
 
 // SecretInspectWithRaw returns the secret information with raw data
-func (cli *Client) SecretInspectWithRaw(
-	ctx context.Context,
-	id string,
-) (swarm.Secret, []byte, error) {
+func (cli *Client) SecretInspectWithRaw(ctx context.Context, id string) (swarm.Secret, []byte, error) {
 	id, err := trimID("secret", id)
 	if err != nil {
 		return swarm.Secret{}, nil, err

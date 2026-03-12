@@ -76,10 +76,7 @@ func GetAssignToDstType(dst any) (any, bool) {
 			nested := dstVal.Type().Field(0).Type
 			if nested.Kind() == reflect.Array {
 				if baseElemType, ok := kindTypes[nested.Elem().Kind()]; ok {
-					return toInterface(
-						dstPtr,
-						reflect.PtrTo(reflect.ArrayOf(nested.Len(), baseElemType)),
-					)
+					return toInterface(dstPtr, reflect.PtrTo(reflect.ArrayOf(nested.Len(), baseElemType)))
 				}
 			}
 			if _, ok := kindTypes[nested.Kind()]; ok && dstPtr.CanInterface() {

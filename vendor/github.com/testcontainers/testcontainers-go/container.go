@@ -39,82 +39,35 @@ type DeprecatedContainer interface {
 
 // Container allows getting info about and controlling a single container instance
 type Container interface {
-	GetContainerID() string // get the container id from the provider
-	Endpoint(
-		context.Context,
-		string,
-	) (string, error) // get proto://ip:port string for the lowest exposed port
-	PortEndpoint(
-		ctx context.Context,
-		port nat.Port,
-		proto string,
-	) (string, error) // get proto://ip:port string for the given exposed port
-	Host(
-		context.Context,
-	) (string, error) // get host where the container port is exposed
-	Inspect(
-		context.Context,
-	) (*container.InspectResponse, error) // get container info
-	MappedPort(
-		context.Context,
-		nat.Port,
-	) (nat.Port, error) // get externally mapped port for a container port
-	Ports(
-		context.Context,
-	) (nat.PortMap, error) // Deprecated: Use c.Inspect(ctx).NetworkSettings.Ports instead
-	SessionID() string // get session id
-	IsRunning() bool   // IsRunning returns true if the container is running, false otherwise.
-	Start(
-		context.Context,
-	) error // start the container
-	Stop(
-		context.Context,
-		*time.Duration,
-	) error // stop the container
+	GetContainerID() string                                                        // get the container id from the provider
+	Endpoint(context.Context, string) (string, error)                              // get proto://ip:port string for the lowest exposed port
+	PortEndpoint(ctx context.Context, port nat.Port, proto string) (string, error) // get proto://ip:port string for the given exposed port
+	Host(context.Context) (string, error)                                          // get host where the container port is exposed
+	Inspect(context.Context) (*container.InspectResponse, error)                   // get container info
+	MappedPort(context.Context, nat.Port) (nat.Port, error)                        // get externally mapped port for a container port
+	Ports(context.Context) (nat.PortMap, error)                                    // Deprecated: Use c.Inspect(ctx).NetworkSettings.Ports instead
+	SessionID() string                                                             // get session id
+	IsRunning() bool                                                               // IsRunning returns true if the container is running, false otherwise.
+	Start(context.Context) error                                                   // start the container
+	Stop(context.Context, *time.Duration) error                                    // stop the container
 
 	// Terminate stops and removes the container and its image if it was built and not flagged as kept.
 	Terminate(ctx context.Context, opts ...TerminateOption) error
 
-	Logs(context.Context) (io.ReadCloser, error) // Get logs of the container
-	FollowOutput(
-		LogConsumer,
-	) // Deprecated: it will be removed in the next major release
-	StartLogProducer(
-		context.Context,
-		...LogProductionOption,
-	) error // Deprecated: Use the ContainerRequest instead
-	StopLogProducer() error // Deprecated: it will be removed in the next major release
-	Name(
-		context.Context,
-	) (string, error) // Deprecated: Use c.Inspect(ctx).Name instead
-	State(
-		context.Context,
-	) (*container.State, error) // returns container's running state
-	Networks(context.Context) ([]string, error) // get container networks
-	NetworkAliases(
-		context.Context,
-	) (map[string][]string, error) // get container network aliases for a network
+	Logs(context.Context) (io.ReadCloser, error)                    // Get logs of the container
+	FollowOutput(LogConsumer)                                       // Deprecated: it will be removed in the next major release
+	StartLogProducer(context.Context, ...LogProductionOption) error // Deprecated: Use the ContainerRequest instead
+	StopLogProducer() error                                         // Deprecated: it will be removed in the next major release
+	Name(context.Context) (string, error)                           // Deprecated: Use c.Inspect(ctx).Name instead
+	State(context.Context) (*container.State, error)                // returns container's running state
+	Networks(context.Context) ([]string, error)                     // get container networks
+	NetworkAliases(context.Context) (map[string][]string, error)    // get container network aliases for a network
 	Exec(ctx context.Context, cmd []string, options ...tcexec.ProcessOption) (int, io.Reader, error)
 	ContainerIP(context.Context) (string, error)    // get container ip
 	ContainerIPs(context.Context) ([]string, error) // get all container IPs
-	CopyToContainer(
-		ctx context.Context,
-		fileContent []byte,
-		containerFilePath string,
-		fileMode int64,
-	) error
-	CopyDirToContainer(
-		ctx context.Context,
-		hostDirPath string,
-		containerParentPath string,
-		fileMode int64,
-	) error
-	CopyFileToContainer(
-		ctx context.Context,
-		hostFilePath string,
-		containerFilePath string,
-		fileMode int64,
-	) error
+	CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error
+	CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error
+	CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error
 	CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error)
 	GetLogProductionErrorChannel() <-chan error
 }
@@ -381,10 +334,7 @@ func (c *ContainerRequest) GetAuthConfigs() map[string]registry.AuthConfig {
 func (c *ContainerRequest) dockerFileImages() ([]string, error) {
 	if c.ContextArchive == nil {
 		// Source is a directory, we can read the Dockerfile directly.
-		images, err := core.ExtractImagesFromDockerfile(
-			filepath.Join(c.Context, c.GetDockerfile()),
-			c.GetBuildArgs(),
-		)
+		images, err := core.ExtractImagesFromDockerfile(filepath.Join(c.Context, c.GetDockerfile()), c.GetBuildArgs())
 		if err != nil {
 			return nil, fmt.Errorf("extract images from Dockerfile: %w", err)
 		}
@@ -517,21 +467,11 @@ func (c *ContainerRequest) BuildOptions() (build.ImageBuildOptions, error) {
 	for _, is := range c.ImageSubstitutors {
 		modifiedTag, err := is.Substitute(tag)
 		if err != nil {
-			return build.ImageBuildOptions{}, fmt.Errorf(
-				"failed to substitute image %s with %s: %w",
-				tag,
-				is.Description(),
-				err,
-			)
+			return build.ImageBuildOptions{}, fmt.Errorf("failed to substitute image %s with %s: %w", tag, is.Description(), err)
 		}
 
 		if modifiedTag != tag {
-			log.Printf(
-				"✍🏼 Replacing image with %s. From: %s to %s\n",
-				is.Description(),
-				tag,
-				modifiedTag,
-			)
+			log.Printf("✍🏼 Replacing image with %s. From: %s to %s\n", is.Description(), tag, modifiedTag)
 			tag = modifiedTag
 		}
 	}

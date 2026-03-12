@@ -236,8 +236,7 @@ func wrapTimeParseLocationError(err error) error {
 		return nil
 	}
 	errMsg := err.Error()
-	if strings.Contains(errMsg, "unknown time zone") ||
-		strings.HasPrefix(errMsg, "time: unknown format") {
+	if strings.Contains(errMsg, "unknown time zone") || strings.HasPrefix(errMsg, "time: unknown format") {
 		return fmt.Errorf("invalid time zone format: %w", err)
 	}
 

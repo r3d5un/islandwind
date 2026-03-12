@@ -47,11 +47,7 @@ func GetActiveObject(programID string) (unknown *ole.IUnknown, err error) {
 }
 
 // CallMethod calls method on IDispatch with parameters.
-func CallMethod(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT, err error) {
+func CallMethod(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT, err error) {
 	return disp.InvokeWithOptionalArgs(name, ole.DISPATCH_METHOD, params)
 }
 
@@ -65,20 +61,12 @@ func MustCallMethod(disp *ole.IDispatch, name string, params ...interface{}) (re
 }
 
 // GetProperty retrieves property from IDispatch.
-func GetProperty(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT, err error) {
+func GetProperty(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT, err error) {
 	return disp.InvokeWithOptionalArgs(name, ole.DISPATCH_PROPERTYGET, params)
 }
 
 // MustGetProperty retrieves property from IDispatch or panics.
-func MustGetProperty(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT) {
+func MustGetProperty(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT) {
 	r, err := GetProperty(disp, name, params...)
 	if err != nil {
 		panic(err.Error())
@@ -87,20 +75,12 @@ func MustGetProperty(
 }
 
 // PutProperty mutates property.
-func PutProperty(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT, err error) {
+func PutProperty(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT, err error) {
 	return disp.InvokeWithOptionalArgs(name, ole.DISPATCH_PROPERTYPUT, params)
 }
 
 // MustPutProperty mutates property or panics.
-func MustPutProperty(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT) {
+func MustPutProperty(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT) {
 	r, err := PutProperty(disp, name, params...)
 	if err != nil {
 		panic(err.Error())
@@ -109,20 +89,12 @@ func MustPutProperty(
 }
 
 // PutPropertyRef mutates property reference.
-func PutPropertyRef(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT, err error) {
+func PutPropertyRef(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT, err error) {
 	return disp.InvokeWithOptionalArgs(name, ole.DISPATCH_PROPERTYPUTREF, params)
 }
 
 // MustPutPropertyRef mutates property reference or panics.
-func MustPutPropertyRef(
-	disp *ole.IDispatch,
-	name string,
-	params ...interface{},
-) (result *ole.VARIANT) {
+func MustPutPropertyRef(disp *ole.IDispatch, name string, params ...interface{}) (result *ole.VARIANT) {
 	r, err := PutPropertyRef(disp, name, params...)
 	if err != nil {
 		panic(err.Error())

@@ -6,10 +6,7 @@ import (
 )
 
 // ContainerRename changes the name of a given container.
-func (cli *Client) ContainerRename(
-	ctx context.Context,
-	containerID, newContainerName string,
-) error {
+func (cli *Client) ContainerRename(ctx context.Context, containerID, newContainerName string) error {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return err

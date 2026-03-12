@@ -139,10 +139,7 @@ func (hp *HostPortStrategy) String() string {
 // detectInternalPort returns the lowest internal port that is currently bound.
 // If no internal port is found, it returns the zero nat.Port value which
 // can be checked against an empty string.
-func (hp *HostPortStrategy) detectInternalPort(
-	ctx context.Context,
-	target StrategyTarget,
-) (nat.Port, error) {
+func (hp *HostPortStrategy) detectInternalPort(ctx context.Context, target StrategyTarget) (nat.Port, error) {
 	var internalPort nat.Port
 	inspect, err := target.Inspect(ctx)
 	if err != nil {
@@ -183,19 +180,10 @@ func (hp *HostPortStrategy) WaitUntilReady(ctx context.Context, target StrategyT
 		for internalPort == "" {
 			select {
 			case <-ctx.Done():
-				return fmt.Errorf(
-					"detect internal port: retries: %d, last err: %w, ctx err: %w",
-					i,
-					err,
-					ctx.Err(),
-				)
+				return fmt.Errorf("detect internal port: retries: %d, last err: %w, ctx err: %w", i, err, ctx.Err())
 			case <-time.After(waitInterval):
 				if err := checkTarget(ctx, target); err != nil {
-					return fmt.Errorf(
-						"detect internal port: check target: retries: %d, last err: %w",
-						i,
-						err,
-					)
+					return fmt.Errorf("detect internal port: check target: retries: %d, last err: %w", i, err)
 				}
 
 				internalPort, err = hp.detectInternalPort(ctx, target)
@@ -214,21 +202,10 @@ func (hp *HostPortStrategy) WaitUntilReady(ctx context.Context, target StrategyT
 
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf(
-				"mapped port: retries: %d, port: %q, last err: %w, ctx err: %w",
-				i,
-				port,
-				err,
-				ctx.Err(),
-			)
+			return fmt.Errorf("mapped port: retries: %d, port: %q, last err: %w, ctx err: %w", i, port, err, ctx.Err())
 		case <-time.After(waitInterval):
 			if err := checkTarget(ctx, target); err != nil {
-				return fmt.Errorf(
-					"mapped port: check target: retries: %d, port: %q, last err: %w",
-					i,
-					port,
-					err,
-				)
+				return fmt.Errorf("mapped port: check target: retries: %d, port: %q, last err: %w", i, port, err)
 			}
 			port, err = target.MappedPort(ctx, internalPort)
 			if err != nil {
@@ -268,13 +245,7 @@ func (hp *HostPortStrategy) WaitUntilReady(ctx context.Context, target StrategyT
 	return nil
 }
 
-func externalCheck(
-	ctx context.Context,
-	ipAddress string,
-	port nat.Port,
-	target StrategyTarget,
-	waitInterval time.Duration,
-) error {
+func externalCheck(ctx context.Context, ipAddress string, port nat.Port, target StrategyTarget, waitInterval time.Duration) error {
 	proto := port.Proto()
 
 	dialer := net.Dialer{}

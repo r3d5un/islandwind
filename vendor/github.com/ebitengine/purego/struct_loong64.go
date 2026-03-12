@@ -54,12 +54,7 @@ const (
 	_INT      = 0b11
 )
 
-func addStruct(
-	v reflect.Value,
-	numInts, numFloats, numStack *int,
-	addInt, addFloat, addStack func(uintptr),
-	keepAlive []any,
-) []any {
+func addStruct(v reflect.Value, numInts, numFloats, numStack *int, addInt, addFloat, addStack func(uintptr), keepAlive []any) []any {
 	if v.Type().Size() == 0 {
 		return keepAlive
 	}

@@ -99,12 +99,7 @@ func (c *Conn) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
 	return c.Conn().SendBatch(ctx, b)
 }
 
-func (c *Conn) CopyFrom(
-	ctx context.Context,
-	tableName pgx.Identifier,
-	columnNames []string,
-	rowSrc pgx.CopyFromSource,
-) (int64, error) {
+func (c *Conn) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
 	return c.Conn().CopyFrom(ctx, tableName, columnNames, rowSrc)
 }
 

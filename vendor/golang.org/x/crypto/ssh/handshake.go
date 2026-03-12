@@ -135,11 +135,7 @@ type pendingKex struct {
 	done      chan error
 }
 
-func newHandshakeTransport(
-	conn keyingTransport,
-	config *Config,
-	clientVersion, serverVersion []byte,
-) *handshakeTransport {
+func newHandshakeTransport(conn keyingTransport, config *Config, clientVersion, serverVersion []byte) *handshakeTransport {
 	t := &handshakeTransport{
 		conn:          conn,
 		serverVersion: serverVersion,
@@ -160,13 +156,7 @@ func newHandshakeTransport(
 	return t
 }
 
-func newClientTransport(
-	conn keyingTransport,
-	clientVersion, serverVersion []byte,
-	config *ClientConfig,
-	dialAddr string,
-	addr net.Addr,
-) *handshakeTransport {
+func newClientTransport(conn keyingTransport, clientVersion, serverVersion []byte, config *ClientConfig, dialAddr string, addr net.Addr) *handshakeTransport {
 	t := newHandshakeTransport(conn, &config.Config, clientVersion, serverVersion)
 	t.dialAddress = dialAddr
 	t.remoteAddr = addr
@@ -182,11 +172,7 @@ func newClientTransport(
 	return t
 }
 
-func newServerTransport(
-	conn keyingTransport,
-	clientVersion, serverVersion []byte,
-	config *ServerConfig,
-) *handshakeTransport {
+func newServerTransport(conn keyingTransport, clientVersion, serverVersion []byte, config *ServerConfig) *handshakeTransport {
 	t := newHandshakeTransport(conn, &config.Config, clientVersion, serverVersion)
 	t.hostKeys = config.hostKeys
 	t.publicKeyAuthAlgorithms = config.PublicKeyAuthAlgorithms
@@ -525,11 +511,7 @@ func (t *handshakeTransport) sendKexInit() error {
 	// and possibly to add the ext-info extension algorithm. Since the slice may be the
 	// user owned KeyExchanges, we create our own slice in order to avoid using user
 	// owned memory by mistake.
-	msg.KexAlgos = make(
-		[]string,
-		0,
-		len(t.config.KeyExchanges)+2,
-	) // room for kex-strict and ext-info
+	msg.KexAlgos = make([]string, 0, len(t.config.KeyExchanges)+2) // room for kex-strict and ext-info
 	msg.KexAlgos = append(msg.KexAlgos, t.config.KeyExchanges...)
 
 	isServer := len(t.hostKeys) > 0
@@ -698,8 +680,7 @@ func (t *handshakeTransport) enterKeyExchange(otherInitPacket []byte) error {
 		return err
 	}
 
-	if t.sessionID == nil &&
-		((isClient && slices.Contains(serverInit.KexAlgos, kexStrictServer)) || (!isClient && slices.Contains(clientInit.KexAlgos, kexStrictClient))) {
+	if t.sessionID == nil && ((isClient && slices.Contains(serverInit.KexAlgos, kexStrictServer)) || (!isClient && slices.Contains(clientInit.KexAlgos, kexStrictClient))) {
 		t.strictMode = true
 		if err := t.conn.setStrictMode(); err != nil {
 			return err
@@ -716,8 +697,7 @@ func (t *handshakeTransport) enterKeyExchange(otherInitPacket []byte) error {
 	// algorithms cannot be agreed upon". The other algorithms have
 	// already been checked above so the kex algorithm and host key
 	// algorithm are checked here.
-	if otherInit.FirstKexFollows &&
-		(clientInit.KexAlgos[0] != serverInit.KexAlgos[0] || clientInit.ServerHostKeyAlgos[0] != serverInit.ServerHostKeyAlgos[0]) {
+	if otherInit.FirstKexFollows && (clientInit.KexAlgos[0] != serverInit.KexAlgos[0] || clientInit.ServerHostKeyAlgos[0] != serverInit.ServerHostKeyAlgos[0]) {
 		// other side sent a kex message for the wrong algorithm,
 		// which we have to ignore.
 		if _, err := t.conn.readPacket(); err != nil {
@@ -801,15 +781,9 @@ type algorithmSignerWrapper struct {
 	Signer
 }
 
-func (a algorithmSignerWrapper) SignWithAlgorithm(
-	rand io.Reader,
-	data []byte,
-	algorithm string,
-) (*Signature, error) {
+func (a algorithmSignerWrapper) SignWithAlgorithm(rand io.Reader, data []byte, algorithm string) (*Signature, error) {
 	if algorithm != underlyingAlgo(a.PublicKey().Type()) {
-		return nil, errors.New(
-			"ssh: internal error: algorithmSignerWrapper invoked with non-default algorithm",
-		)
+		return nil, errors.New("ssh: internal error: algorithmSignerWrapper invoked with non-default algorithm")
 	}
 	return a.Sign(rand, data)
 }

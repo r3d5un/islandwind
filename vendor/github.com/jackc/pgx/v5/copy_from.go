@@ -199,11 +199,7 @@ func (ct *copyFrom) run(ctx context.Context) (int64, error) {
 		w.Close()
 	}()
 
-	commandTag, err := ct.conn.pgConn.CopyFrom(
-		ctx,
-		r,
-		fmt.Sprintf("copy %s ( %s ) from stdin binary;", quotedTableName, quotedColumnNames),
-	)
+	commandTag, err := ct.conn.pgConn.CopyFrom(ctx, r, fmt.Sprintf("copy %s ( %s ) from stdin binary;", quotedTableName, quotedColumnNames))
 
 	r.Close()
 	<-doneChan
@@ -218,10 +214,7 @@ func (ct *copyFrom) run(ctx context.Context) (int64, error) {
 	return commandTag.RowsAffected(), err
 }
 
-func (ct *copyFrom) buildCopyBuf(
-	buf []byte,
-	sd *pgconn.StatementDescription,
-) (bool, []byte, error) {
+func (ct *copyFrom) buildCopyBuf(buf []byte, sd *pgconn.StatementDescription) (bool, []byte, error) {
 	const sendBufSize = 65536 - 5 // The packet has a 5-byte header
 	lastBufLen := 0
 	largestRowLen := 0
@@ -234,11 +227,7 @@ func (ct *copyFrom) buildCopyBuf(
 			return false, nil, err
 		}
 		if len(values) != len(ct.columnNames) {
-			return false, nil, fmt.Errorf(
-				"expected %d values, got %d values",
-				len(ct.columnNames),
-				len(values),
-			)
+			return false, nil, fmt.Errorf("expected %d values, got %d values", len(ct.columnNames), len(values))
 		}
 
 		buf = pgio.AppendInt16(buf, int16(len(ct.columnNames)))
@@ -273,12 +262,7 @@ func (ct *copyFrom) buildCopyBuf(
 //
 // Even though enum types appear to be strings they still must be registered to use with CopyFrom. This can be done with
 // Conn.LoadType and pgtype.Map.RegisterType.
-func (c *Conn) CopyFrom(
-	ctx context.Context,
-	tableName Identifier,
-	columnNames []string,
-	rowSrc CopyFromSource,
-) (int64, error) {
+func (c *Conn) CopyFrom(ctx context.Context, tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int64, error) {
 	ct := &copyFrom{
 		conn:          c,
 		tableName:     tableName,

@@ -100,12 +100,7 @@ type paragraph struct {
 // rune (suggested is the rune of the open bracket for opening and matching
 // close brackets, after normalization). The embedding levels are optional, but
 // may be supplied to encode embedding levels of styled text.
-func newParagraph(
-	types []Class,
-	pairTypes []bracketType,
-	pairValues []rune,
-	levels level,
-) (*paragraph, error) {
+func newParagraph(types []Class, pairTypes []bracketType, pairValues []rune, levels level) (*paragraph, error) {
 	var err error
 	if err = validateTypes(types); err != nil {
 		return nil, err

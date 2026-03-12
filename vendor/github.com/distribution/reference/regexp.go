@@ -131,15 +131,9 @@ var (
 
 	// anchoredNameRegexp is used to parse a name value, capturing the
 	// domain and trailing components.
-	anchoredNameRegexp = regexp.MustCompile(
-		anchored(optional(capture(domainAndPort), `/`), capture(remoteName)),
-	)
+	anchoredNameRegexp = regexp.MustCompile(anchored(optional(capture(domainAndPort), `/`), capture(remoteName)))
 
-	referencePat = anchored(
-		capture(namePat),
-		optional(`:`, capture(tag)),
-		optional(`@`, capture(digestPat)),
-	)
+	referencePat = anchored(capture(namePat), optional(`:`, capture(tag)), optional(`@`, capture(digestPat)))
 
 	// anchoredIdentifierRegexp is used to check or match an
 	// identifier value, anchored at start and end of string.

@@ -254,11 +254,7 @@ type ExecUser struct {
 // given file paths and uses that data as the arguments to GetExecUser. If the
 // files cannot be opened for any reason, the error is ignored and a nil
 // io.Reader is passed instead.
-func GetExecUserPath(
-	userSpec string,
-	defaults *ExecUser,
-	passwdPath, groupPath string,
-) (*ExecUser, error) {
+func GetExecUserPath(userSpec string, defaults *ExecUser, passwdPath, groupPath string) (*ExecUser, error) {
 	var passwd, group io.Reader
 
 	if passwdFile, err := os.Open(passwdPath); err == nil {

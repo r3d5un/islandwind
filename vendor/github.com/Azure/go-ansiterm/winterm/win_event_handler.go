@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package winterm
@@ -705,12 +704,7 @@ func (h *windowsAnsiEventHandler) Flush() error {
 		charInfo := []CHAR_INFO{{UnicodeChar: uint16(h.marginByte), Attributes: info.Attributes}}
 		size := COORD{1, 1}
 		position := COORD{0, 0}
-		region := SMALL_RECT{
-			Left:   info.CursorPosition.X,
-			Top:    info.CursorPosition.Y,
-			Right:  info.CursorPosition.X,
-			Bottom: info.CursorPosition.Y,
-		}
+		region := SMALL_RECT{Left: info.CursorPosition.X, Top: info.CursorPosition.Y, Right: info.CursorPosition.X, Bottom: info.CursorPosition.Y}
 		if err := WriteConsoleOutput(h.fd, charInfo, size, position, &region); err != nil {
 			return err
 		}

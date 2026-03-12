@@ -113,13 +113,7 @@ func (b *blockDec) String() string {
 	if b == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf(
-		"Steam Size: %d, Type: %v, Last: %t, Window: %d",
-		len(b.data),
-		b.Type,
-		b.Last,
-		b.WindowSize,
-	)
+	return fmt.Sprintf("Steam Size: %d, Type: %v, Last: %t, Window: %d", len(b.data), b.Type, b.Last, b.WindowSize)
 }
 
 func newBlockDec(lowMem bool) *blockDec {
@@ -261,14 +255,7 @@ func (b *blockDec) decodeBuf(hist *history) error {
 		}
 		err := b.decodeCompressed(hist)
 		if debugDecoder {
-			println(
-				"Decompressed to total",
-				len(b.dst),
-				"bytes, hash:",
-				xxhash.Sum64(b.dst),
-				"error:",
-				err,
-			)
+			println("Decompressed to total", len(b.dst), "bytes, hash:", xxhash.Sum64(b.dst), "error:", err)
 		}
 		if hist.ignoreBuffer == 0 {
 			hist.b = b.dst
@@ -336,9 +323,7 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 				println("too small: litType:", litType, " sizeFormat", sizeFormat, len(in))
 				return in, ErrBlockTooSmall
 			}
-			n := uint64(
-				in[0]>>4,
-			) + (uint64(in[1]) << 4) + (uint64(in[2]) << 12) + (uint64(in[3]) << 20)
+			n := uint64(in[0]>>4) + (uint64(in[1]) << 4) + (uint64(in[2]) << 12) + (uint64(in[3]) << 20)
 			litRegenSize = int(n & 16383)
 			litCompSize = int(n >> 14)
 			in = in[4:]
@@ -348,27 +333,14 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 				println("too small: litType:", litType, " sizeFormat", sizeFormat, len(in))
 				return in, ErrBlockTooSmall
 			}
-			n := uint64(
-				in[0]>>4,
-			) + (uint64(in[1]) << 4) + (uint64(in[2]) << 12) + (uint64(in[3]) << 20) + (uint64(in[4]) << 28)
+			n := uint64(in[0]>>4) + (uint64(in[1]) << 4) + (uint64(in[2]) << 12) + (uint64(in[3]) << 20) + (uint64(in[4]) << 28)
 			litRegenSize = int(n & 262143)
 			litCompSize = int(n >> 18)
 			in = in[5:]
 		}
 	}
 	if debugDecoder {
-		println(
-			"literals type:",
-			litType,
-			"litRegenSize:",
-			litRegenSize,
-			"litCompSize:",
-			litCompSize,
-			"sizeFormat:",
-			sizeFormat,
-			"4X:",
-			fourStreams,
-		)
+		println("literals type:", litType, "litRegenSize:", litRegenSize, "litCompSize:", litCompSize, "sizeFormat:", sizeFormat, "4X:", fourStreams)
 	}
 	if litRegenSize > int(b.WindowSize) || litRegenSize > maxCompressedBlockSize {
 		return in, ErrWindowSizeExceeded
@@ -377,16 +349,7 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 	switch litType {
 	case literalsBlockRaw:
 		if len(in) < litRegenSize {
-			println(
-				"too small: litType:",
-				litType,
-				" sizeFormat",
-				sizeFormat,
-				"remain:",
-				len(in),
-				"want:",
-				litRegenSize,
-			)
+			println("too small: litType:", litType, " sizeFormat", sizeFormat, "remain:", len(in), "want:", litRegenSize)
 			return in, ErrBlockTooSmall
 		}
 		literals = in[:litRegenSize]
@@ -394,16 +357,7 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 		//printf("Found %d uncompressed literals\n", litRegenSize)
 	case literalsBlockRLE:
 		if len(in) < 1 {
-			println(
-				"too small: litType:",
-				litType,
-				" sizeFormat",
-				sizeFormat,
-				"remain:",
-				len(in),
-				"want:",
-				1,
-			)
+			println("too small: litType:", litType, " sizeFormat", sizeFormat, "remain:", len(in), "want:", 1)
 			return in, ErrBlockTooSmall
 		}
 		if cap(b.literalBuf) < litRegenSize {
@@ -424,16 +378,7 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 		}
 	case literalsBlockTreeless:
 		if len(in) < litCompSize {
-			println(
-				"too small: litType:",
-				litType,
-				" sizeFormat",
-				sizeFormat,
-				"remain:",
-				len(in),
-				"want:",
-				litCompSize,
-			)
+			println("too small: litType:", litType, " sizeFormat", sizeFormat, "remain:", len(in), "want:", litCompSize)
 			return in, ErrBlockTooSmall
 		}
 		// Store compressed literals, so we defer decoding until we get history.
@@ -468,25 +413,12 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 			return in, err
 		}
 		if len(literals) != litRegenSize {
-			return in, fmt.Errorf(
-				"literal output size mismatch want %d, got %d",
-				litRegenSize,
-				len(literals),
-			)
+			return in, fmt.Errorf("literal output size mismatch want %d, got %d", litRegenSize, len(literals))
 		}
 
 	case literalsBlockCompressed:
 		if len(in) < litCompSize {
-			println(
-				"too small: litType:",
-				litType,
-				" sizeFormat",
-				sizeFormat,
-				"remain:",
-				len(in),
-				"want:",
-				litCompSize,
-			)
+			println("too small: litType:", litType, " sizeFormat", sizeFormat, "remain:", len(in), "want:", litCompSize)
 			return in, ErrBlockTooSmall
 		}
 		literals = in[:litCompSize]
@@ -529,11 +461,7 @@ func (b *blockDec) decodeLiterals(in []byte, hist *history) (remain []byte, err 
 		}
 		// Make sure we don't leak our literals buffer
 		if len(literals) != litRegenSize {
-			return in, fmt.Errorf(
-				"literal output size mismatch want %d, got %d",
-				litRegenSize,
-				len(literals),
-			)
+			return in, fmt.Errorf("literal output size mismatch want %d, got %d", litRegenSize, len(literals))
 		}
 		// Re-cap to get extra size.
 		literals = b.literalBuf[:len(literals)]
@@ -695,15 +623,7 @@ func (b *blockDec) prepareSequences(in []byte, hist *history) (err error) {
 		in = br.unread()
 	}
 	if debugDecoder {
-		println(
-			"Literals:",
-			len(seqs.literals),
-			"hash:",
-			xxhash.Sum64(seqs.literals),
-			"and",
-			seqs.nSeqs,
-			"sequences.",
-		)
+		println("Literals:", len(seqs.literals), "hash:", xxhash.Sum64(seqs.literals), "and", seqs.nSeqs, "sequences.")
 	}
 
 	if nSeqs == 0 {

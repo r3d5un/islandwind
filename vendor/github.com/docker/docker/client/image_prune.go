@@ -10,10 +10,7 @@ import (
 )
 
 // ImagesPrune requests the daemon to delete unused data
-func (cli *Client) ImagesPrune(
-	ctx context.Context,
-	pruneFilters filters.Args,
-) (image.PruneReport, error) {
+func (cli *Client) ImagesPrune(ctx context.Context, pruneFilters filters.Args) (image.PruneReport, error) {
 	if err := cli.NewVersionError(ctx, "1.25", "image prune"); err != nil {
 		return image.PruneReport{}, err
 	}

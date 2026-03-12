@@ -68,12 +68,7 @@ func Syscall9(trap, a1, a2, a3, a4, a5, a6, a7, a8, a9 uintptr) (r1, r2 uintptr,
 //sys	Pause() (err error)
 
 func Fstatfs(fd int, buf *Statfs_t) (err error) {
-	_, _, e := Syscall(
-		SYS_FSTATFS64,
-		uintptr(fd),
-		unsafe.Sizeof(*buf),
-		uintptr(unsafe.Pointer(buf)),
-	)
+	_, _, e := Syscall(SYS_FSTATFS64, uintptr(fd), unsafe.Sizeof(*buf), uintptr(unsafe.Pointer(buf)))
 	if e != 0 {
 		err = errnoErr(e)
 	}
@@ -85,12 +80,7 @@ func Statfs(path string, buf *Statfs_t) (err error) {
 	if err != nil {
 		return err
 	}
-	_, _, e := Syscall(
-		SYS_STATFS64,
-		uintptr(unsafe.Pointer(p)),
-		unsafe.Sizeof(*buf),
-		uintptr(unsafe.Pointer(buf)),
-	)
+	_, _, e := Syscall(SYS_STATFS64, uintptr(unsafe.Pointer(p)), unsafe.Sizeof(*buf), uintptr(unsafe.Pointer(buf)))
 	if e != 0 {
 		err = errnoErr(e)
 	}
@@ -98,15 +88,7 @@ func Statfs(path string, buf *Statfs_t) (err error) {
 }
 
 func Seek(fd int, offset int64, whence int) (off int64, err error) {
-	_, _, e := Syscall6(
-		SYS__LLSEEK,
-		uintptr(fd),
-		uintptr(offset>>32),
-		uintptr(offset),
-		uintptr(unsafe.Pointer(&off)),
-		uintptr(whence),
-		0,
-	)
+	_, _, e := Syscall6(SYS__LLSEEK, uintptr(fd), uintptr(offset>>32), uintptr(offset), uintptr(unsafe.Pointer(&off)), uintptr(whence), 0)
 	if e != 0 {
 		err = errnoErr(e)
 	}
@@ -123,14 +105,7 @@ func setTimeval(sec, usec int64) Timeval {
 
 //sys	mmap2(addr uintptr, length uintptr, prot int, flags int, fd int, pageOffset uintptr) (xaddr uintptr, err error)
 
-func mmap(
-	addr uintptr,
-	length uintptr,
-	prot int,
-	flags int,
-	fd int,
-	offset int64,
-) (xaddr uintptr, err error) {
+func mmap(addr uintptr, length uintptr, prot int, flags int, fd int, offset int64) (xaddr uintptr, err error) {
 	page := uintptr(offset / 4096)
 	if offset != int64(page)*4096 {
 		return 0, EINVAL

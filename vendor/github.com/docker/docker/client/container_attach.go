@@ -33,11 +33,7 @@ import (
 //
 // You can use github.com/docker/docker/pkg/stdcopy.StdCopy to demultiplex this
 // stream.
-func (cli *Client) ContainerAttach(
-	ctx context.Context,
-	containerID string,
-	options container.AttachOptions,
-) (types.HijackedResponse, error) {
+func (cli *Client) ContainerAttach(ctx context.Context, containerID string, options container.AttachOptions) (types.HijackedResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return types.HijackedResponse{}, err

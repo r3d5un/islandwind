@@ -33,10 +33,7 @@ var (
 var _ client.SystemAPIClient = &DockerClient{}
 
 // Events returns a channel to listen to events that happen to the docker daemon.
-func (c *DockerClient) Events(
-	ctx context.Context,
-	options events.ListOptions,
-) (<-chan events.Message, <-chan error) {
+func (c *DockerClient) Events(ctx context.Context, options events.ListOptions) (<-chan events.Message, <-chan error) {
 	return c.Client.Events(ctx, options)
 }
 
@@ -93,18 +90,12 @@ func (c *DockerClient) Info(ctx context.Context) (system.Info, error) {
 }
 
 // RegistryLogin logs into a Docker registry.
-func (c *DockerClient) RegistryLogin(
-	ctx context.Context,
-	auth registry.AuthConfig,
-) (registry.AuthenticateOKBody, error) {
+func (c *DockerClient) RegistryLogin(ctx context.Context, auth registry.AuthConfig) (registry.AuthenticateOKBody, error) {
 	return c.Client.RegistryLogin(ctx, auth)
 }
 
 // DiskUsage returns the disk usage of all images.
-func (c *DockerClient) DiskUsage(
-	ctx context.Context,
-	options types.DiskUsageOptions,
-) (types.DiskUsage, error) {
+func (c *DockerClient) DiskUsage(ctx context.Context, options types.DiskUsageOptions) (types.DiskUsage, error) {
 	return c.Client.DiskUsage(ctx, options)
 }
 

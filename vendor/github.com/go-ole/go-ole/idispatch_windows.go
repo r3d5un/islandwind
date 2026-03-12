@@ -58,12 +58,7 @@ func getTypeInfo(disp *IDispatch) (tinfo *ITypeInfo, err error) {
 	return
 }
 
-func invoke(
-	disp *IDispatch,
-	dispid int32,
-	dispatch int16,
-	params ...interface{},
-) (result *VARIANT, err error) {
+func invoke(disp *IDispatch, dispid int32, dispatch int16, params ...interface{}) (result *VARIANT, err error) {
 	var dispparams DISPPARAMS
 
 	if dispatch&DISPATCH_PROPERTYPUT != 0 {
@@ -201,9 +196,7 @@ func invoke(
 			SysFreeString(((*int16)(unsafe.Pointer(uintptr(varg.Val)))))
 		}
 		if varg.VT == (VT_BSTR|VT_BYREF) && varg.Val != 0 {
-			*(params[n].(*string)) = LpOleStrToString(
-				*(**uint16)(unsafe.Pointer(uintptr(varg.Val))),
-			)
+			*(params[n].(*string)) = LpOleStrToString(*(**uint16)(unsafe.Pointer(uintptr(varg.Val))))
 		}
 	}
 	return

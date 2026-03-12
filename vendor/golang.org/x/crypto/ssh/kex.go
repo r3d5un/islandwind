@@ -78,13 +78,7 @@ type kexAlgorithm interface {
 	// Server runs server-side key agreement, signing the result
 	// with a hostkey. algo is the negotiated algorithm, and may
 	// be a certificate type.
-	Server(
-		p packetConn,
-		rand io.Reader,
-		magics *handshakeMagics,
-		s AlgorithmSigner,
-		algo string,
-	) (*kexResult, error)
+	Server(p packetConn, rand io.Reader, magics *handshakeMagics, s AlgorithmSigner, algo string) (*kexResult, error)
 
 	// Client runs the client-side key agreement. Caller is
 	// responsible for verifying the host key signature.
@@ -104,11 +98,7 @@ func (group *dhGroup) diffieHellman(theirPublic, myPrivate *big.Int) (*big.Int, 
 	return new(big.Int).Exp(theirPublic, myPrivate, group.p), nil
 }
 
-func (group *dhGroup) Client(
-	c packetConn,
-	randSource io.Reader,
-	magics *handshakeMagics,
-) (*kexResult, error) {
+func (group *dhGroup) Client(c packetConn, randSource io.Reader, magics *handshakeMagics) (*kexResult, error) {
 	var x *big.Int
 	for {
 		var err error
@@ -161,13 +151,7 @@ func (group *dhGroup) Client(
 	}, nil
 }
 
-func (group *dhGroup) Server(
-	c packetConn,
-	randSource io.Reader,
-	magics *handshakeMagics,
-	priv AlgorithmSigner,
-	algo string,
-) (result *kexResult, err error) {
+func (group *dhGroup) Server(c packetConn, randSource io.Reader, magics *handshakeMagics, priv AlgorithmSigner, algo string) (result *kexResult, err error) {
 	packet, err := c.readPacket()
 	if err != nil {
 		return
@@ -330,13 +314,7 @@ func validateECPublicKey(curve elliptic.Curve, x, y *big.Int) bool {
 	return true
 }
 
-func (kex *ecdh) Server(
-	c packetConn,
-	rand io.Reader,
-	magics *handshakeMagics,
-	priv AlgorithmSigner,
-	algo string,
-) (result *kexResult, err error) {
+func (kex *ecdh) Server(c packetConn, rand io.Reader, magics *handshakeMagics, priv AlgorithmSigner, algo string) (result *kexResult, err error) {
 	packet, err := c.readPacket()
 	if err != nil {
 		return nil, err
@@ -497,20 +475,13 @@ func (kp *curve25519KeyPair) generate(rand io.Reader) error {
 		return fmt.Errorf("curve25519: %w", err)
 	}
 	if len(p) != 32 {
-		return fmt.Errorf(
-			"curve25519: internal error: X25519 returned %d bytes, expected 32",
-			len(p),
-		)
+		return fmt.Errorf("curve25519: internal error: X25519 returned %d bytes, expected 32", len(p))
 	}
 	copy(kp.pub[:], p)
 	return nil
 }
 
-func (kex *curve25519sha256) Client(
-	c packetConn,
-	rand io.Reader,
-	magics *handshakeMagics,
-) (*kexResult, error) {
+func (kex *curve25519sha256) Client(c packetConn, rand io.Reader, magics *handshakeMagics) (*kexResult, error) {
 	var kp curve25519KeyPair
 	if err := kp.generate(rand); err != nil {
 		return nil, err
@@ -557,13 +528,7 @@ func (kex *curve25519sha256) Client(
 	}, nil
 }
 
-func (kex *curve25519sha256) Server(
-	c packetConn,
-	rand io.Reader,
-	magics *handshakeMagics,
-	priv AlgorithmSigner,
-	algo string,
-) (result *kexResult, err error) {
+func (kex *curve25519sha256) Server(c packetConn, rand io.Reader, magics *handshakeMagics, priv AlgorithmSigner, algo string) (result *kexResult, err error) {
 	packet, err := c.readPacket()
 	if err != nil {
 		return
@@ -637,11 +602,7 @@ const (
 	dhGroupExchangeMaximumBits   = 8192
 )
 
-func (gex *dhGEXSHA) Client(
-	c packetConn,
-	randSource io.Reader,
-	magics *handshakeMagics,
-) (*kexResult, error) {
+func (gex *dhGEXSHA) Client(c packetConn, randSource io.Reader, magics *handshakeMagics) (*kexResult, error) {
 	// Send GexRequest
 	kexDHGexRequest := kexDHGexRequestMsg{
 		MinBits:       dhGroupExchangeMinimumBits,
@@ -665,10 +626,7 @@ func (gex *dhGEXSHA) Client(
 
 	// reject if p's bit length < dhGroupExchangeMinimumBits or > dhGroupExchangeMaximumBits
 	if msg.P.BitLen() < dhGroupExchangeMinimumBits || msg.P.BitLen() > dhGroupExchangeMaximumBits {
-		return nil, fmt.Errorf(
-			"ssh: server-generated gex p is out of range (%d bits)",
-			msg.P.BitLen(),
-		)
+		return nil, fmt.Errorf("ssh: server-generated gex p is out of range (%d bits)", msg.P.BitLen())
 	}
 
 	// Check if g is safe by verifying that 1 < g < p-1
@@ -736,13 +694,7 @@ func (gex *dhGEXSHA) Client(
 }
 
 // Server half implementation of the Diffie Hellman Key Exchange with SHA1 and SHA256.
-func (gex *dhGEXSHA) Server(
-	c packetConn,
-	randSource io.Reader,
-	magics *handshakeMagics,
-	priv AlgorithmSigner,
-	algo string,
-) (result *kexResult, err error) {
+func (gex *dhGEXSHA) Server(c packetConn, randSource io.Reader, magics *handshakeMagics, priv AlgorithmSigner, algo string) (result *kexResult, err error) {
 	// Receive GexRequest
 	packet, err := c.readPacket()
 	if err != nil {
@@ -760,15 +712,10 @@ func (gex *dhGEXSHA) Server(
 	// Furthermore, we also check that the required MinBits are less than or
 	// equal to 4096 because we can use up to Oakley Group 16.
 	if kexDHGexRequest.MaxBits < kexDHGexRequest.MinBits || kexDHGexRequest.PreferredBits < kexDHGexRequest.MinBits ||
-		kexDHGexRequest.MaxBits < kexDHGexRequest.PreferredBits ||
-		kexDHGexRequest.MaxBits < dhGroupExchangeMinimumBits ||
+		kexDHGexRequest.MaxBits < kexDHGexRequest.PreferredBits || kexDHGexRequest.MaxBits < dhGroupExchangeMinimumBits ||
 		kexDHGexRequest.MinBits > 4096 {
-		return nil, fmt.Errorf(
-			"ssh: DH GEX request out of range, min: %d, max: %d, preferred: %d",
-			kexDHGexRequest.MinBits,
-			kexDHGexRequest.MaxBits,
-			kexDHGexRequest.PreferredBits,
-		)
+		return nil, fmt.Errorf("ssh: DH GEX request out of range, min: %d, max: %d, preferred: %d", kexDHGexRequest.MinBits,
+			kexDHGexRequest.MaxBits, kexDHGexRequest.PreferredBits)
 	}
 
 	var p *big.Int

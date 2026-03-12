@@ -126,11 +126,7 @@ func (t *tracer) traceMessage(sender byte, encodedLen int32, msg Message) {
 	}
 }
 
-func (t *tracer) traceAuthenticationCleartextPassword(
-	sender byte,
-	encodedLen int32,
-	msg *AuthenticationCleartextPassword,
-) {
+func (t *tracer) traceAuthenticationCleartextPassword(sender byte, encodedLen int32, msg *AuthenticationCleartextPassword) {
 	t.writeTrace(sender, encodedLen, "AuthenticationCleartextPassword", nil)
 }
 
@@ -138,19 +134,11 @@ func (t *tracer) traceAuthenticationGSS(sender byte, encodedLen int32, msg *Auth
 	t.writeTrace(sender, encodedLen, "AuthenticationGSS", nil)
 }
 
-func (t *tracer) traceAuthenticationGSSContinue(
-	sender byte,
-	encodedLen int32,
-	msg *AuthenticationGSSContinue,
-) {
+func (t *tracer) traceAuthenticationGSSContinue(sender byte, encodedLen int32, msg *AuthenticationGSSContinue) {
 	t.writeTrace(sender, encodedLen, "AuthenticationGSSContinue", nil)
 }
 
-func (t *tracer) traceAuthenticationMD5Password(
-	sender byte,
-	encodedLen int32,
-	msg *AuthenticationMD5Password,
-) {
+func (t *tracer) traceAuthenticationMD5Password(sender byte, encodedLen int32, msg *AuthenticationMD5Password) {
 	t.writeTrace(sender, encodedLen, "AuthenticationMD5Password", nil)
 }
 
@@ -162,19 +150,11 @@ func (t *tracer) traceAuthenticationSASL(sender byte, encodedLen int32, msg *Aut
 	t.writeTrace(sender, encodedLen, "AuthenticationSASL", nil)
 }
 
-func (t *tracer) traceAuthenticationSASLContinue(
-	sender byte,
-	encodedLen int32,
-	msg *AuthenticationSASLContinue,
-) {
+func (t *tracer) traceAuthenticationSASLContinue(sender byte, encodedLen int32, msg *AuthenticationSASLContinue) {
 	t.writeTrace(sender, encodedLen, "AuthenticationSASLContinue", nil)
 }
 
-func (t *tracer) traceAuthenticationSASLFinal(
-	sender byte,
-	encodedLen int32,
-	msg *AuthenticationSASLFinal,
-) {
+func (t *tracer) traceAuthenticationSASLFinal(sender byte, encodedLen int32, msg *AuthenticationSASLFinal) {
 	t.writeTrace(sender, encodedLen, "AuthenticationSASLFinal", nil)
 }
 
@@ -190,13 +170,7 @@ func (t *tracer) traceBackendKeyData(sender byte, encodedLen int32, msg *Backend
 
 func (t *tracer) traceBind(sender byte, encodedLen int32, msg *Bind) {
 	t.writeTrace(sender, encodedLen, "Bind", func() {
-		fmt.Fprintf(
-			t.buf,
-			"\t %s %s %d",
-			traceDoubleQuotedString([]byte(msg.DestinationPortal)),
-			traceDoubleQuotedString([]byte(msg.PreparedStatement)),
-			len(msg.ParameterFormatCodes),
-		)
+		fmt.Fprintf(t.buf, "\t %s %s %d", traceDoubleQuotedString([]byte(msg.DestinationPortal)), traceDoubleQuotedString([]byte(msg.PreparedStatement)), len(msg.ParameterFormatCodes))
 		for _, fc := range msg.ParameterFormatCodes {
 			fmt.Fprintf(t.buf, " %d", fc)
 		}
@@ -300,11 +274,7 @@ func (t *tracer) traceFunctionCall(sender byte, encodedLen int32, msg *FunctionC
 	t.writeTrace(sender, encodedLen, "FunctionCall", nil)
 }
 
-func (t *tracer) traceFunctionCallResponse(
-	sender byte,
-	encodedLen int32,
-	msg *FunctionCallResponse,
-) {
+func (t *tracer) traceFunctionCallResponse(sender byte, encodedLen int32, msg *FunctionCallResponse) {
 	t.writeTrace(sender, encodedLen, "FunctionCallResponse", nil)
 }
 
@@ -320,50 +290,25 @@ func (t *tracer) traceNoticeResponse(sender byte, encodedLen int32, msg *NoticeR
 	t.writeTrace(sender, encodedLen, "NoticeResponse", nil)
 }
 
-func (t *tracer) traceNotificationResponse(
-	sender byte,
-	encodedLen int32,
-	msg *NotificationResponse,
-) {
+func (t *tracer) traceNotificationResponse(sender byte, encodedLen int32, msg *NotificationResponse) {
 	t.writeTrace(sender, encodedLen, "NotificationResponse", func() {
-		fmt.Fprintf(
-			t.buf,
-			"\t %d %s %s",
-			msg.PID,
-			traceDoubleQuotedString([]byte(msg.Channel)),
-			traceDoubleQuotedString([]byte(msg.Payload)),
-		)
+		fmt.Fprintf(t.buf, "\t %d %s %s", msg.PID, traceDoubleQuotedString([]byte(msg.Channel)), traceDoubleQuotedString([]byte(msg.Payload)))
 	})
 }
 
-func (t *tracer) traceParameterDescription(
-	sender byte,
-	encodedLen int32,
-	msg *ParameterDescription,
-) {
+func (t *tracer) traceParameterDescription(sender byte, encodedLen int32, msg *ParameterDescription) {
 	t.writeTrace(sender, encodedLen, "ParameterDescription", nil)
 }
 
 func (t *tracer) traceParameterStatus(sender byte, encodedLen int32, msg *ParameterStatus) {
 	t.writeTrace(sender, encodedLen, "ParameterStatus", func() {
-		fmt.Fprintf(
-			t.buf,
-			"\t %s %s",
-			traceDoubleQuotedString([]byte(msg.Name)),
-			traceDoubleQuotedString([]byte(msg.Value)),
-		)
+		fmt.Fprintf(t.buf, "\t %s %s", traceDoubleQuotedString([]byte(msg.Name)), traceDoubleQuotedString([]byte(msg.Value)))
 	})
 }
 
 func (t *tracer) traceParse(sender byte, encodedLen int32, msg *Parse) {
 	t.writeTrace(sender, encodedLen, "Parse", func() {
-		fmt.Fprintf(
-			t.buf,
-			"\t %s %s %d",
-			traceDoubleQuotedString([]byte(msg.Name)),
-			traceDoubleQuotedString([]byte(msg.Query)),
-			len(msg.ParameterOIDs),
-		)
+		fmt.Fprintf(t.buf, "\t %s %s %d", traceDoubleQuotedString([]byte(msg.Name)), traceDoubleQuotedString([]byte(msg.Query)), len(msg.ParameterOIDs))
 		for _, oid := range msg.ParameterOIDs {
 			fmt.Fprintf(t.buf, " %d", oid)
 		}
@@ -394,17 +339,7 @@ func (t *tracer) traceRowDescription(sender byte, encodedLen int32, msg *RowDesc
 	t.writeTrace(sender, encodedLen, "RowDescription", func() {
 		fmt.Fprintf(t.buf, "\t %d", len(msg.Fields))
 		for _, fd := range msg.Fields {
-			fmt.Fprintf(
-				t.buf,
-				` %s %d %d %d %d %d %d`,
-				traceDoubleQuotedString(fd.Name),
-				fd.TableOID,
-				fd.TableAttributeNumber,
-				fd.DataTypeOID,
-				fd.DataTypeSize,
-				fd.TypeModifier,
-				fd.Format,
-			)
+			fmt.Fprintf(t.buf, ` %s %d %d %d %d %d %d`, traceDoubleQuotedString(fd.Name), fd.TableOID, fd.TableAttributeNumber, fd.DataTypeOID, fd.DataTypeSize, fd.TypeModifier, fd.Format)
 		}
 	})
 }

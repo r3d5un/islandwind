@@ -56,11 +56,7 @@ type autoTracer struct {
 
 var _ Tracer = autoTracer{}
 
-func (t autoTracer) Start(
-	ctx context.Context,
-	name string,
-	opts ...SpanStartOption,
-) (context.Context, Span) {
+func (t autoTracer) Start(ctx context.Context, name string, opts ...SpanStartOption) (context.Context, Span) {
 	var psc, sc SpanContext
 	sampled := true
 	span := new(autoSpan)
@@ -98,11 +94,7 @@ func (*autoTracer) start(
 // start is used for testing.
 var start = func(context.Context, *autoSpan, *SpanContext, *bool, *SpanContext) {}
 
-func (t autoTracer) traces(
-	name string,
-	cfg SpanConfig,
-	sc, psc SpanContext,
-) (*telemetry.Traces, *telemetry.Span) {
+func (t autoTracer) traces(name string, cfg SpanConfig, sc, psc SpanContext) (*telemetry.Traces, *telemetry.Span) {
 	span := &telemetry.Span{
 		TraceID:      telemetry.TraceID(sc.TraceID()),
 		SpanID:       telemetry.SpanID(sc.SpanID()),
@@ -234,9 +226,7 @@ func (s *autoSpan) SetAttributes(attrs ...attribute.KeyValue) {
 		// No attributes allowed.
 		n := int64(len(attrs))
 		if n > 0 {
-			s.span.DroppedAttrs += uint32(
-				min(n, math.MaxUint32),
-			) // nolint: gosec  // Bounds checked.
+			s.span.DroppedAttrs += uint32(min(n, math.MaxUint32)) // nolint: gosec  // Bounds checked.
 		}
 		return
 	}

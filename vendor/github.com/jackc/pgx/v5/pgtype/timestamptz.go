@@ -210,16 +210,7 @@ func (encodePlanTimestamptzCodecText) Encode(value any, buf []byte) (newBuf []by
 		bc := false
 		if year := t.Year(); year <= 0 {
 			year = -year + 1
-			t = time.Date(
-				year,
-				t.Month(),
-				t.Day(),
-				t.Hour(),
-				t.Minute(),
-				t.Second(),
-				t.Nanosecond(),
-				time.UTC,
-			)
+			t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
 			bc = true
 		}
 
@@ -330,16 +321,7 @@ func (plan *scanPlanTextTimestamptzToTimestamptzScanner) Scan(src []byte, dst an
 
 		if bc {
 			year := -tim.Year() + 1
-			tim = time.Date(
-				year,
-				tim.Month(),
-				tim.Day(),
-				tim.Hour(),
-				tim.Minute(),
-				tim.Second(),
-				tim.Nanosecond(),
-				tim.Location(),
-			)
+			tim = time.Date(year, tim.Month(), tim.Day(), tim.Hour(), tim.Minute(), tim.Second(), tim.Nanosecond(), tim.Location())
 		}
 
 		if plan.location != nil {
@@ -352,12 +334,7 @@ func (plan *scanPlanTextTimestamptzToTimestamptzScanner) Scan(src []byte, dst an
 	return scanner.ScanTimestamptz(tstz)
 }
 
-func (c *TimestamptzCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *TimestamptzCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

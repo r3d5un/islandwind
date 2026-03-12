@@ -86,10 +86,7 @@ func makeWin32File(h windows.Handle) (*win32File, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = setFileCompletionNotificationModes(
-		h,
-		windows.FILE_SKIP_COMPLETION_PORT_ON_SUCCESS|windows.FILE_SKIP_SET_EVENT_ON_HANDLE,
-	)
+	err = setFileCompletionNotificationModes(h, windows.FILE_SKIP_COMPLETION_PORT_ON_SUCCESS|windows.FILE_SKIP_SET_EVENT_ON_HANDLE)
 	if err != nil {
 		return nil, err
 	}
@@ -174,12 +171,7 @@ func ioCompletionProcessor(h windows.Handle) {
 
 // asyncIO processes the return value from ReadFile or WriteFile, blocking until
 // the operation has actually completed.
-func (f *win32File) asyncIO(
-	c *ioOperation,
-	d *deadlineHandler,
-	bytes uint32,
-	err error,
-) (int, error) {
+func (f *win32File) asyncIO(c *ioOperation, d *deadlineHandler, bytes uint32, err error) (int, error) {
 	if err != windows.ERROR_IO_PENDING { //nolint:errorlint // err is Errno
 		return int(bytes), err
 	}

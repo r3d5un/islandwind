@@ -121,8 +121,7 @@ func (n IpcMode) IsEmpty() bool {
 // Valid indicates whether the ipc mode is valid.
 func (n IpcMode) Valid() bool {
 	// TODO(thaJeztah): align with PidMode, and consider container-mode without a container name/ID to be invalid.
-	return n.IsEmpty() || n.IsNone() || n.IsPrivate() || n.IsHost() || n.IsShareable() ||
-		n.IsContainer()
+	return n.IsEmpty() || n.IsNone() || n.IsPrivate() || n.IsHost() || n.IsShareable() || n.IsContainer()
 }
 
 // Container returns the name of the container ipc stack is going to be used.
@@ -332,9 +331,7 @@ func ValidateRestartPolicy(policy RestartPolicy) error {
 		return nil
 	case RestartPolicyOnFailure:
 		if policy.MaximumRetryCount < 0 {
-			return &errInvalidParameter{
-				errors.New("invalid restart policy: maximum retry count cannot be negative"),
-			}
+			return &errInvalidParameter{errors.New("invalid restart policy: maximum retry count cannot be negative")}
 		}
 		return nil
 	case "":
@@ -343,16 +340,7 @@ func ValidateRestartPolicy(policy RestartPolicy) error {
 		// backward-compatibility.
 		return nil
 	default:
-		return &errInvalidParameter{
-			fmt.Errorf(
-				"invalid restart policy: unknown policy '%s'; use one of '%s', '%s', '%s', or '%s'",
-				policy.Name,
-				RestartPolicyDisabled,
-				RestartPolicyAlways,
-				RestartPolicyOnFailure,
-				RestartPolicyUnlessStopped,
-			),
-		}
+		return &errInvalidParameter{fmt.Errorf("invalid restart policy: unknown policy '%s'; use one of '%s', '%s', '%s', or '%s'", policy.Name, RestartPolicyDisabled, RestartPolicyAlways, RestartPolicyOnFailure, RestartPolicyUnlessStopped)}
 	}
 }
 

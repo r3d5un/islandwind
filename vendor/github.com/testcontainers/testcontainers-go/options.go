@@ -62,9 +62,7 @@ func WithConfigModifier(modifier func(config *container.Config)) CustomizeReques
 }
 
 // WithEndpointSettingsModifier allows to override the default endpoint settings
-func WithEndpointSettingsModifier(
-	modifier func(settings map[string]*network.EndpointSettings),
-) CustomizeRequestOption {
+func WithEndpointSettingsModifier(modifier func(settings map[string]*network.EndpointSettings)) CustomizeRequestOption {
 	return func(req *GenericContainerRequest) error {
 		req.EndpointSettingsModifier = modifier
 
@@ -87,9 +85,7 @@ func WithEnv(envs map[string]string) CustomizeRequestOption {
 }
 
 // WithHostConfigModifier allows to override the default host config
-func WithHostConfigModifier(
-	modifier func(hostConfig *container.HostConfig),
-) CustomizeRequestOption {
+func WithHostConfigModifier(modifier func(hostConfig *container.HostConfig)) CustomizeRequestOption {
 	return func(req *GenericContainerRequest) error {
 		req.HostConfigModifier = modifier
 
@@ -377,10 +373,7 @@ func WithAdditionalWaitStrategy(strategies ...wait.Strategy) CustomizeRequestOpt
 }
 
 // WithWaitStrategyAndDeadline replaces the wait strategy for a container, including deadline
-func WithWaitStrategyAndDeadline(
-	deadline time.Duration,
-	strategies ...wait.Strategy,
-) CustomizeRequestOption {
+func WithWaitStrategyAndDeadline(deadline time.Duration, strategies ...wait.Strategy) CustomizeRequestOption {
 	return func(req *GenericContainerRequest) error {
 		req.WaitingFor = wait.ForAll(strategies...).WithDeadline(deadline)
 
@@ -389,10 +382,7 @@ func WithWaitStrategyAndDeadline(
 }
 
 // WithAdditionalWaitStrategyAndDeadline appends the wait strategy for a container, including deadline
-func WithAdditionalWaitStrategyAndDeadline(
-	deadline time.Duration,
-	strategies ...wait.Strategy,
-) CustomizeRequestOption {
+func WithAdditionalWaitStrategyAndDeadline(deadline time.Duration, strategies ...wait.Strategy) CustomizeRequestOption {
 	return func(req *GenericContainerRequest) error {
 		if req.WaitingFor == nil {
 			req.WaitingFor = wait.ForAll(strategies...).WithDeadline(deadline)
@@ -412,11 +402,7 @@ func WithAdditionalWaitStrategyAndDeadline(
 // WithImageMount mounts an image to a container, passing the source image name,
 // the relative subpath to mount in that image, and the mount point in the target container.
 // This option validates that the subpath is a relative path, raising an error otherwise.
-func WithImageMount(
-	source string,
-	subpath string,
-	target ContainerMountTarget,
-) CustomizeRequestOption {
+func WithImageMount(source string, subpath string, target ContainerMountTarget) CustomizeRequestOption {
 	return func(req *GenericContainerRequest) error {
 		src := NewDockerImageMountSource(source, subpath)
 

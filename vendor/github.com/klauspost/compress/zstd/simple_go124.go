@@ -22,13 +22,7 @@ func EncodeTo(dst []byte, src []byte) []byte {
 	enc := simpleEnc.Value()
 	if enc == nil {
 		var err error
-		enc, err = NewWriter(
-			nil,
-			WithEncoderConcurrency(runtime.NumCPU()),
-			WithWindowSize(1<<20),
-			WithLowerEncoderMem(true),
-			WithZeroFrames(true),
-		)
+		enc, err = NewWriter(nil, WithEncoderConcurrency(runtime.NumCPU()), WithWindowSize(1<<20), WithLowerEncoderMem(true), WithZeroFrames(true))
 		if err != nil {
 			panic("failed to create simple encoder: " + err.Error())
 		}
@@ -47,12 +41,7 @@ func DecodeTo(dst []byte, src []byte) ([]byte, error) {
 	dec := simpleDec.Value()
 	if dec == nil {
 		var err error
-		dec, err = NewReader(
-			nil,
-			WithDecoderConcurrency(runtime.NumCPU()),
-			WithDecoderLowmem(true),
-			WithDecoderMaxMemory(1<<30),
-		)
+		dec, err = NewReader(nil, WithDecoderConcurrency(runtime.NumCPU()), WithDecoderLowmem(true), WithDecoderMaxMemory(1<<30))
 		if err != nil {
 			weakMu.Unlock()
 			return nil, errors.New("failed to create simple decoder: " + err.Error())

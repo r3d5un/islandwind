@@ -295,39 +295,13 @@ func SetOptions(opts ...Option) {
 // can use it in their testing as well.
 func Reset() {
 	v = New()
-	SupportedExts = []string{
-		"json",
-		"toml",
-		"yaml",
-		"yml",
-		"properties",
-		"props",
-		"prop",
-		"hcl",
-		"tfvars",
-		"dotenv",
-		"env",
-		"ini",
-	}
+	SupportedExts = []string{"json", "toml", "yaml", "yml", "properties", "props", "prop", "hcl", "tfvars", "dotenv", "env", "ini"}
 
 	resetRemote()
 }
 
 // SupportedExts are universally supported extensions.
-var SupportedExts = []string{
-	"json",
-	"toml",
-	"yaml",
-	"yml",
-	"properties",
-	"props",
-	"prop",
-	"hcl",
-	"tfvars",
-	"dotenv",
-	"env",
-	"ini",
-}
+var SupportedExts = []string{"json", "toml", "yaml", "yml", "properties", "props", "prop", "hcl", "tfvars", "dotenv", "env", "ini"}
 
 // OnConfigChange sets the event handler that is called when a config file changes.
 func OnConfigChange(run func(in fsnotify.Event)) { v.OnConfigChange(run) }
@@ -485,10 +459,7 @@ func AddConfigPath(in string) { v.AddConfigPath(in) }
 
 func (v *Viper) AddConfigPath(in string) {
 	if v.finder != nil {
-		v.logger.Warn(
-			"ineffective call to function: custom finder takes precedence",
-			slog.String("function", "AddConfigPath"),
-		)
+		v.logger.Warn("ineffective call to function: custom finder takes precedence", slog.String("function", "AddConfigPath"))
 	}
 
 	if in != "" {
@@ -935,11 +906,7 @@ func (v *Viper) GetStringMapString(key string) map[string]string {
 }
 
 // GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
-func GetStringMapStringSlice(
-	key string,
-) map[string][]string {
-	return v.GetStringMapStringSlice(key)
-}
+func GetStringMapStringSlice(key string) map[string][]string { return v.GetStringMapStringSlice(key) }
 
 func (v *Viper) GetStringMapStringSlice(key string) map[string][]string {
 	return cast.ToStringMapStringSlice(v.Get(key))
@@ -1006,10 +973,7 @@ func (v *Viper) decodeStructKeys(input any, opts ...DecoderConfigOption) ([]stri
 
 // defaultDecoderConfig returns default mapstructure.DecoderConfig with support
 // of time.Duration values & string slices.
-func (v *Viper) defaultDecoderConfig(
-	output any,
-	opts ...DecoderConfigOption,
-) *mapstructure.DecoderConfig {
+func (v *Viper) defaultDecoderConfig(output any, opts ...DecoderConfigOption) *mapstructure.DecoderConfig {
 	decodeHook := v.decodeHook
 	if decodeHook == nil {
 		decodeHook = mapstructure.ComposeDecodeHookFunc(
@@ -1947,11 +1911,7 @@ func (v *Viper) AllKeys() []string {
 //     it is skipped.
 //
 // The resulting set of paths is merged to the given shadow set at the same time.
-func (v *Viper) flattenAndMergeMap(
-	shadow map[string]bool,
-	m map[string]any,
-	prefix string,
-) map[string]bool {
+func (v *Viper) flattenAndMergeMap(shadow map[string]bool, m map[string]any, prefix string) map[string]bool {
 	if shadow != nil && prefix != "" && shadow[prefix] {
 		// prefix is shadowed => nothing more to flatten
 		return shadow
@@ -2043,10 +2003,7 @@ func SetConfigName(in string) { v.SetConfigName(in) }
 
 func (v *Viper) SetConfigName(in string) {
 	if v.finder != nil {
-		v.logger.Warn(
-			"ineffective call to function: custom finder takes precedence",
-			slog.String("function", "SetConfigName"),
-		)
+		v.logger.Warn("ineffective call to function: custom finder takes precedence", slog.String("function", "SetConfigName"))
 	}
 
 	if in != "" {

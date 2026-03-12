@@ -8,11 +8,7 @@ import (
 )
 
 // ContainerUpdate updates the resources of a container.
-func (cli *Client) ContainerUpdate(
-	ctx context.Context,
-	containerID string,
-	updateConfig container.UpdateConfig,
-) (container.UpdateResponse, error) {
+func (cli *Client) ContainerUpdate(ctx context.Context, containerID string, updateConfig container.UpdateConfig) (container.UpdateResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.UpdateResponse{}, err

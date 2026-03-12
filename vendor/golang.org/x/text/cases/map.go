@@ -180,10 +180,7 @@ func (t undUpperCaser) Span(src []byte, atEOF bool) (n int, err error) {
 // like secure/precis and x/net/http/idna, which warrants its special-casing.
 type undLowerIgnoreSigmaCaser struct{ transform.NopResetter }
 
-func (t undLowerIgnoreSigmaCaser) Transform(
-	dst, src []byte,
-	atEOF bool,
-) (nDst, nSrc int, err error) {
+func (t undLowerIgnoreSigmaCaser) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err error) {
 	c := context{dst: dst, src: src, atEOF: atEOF}
 	for c.next() && lower(&c) {
 		c.checkpoint()

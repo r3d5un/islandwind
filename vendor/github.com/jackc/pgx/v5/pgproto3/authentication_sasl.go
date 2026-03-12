@@ -37,10 +37,7 @@ func (dst *AuthenticationSASL) Decode(src []byte) error {
 	for len(authMechanisms) > 1 {
 		idx := bytes.IndexByte(authMechanisms, 0)
 		if idx == -1 {
-			return &invalidMessageFormatErr{
-				messageType: "AuthenticationSASL",
-				details:     "unterminated string",
-			}
+			return &invalidMessageFormatErr{messageType: "AuthenticationSASL", details: "unterminated string"}
 		}
 		dst.AuthMechanisms = append(dst.AuthMechanisms, string(authMechanisms[:idx]))
 		authMechanisms = authMechanisms[idx+1:]

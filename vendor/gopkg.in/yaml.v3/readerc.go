@@ -1,17 +1,17 @@
-//
+// 
 // Copyright (c) 2011-2019 Canonical Ltd
 // Copyright (c) 2006-2010 Kirill Simonov
-//
+// 
 // Permission is hereby granted, free of charge, to any person obtaining a copy of
 // this software and associated documentation files (the "Software"), to deal in
 // the Software without restriction, including without limitation the rights to
 // use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 // of the Software, and to permit persons to whom the Software is furnished to do
 // so, subject to the following conditions:
-//
+// 
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,12 +27,7 @@ import (
 )
 
 // Set the reader error and return 0.
-func yaml_parser_set_reader_error(
-	parser *yaml_parser_t,
-	problem string,
-	offset int,
-	value int,
-) bool {
+func yaml_parser_set_reader_error(parser *yaml_parser_t, problem string, offset int, value int) bool {
 	parser.error = yaml_READER_ERROR
 	parser.problem = problem
 	parser.problem_offset = offset
@@ -101,10 +96,7 @@ func yaml_parser_update_raw_buffer(parser *yaml_parser_t) bool {
 	parser.raw_buffer_pos = 0
 
 	// Call the read handler to fill the buffer.
-	size_read, err := parser.read_handler(
-		parser,
-		parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)],
-	)
+	size_read, err := parser.read_handler(parser, parser.raw_buffer[len(parser.raw_buffer):cap(parser.raw_buffer)])
 	parser.raw_buffer = parser.raw_buffer[:len(parser.raw_buffer)+size_read]
 	if err == io.EOF {
 		parser.eof = true

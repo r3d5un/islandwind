@@ -14,13 +14,7 @@ import (
 // ServiceUpdate updates a Service. The version number is required to avoid conflicting writes.
 // It should be the value as set *before* the update. You can find this value in the Meta field
 // of swarm.Service, which can be found using ServiceInspectWithRaw.
-func (cli *Client) ServiceUpdate(
-	ctx context.Context,
-	serviceID string,
-	version swarm.Version,
-	service swarm.ServiceSpec,
-	options swarm.ServiceUpdateOptions,
-) (swarm.ServiceUpdateResponse, error) {
+func (cli *Client) ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error) {
 	serviceID, err := trimID("service", serviceID)
 	if err != nil {
 		return swarm.ServiceUpdateResponse{}, err
@@ -58,24 +52,14 @@ func (cli *Client) ServiceUpdate(
 			service.TaskTemplate.ContainerSpec.Image = taggedImg
 		}
 		if options.QueryRegistry {
-			resolveWarning = resolveContainerSpecImage(
-				ctx,
-				cli,
-				&service.TaskTemplate,
-				options.EncodedRegistryAuth,
-			)
+			resolveWarning = resolveContainerSpecImage(ctx, cli, &service.TaskTemplate, options.EncodedRegistryAuth)
 		}
 	case service.TaskTemplate.PluginSpec != nil:
 		if taggedImg := imageWithTagString(service.TaskTemplate.PluginSpec.Remote); taggedImg != "" {
 			service.TaskTemplate.PluginSpec.Remote = taggedImg
 		}
 		if options.QueryRegistry {
-			resolveWarning = resolvePluginSpecRemote(
-				ctx,
-				cli,
-				&service.TaskTemplate,
-				options.EncodedRegistryAuth,
-			)
+			resolveWarning = resolvePluginSpecRemote(ctx, cli, &service.TaskTemplate, options.EncodedRegistryAuth)
 		}
 	}
 

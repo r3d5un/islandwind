@@ -211,9 +211,7 @@ func NewProcThreadAttributeList(maxAttrCount uint32) (*ProcThreadAttributeListCo
 	err := initializeProcThreadAttributeList(nil, maxAttrCount, 0, &size)
 	if err != ERROR_INSUFFICIENT_BUFFER {
 		if err == nil {
-			return nil, errorspkg.New(
-				"unable to query buffer size from InitializeProcThreadAttributeList",
-			)
+			return nil, errorspkg.New("unable to query buffer size from InitializeProcThreadAttributeList")
 		}
 		return nil, err
 	}
@@ -231,11 +229,7 @@ func NewProcThreadAttributeList(maxAttrCount uint32) (*ProcThreadAttributeListCo
 }
 
 // Update modifies the ProcThreadAttributeList using UpdateProcThreadAttribute.
-func (al *ProcThreadAttributeListContainer) Update(
-	attribute uintptr,
-	value unsafe.Pointer,
-	size uintptr,
-) error {
+func (al *ProcThreadAttributeListContainer) Update(attribute uintptr, value unsafe.Pointer, size uintptr) error {
 	al.pointers = append(al.pointers, value)
 	return updateProcThreadAttribute(al.data, 0, attribute, value, size, nil, nil)
 }

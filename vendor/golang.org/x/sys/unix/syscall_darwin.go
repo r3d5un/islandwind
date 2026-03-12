@@ -532,11 +532,7 @@ func SysctlKinfoProcSlice(name string, args ...int) ([]KinfoProc, error) {
 			return nil, nil
 		}
 		if n%SizeofKinfoProc != 0 {
-			return nil, fmt.Errorf(
-				"sysctl() returned a size of %d, which is not a multiple of %d",
-				n,
-				SizeofKinfoProc,
-			)
+			return nil, fmt.Errorf("sysctl() returned a size of %d, which is not a multiple of %d", n, SizeofKinfoProc)
 		}
 
 		// Read into buffer of that size.
@@ -549,11 +545,7 @@ func SysctlKinfoProcSlice(name string, args ...int) ([]KinfoProc, error) {
 			return nil, err
 		}
 		if n%SizeofKinfoProc != 0 {
-			return nil, fmt.Errorf(
-				"sysctl() returned a size of %d, which is not a multiple of %d",
-				n,
-				SizeofKinfoProc,
-			)
+			return nil, fmt.Errorf("sysctl() returned a size of %d, which is not a multiple of %d", n, SizeofKinfoProc)
 		}
 
 		// The actual call may return less than the original reported required
@@ -583,15 +575,7 @@ func PthreadFchdir(fd int) (err error) {
 //   - dstAddr is the destination address.
 //
 // On success, Connectx returns the number of bytes enqueued for transmission.
-func Connectx(
-	fd int,
-	srcIf uint32,
-	srcAddr, dstAddr Sockaddr,
-	associd SaeAssocID,
-	flags uint32,
-	iov []Iovec,
-	connid *SaeConnID,
-) (n uintptr, err error) {
+func Connectx(fd int, srcIf uint32, srcAddr, dstAddr Sockaddr, associd SaeAssocID, flags uint32, iov []Iovec, connid *SaeConnID) (n uintptr, err error) {
 	endpoints := SaEndpoints{
 		Srcif: srcIf,
 	}

@@ -217,8 +217,7 @@ func (t Tag) Parent() Tag {
 			}
 
 			for i := range parents {
-				if Language(parents[i].lang) == t.LangID &&
-					Script(parents[i].maxScript) == maxScript {
+				if Language(parents[i].lang) == t.LangID && Script(parents[i].maxScript) == maxScript {
 					for _, r := range parents[i].fromRegion {
 						if Region(r) == t.RegionID {
 							return Tag{

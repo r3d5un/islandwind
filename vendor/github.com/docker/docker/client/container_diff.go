@@ -9,10 +9,7 @@ import (
 )
 
 // ContainerDiff shows differences in a container filesystem since it was started.
-func (cli *Client) ContainerDiff(
-	ctx context.Context,
-	containerID string,
-) ([]container.FilesystemChange, error) {
+func (cli *Client) ContainerDiff(ctx context.Context, containerID string) ([]container.FilesystemChange, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return nil, err

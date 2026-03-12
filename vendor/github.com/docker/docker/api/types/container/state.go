@@ -28,22 +28,10 @@ var validStates = []ContainerState{
 // container [ContainerState].
 func ValidateContainerState(s ContainerState) error {
 	switch s {
-	case StateCreated,
-		StateRunning,
-		StatePaused,
-		StateRestarting,
-		StateRemoving,
-		StateExited,
-		StateDead:
+	case StateCreated, StateRunning, StatePaused, StateRestarting, StateRemoving, StateExited, StateDead:
 		return nil
 	default:
-		return errInvalidParameter{
-			error: fmt.Errorf(
-				"invalid value for state (%s): must be one of %s",
-				s,
-				strings.Join(validStates, ", "),
-			),
-		}
+		return errInvalidParameter{error: fmt.Errorf("invalid value for state (%s): must be one of %s", s, strings.Join(validStates, ", "))}
 	}
 }
 

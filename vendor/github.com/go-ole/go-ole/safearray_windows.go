@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package ole
@@ -79,10 +78,7 @@ func safeArrayAllocDescriptor(dimensions uint32) (safearray *SafeArray, err erro
 // safeArrayAllocDescriptorEx allocates SafeArray.
 //
 // AKA: SafeArrayAllocDescriptorEx in Windows API.
-func safeArrayAllocDescriptorEx(
-	variantType VT,
-	dimensions uint32,
-) (safearray *SafeArray, err error) {
+func safeArrayAllocDescriptorEx(variantType VT, dimensions uint32) (safearray *SafeArray, err error) {
 	err = convertHresultToError(
 		procSafeArrayAllocDescriptorEx.Call(
 			uintptr(variantType),
@@ -116,11 +112,7 @@ func safeArrayCopyData(original *SafeArray, duplicate *SafeArray) (err error) {
 // safeArrayCreate creates SafeArray.
 //
 // AKA: SafeArrayCreate in Windows API.
-func safeArrayCreate(
-	variantType VT,
-	dimensions uint32,
-	bounds *SafeArrayBound,
-) (safearray *SafeArray, err error) {
+func safeArrayCreate(variantType VT, dimensions uint32, bounds *SafeArrayBound) (safearray *SafeArray, err error) {
 	sa, _, err := procSafeArrayCreate.Call(
 		uintptr(variantType),
 		uintptr(dimensions),
@@ -132,12 +124,7 @@ func safeArrayCreate(
 // safeArrayCreateEx creates SafeArray.
 //
 // AKA: SafeArrayCreateEx in Windows API.
-func safeArrayCreateEx(
-	variantType VT,
-	dimensions uint32,
-	bounds *SafeArrayBound,
-	extra uintptr,
-) (safearray *SafeArray, err error) {
+func safeArrayCreateEx(variantType VT, dimensions uint32, bounds *SafeArrayBound, extra uintptr) (safearray *SafeArray, err error) {
 	sa, _, err := procSafeArrayCreateEx.Call(
 		uintptr(variantType),
 		uintptr(dimensions),
@@ -150,11 +137,7 @@ func safeArrayCreateEx(
 // safeArrayCreateVector creates SafeArray.
 //
 // AKA: SafeArrayCreateVector in Windows API.
-func safeArrayCreateVector(
-	variantType VT,
-	lowerBound int32,
-	length uint32,
-) (safearray *SafeArray, err error) {
+func safeArrayCreateVector(variantType VT, lowerBound int32, length uint32) (safearray *SafeArray, err error) {
 	sa, _, err := procSafeArrayCreateVector.Call(
 		uintptr(variantType),
 		uintptr(lowerBound),
@@ -166,12 +149,7 @@ func safeArrayCreateVector(
 // safeArrayCreateVectorEx creates SafeArray.
 //
 // AKA: SafeArrayCreateVectorEx in Windows API.
-func safeArrayCreateVectorEx(
-	variantType VT,
-	lowerBound int32,
-	length uint32,
-	extra uintptr,
-) (safearray *SafeArray, err error) {
+func safeArrayCreateVectorEx(variantType VT, lowerBound int32, length uint32, extra uintptr) (safearray *SafeArray, err error) {
 	sa, _, err := procSafeArrayCreateVectorEx.Call(
 		uintptr(variantType),
 		uintptr(lowerBound),
@@ -201,9 +179,7 @@ func safeArrayDestroyData(safearray *SafeArray) (err error) {
 //
 // AKA: SafeArrayDestroyDescriptor in Windows API.
 func safeArrayDestroyDescriptor(safearray *SafeArray) (err error) {
-	err = convertHresultToError(
-		procSafeArrayDestroyDescriptor.Call(uintptr(unsafe.Pointer(safearray))),
-	)
+	err = convertHresultToError(procSafeArrayDestroyDescriptor.Call(uintptr(unsafe.Pointer(safearray))))
 	return
 }
 

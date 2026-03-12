@@ -379,11 +379,7 @@ func (s *Scratch) buildCTable() error {
 			cumul[u+1] = cumul[u] + v
 		}
 		if uint32(cumul[s.symbolLen]) != tableSize {
-			return fmt.Errorf(
-				"internal error: expected cumul[s.symbolLen] (%d) == tableSize (%d)",
-				cumul[s.symbolLen],
-				tableSize,
-			)
+			return fmt.Errorf("internal error: expected cumul[s.symbolLen] (%d) == tableSize (%d)", cumul[s.symbolLen], tableSize)
 		}
 		cumul[s.symbolLen] = int16(tableSize) + 1
 	}
@@ -635,9 +631,7 @@ func (s *Scratch) normalizeCount2() error {
 	var (
 		vStepLog = 62 - uint64(tableLog)
 		mid      = uint64((1 << (vStepLog - 1)) - 1)
-		rStep    = (((1 << vStepLog) * uint64(toDistribute)) + mid) / uint64(
-			total,
-		) // scale on remaining
+		rStep    = (((1 << vStepLog) * uint64(toDistribute)) + mid) / uint64(total) // scale on remaining
 		tmpTotal = mid
 	)
 	for i, cnt := range s.count[:s.symbolLen] {

@@ -403,11 +403,7 @@ func (w *inotify) readEvents() {
 	}
 }
 
-func (w *inotify) handleEvent(
-	inEvent *unix.InotifyEvent,
-	buf *[65536]byte,
-	offset uint32,
-) (Event, bool) {
+func (w *inotify) handleEvent(inEvent *unix.InotifyEvent, buf *[65536]byte, offset uint32) (Event, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -542,8 +538,7 @@ func (w *inotify) newEvent(name string, mask, cookie uint32) Event {
 	if mask&unix.IN_CLOSE_NOWRITE == unix.IN_CLOSE_NOWRITE {
 		e.Op |= xUnportableCloseRead
 	}
-	if mask&unix.IN_MOVE_SELF == unix.IN_MOVE_SELF ||
-		mask&unix.IN_MOVED_FROM == unix.IN_MOVED_FROM {
+	if mask&unix.IN_MOVE_SELF == unix.IN_MOVE_SELF || mask&unix.IN_MOVED_FROM == unix.IN_MOVED_FROM {
 		e.Op |= Rename
 	}
 	if mask&unix.IN_ATTRIB == unix.IN_ATTRIB {

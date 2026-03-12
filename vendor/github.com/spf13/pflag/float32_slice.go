@@ -132,12 +132,7 @@ func (f *FlagSet) Float32SliceVar(p *[]float32, name string, value []float32, us
 }
 
 // Float32SliceVarP is like Float32SliceVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) Float32SliceVarP(
-	p *[]float32,
-	name, shorthand string,
-	value []float32,
-	usage string,
-) {
+func (f *FlagSet) Float32SliceVarP(p *[]float32, name, shorthand string, value []float32, usage string) {
 	f.VarP(newFloat32SliceValue(value, p), name, shorthand, usage)
 }
 

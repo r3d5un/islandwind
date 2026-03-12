@@ -255,10 +255,7 @@ type ServerConn struct {
 //
 // The returned error may be of type *ServerAuthError for
 // authentication errors.
-func NewServerConn(
-	c net.Conn,
-	config *ServerConfig,
-) (*ServerConn, <-chan NewChannel, <-chan *Request, error) {
+func NewServerConn(c net.Conn, config *ServerConfig) (*ServerConn, <-chan NewChannel, <-chan *Request, error) {
 	fullConf := *config
 	fullConf.SetDefaults()
 	if fullConf.MaxAuthTries == 0 {
@@ -307,9 +304,7 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 	if !config.NoClientAuth && config.PasswordCallback == nil && config.PublicKeyCallback == nil &&
 		config.KeyboardInteractiveCallback == nil && (config.GSSAPIWithMICConfig == nil ||
 		config.GSSAPIWithMICConfig.AllowLogin == nil || config.GSSAPIWithMICConfig.Server == nil) {
-		return nil, errors.New(
-			"ssh: no authentication methods configured but NoClientAuth is also false",
-		)
+		return nil, errors.New("ssh: no authentication methods configured but NoClientAuth is also false")
 	}
 
 	if config.ServerVersion != "" {
@@ -344,9 +339,7 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 		return nil, err
 	}
 	if serviceRequest.Service != serviceUserAuth {
-		return nil, errors.New(
-			"ssh: requested service '" + serviceRequest.Service + "' before authenticating",
-		)
+		return nil, errors.New("ssh: requested service '" + serviceRequest.Service + "' before authenticating")
 	}
 	serviceAccept := serviceAcceptMsg{
 		Service: serviceUserAuth,
@@ -370,10 +363,7 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 
 	tcpAddr, ok := addr.(*net.TCPAddr)
 	if !ok {
-		return fmt.Errorf(
-			"ssh: remote address %v is not an TCP address when checking source-address match",
-			addr,
-		)
+		return fmt.Errorf("ssh: remote address %v is not an TCP address when checking source-address match", addr)
 	}
 
 	for _, sourceAddr := range strings.Split(sourceAddrs, ",") {
@@ -393,19 +383,11 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 		}
 	}
 
-	return fmt.Errorf(
-		"ssh: remote address %v is not allowed because of source-address restriction",
-		addr,
-	)
+	return fmt.Errorf("ssh: remote address %v is not allowed because of source-address restriction", addr)
 }
 
-func gssExchangeToken(
-	gssapiConfig *GSSAPIWithMICConfig,
-	token []byte,
-	s *connection,
-	sessionID []byte,
-	userAuthReq userAuthRequestMsg,
-) (authErr error, perms *Permissions, err error) {
+func gssExchangeToken(gssapiConfig *GSSAPIWithMICConfig, token []byte, s *connection,
+	sessionID []byte, userAuthReq userAuthRequestMsg) (authErr error, perms *Permissions, err error) {
 	gssAPIServer := gssapiConfig.Server
 	defer gssAPIServer.DeleteSecContext()
 	var srcName string
@@ -922,11 +904,7 @@ type sshClientKeyboardInteractive struct {
 	*connection
 }
 
-func (c *sshClientKeyboardInteractive) Challenge(
-	name, instruction string,
-	questions []string,
-	echos []bool,
-) (answers []string, err error) {
+func (c *sshClientKeyboardInteractive) Challenge(name, instruction string, questions []string, echos []bool) (answers []string, err error) {
 	if len(questions) != len(echos) {
 		return nil, errors.New("ssh: echos and questions must have equal length")
 	}

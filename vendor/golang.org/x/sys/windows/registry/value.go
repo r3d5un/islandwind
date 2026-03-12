@@ -76,14 +76,7 @@ func (k Key) getValue(name string, buf []byte) (data []byte, valtype uint32, err
 	var t uint32
 	n := uint32(len(buf))
 	for {
-		err = syscall.RegQueryValueEx(
-			syscall.Handle(k),
-			p,
-			nil,
-			&t,
-			(*byte)(unsafe.Pointer(&buf[0])),
-			&n,
-		)
+		err = syscall.RegQueryValueEx(syscall.Handle(k), p, nil, &t, (*byte)(unsafe.Pointer(&buf[0])), &n)
 		if err == nil {
 			return buf[:n], t, nil
 		}
@@ -156,15 +149,7 @@ func (k Key) GetMUIStringValue(name string) (string, error) {
 			return "", err
 		}
 
-		err = regLoadMUIString(
-			syscall.Handle(k),
-			pname,
-			&buf[0],
-			uint32(len(buf)),
-			&buflen,
-			0,
-			pdir,
-		)
+		err = regLoadMUIString(syscall.Handle(k), pname, &buf[0], uint32(len(buf)), &buflen, 0, pdir)
 	}
 
 	for err == syscall.ERROR_MORE_DATA { // Grow buffer if needed
@@ -172,15 +157,7 @@ func (k Key) GetMUIStringValue(name string) (string, error) {
 			break // Buffer not growing, assume race; break
 		}
 		buf = make([]uint16, buflen)
-		err = regLoadMUIString(
-			syscall.Handle(k),
-			pname,
-			&buf[0],
-			uint32(len(buf)),
-			&buflen,
-			0,
-			pdir,
-		)
+		err = regLoadMUIString(syscall.Handle(k), pname, &buf[0], uint32(len(buf)), &buflen, 0, pdir)
 	}
 
 	if err != nil {

@@ -1544,13 +1544,7 @@ func KeyctlRestrictKeyring(ringid int, keyType string, restriction string) error
 //sys	keyctlRestrictKeyringByType(cmd int, arg2 int, keyType string, restriction string) (err error) = SYS_KEYCTL
 //sys	keyctlRestrictKeyring(cmd int, arg2 int) (err error) = SYS_KEYCTL
 
-func recvmsgRaw(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	flags int,
-	rsa *RawSockaddrAny,
-) (n, oobn int, recvflags int, err error) {
+func recvmsgRaw(fd int, iov []Iovec, oob []byte, flags int, rsa *RawSockaddrAny) (n, oobn int, recvflags int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(unsafe.Pointer(rsa))
 	msg.Namelen = uint32(SizeofSockaddrAny)
@@ -1585,14 +1579,7 @@ func recvmsgRaw(
 	return
 }
 
-func sendmsgN(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	ptr unsafe.Pointer,
-	salen _Socklen,
-	flags int,
-) (n int, err error) {
+func sendmsgN(fd int, iov []Iovec, oob []byte, ptr unsafe.Pointer, salen _Socklen, flags int) (n int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(ptr)
 	msg.Namelen = uint32(salen)
@@ -1690,13 +1677,7 @@ func PtracePeekUser(pid int, addr uintptr, out []byte) (count int, err error) {
 	return ptracePeek(PTRACE_PEEKUSR, pid, addr, out)
 }
 
-func ptracePoke(
-	pokeReq int,
-	peekReq int,
-	pid int,
-	addr uintptr,
-	data []byte,
-) (count int, err error) {
+func ptracePoke(pokeReq int, peekReq int, pid int, addr uintptr, data []byte) (count int, err error) {
 	// As for ptracePeek, we need to align our accesses to deal
 	// with the possibility of straddling an invalid page.
 
@@ -2089,15 +2070,7 @@ func Prlimit(pid, resource int, newlimit, old *Rlimit) error {
 // optional arguments arg2 through arg5 depending on option. It returns a
 // non-negative integer that is returned by the prctl syscall.
 func PrctlRetInt(option int, arg2 uintptr, arg3 uintptr, arg4 uintptr, arg5 uintptr) (int, error) {
-	ret, _, err := Syscall6(
-		SYS_PRCTL,
-		uintptr(option),
-		uintptr(arg2),
-		uintptr(arg3),
-		uintptr(arg4),
-		uintptr(arg5),
-		0,
-	)
+	ret, _, err := Syscall6(SYS_PRCTL, uintptr(option), uintptr(arg2), uintptr(arg3), uintptr(arg4), uintptr(arg5), 0)
 	if err != 0 {
 		return 0, err
 	}
@@ -2208,11 +2181,7 @@ func appendBytes(vecs []Iovec, bs [][]byte) []Iovec {
 // offs2lohi splits offs into its low and high order bits.
 func offs2lohi(offs int64) (lo, hi uintptr) {
 	const longBits = SizeofLong * 8
-	return uintptr(
-			offs,
-		), uintptr(
-			uint64(offs) >> (longBits - 1) >> 1,
-		) // two shifts to avoid false positive in vet
+	return uintptr(offs), uintptr(uint64(offs) >> (longBits - 1) >> 1) // two shifts to avoid false positive in vet
 }
 
 func Readv(fd int, iovs [][]byte) (n int, err error) {
@@ -2330,15 +2299,7 @@ func Vmsplice(fd int, iovs []Iovec, flags int) (int, error) {
 		p = unsafe.Pointer(&iovs[0])
 	}
 
-	n, _, errno := Syscall6(
-		SYS_VMSPLICE,
-		uintptr(fd),
-		uintptr(p),
-		uintptr(len(iovs)),
-		uintptr(flags),
-		0,
-		0,
-	)
+	n, _, errno := Syscall6(SYS_VMSPLICE, uintptr(fd), uintptr(p), uintptr(len(iovs)), uintptr(flags), 0, 0)
 	if errno != 0 {
 		return 0, syscall.Errno(errno)
 	}
@@ -2626,14 +2587,7 @@ func Getresgid() (rgid, egid, sgid int) {
 
 // Pselect is a wrapper around the Linux pselect6 system call.
 // This version does not modify the timeout argument.
-func Pselect(
-	nfd int,
-	r *FdSet,
-	w *FdSet,
-	e *FdSet,
-	timeout *Timespec,
-	sigmask *Sigset_t,
-) (n int, err error) {
+func Pselect(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timespec, sigmask *Sigset_t) (n int, err error) {
 	// Per https://man7.org/linux/man-pages/man2/select.2.html#NOTES,
 	// The Linux pselect6() system call modifies its timeout argument.
 	// [Not modifying the argument] is the behavior required by POSIX.1-2001.

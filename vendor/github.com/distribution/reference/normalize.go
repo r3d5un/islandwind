@@ -55,10 +55,7 @@ type normalizedNamed interface {
 // use ParseAnyReference.
 func ParseNormalizedNamed(s string) (Named, error) {
 	if ok := anchoredIdentifierRegexp.MatchString(s); ok {
-		return nil, fmt.Errorf(
-			"invalid repository name (%s), cannot specify 64-byte hexadecimal strings",
-			s,
-		)
+		return nil, fmt.Errorf("invalid repository name (%s), cannot specify 64-byte hexadecimal strings", s)
 	}
 	domain, remainder := splitDockerDomain(s)
 	var remote string
@@ -68,10 +65,7 @@ func ParseNormalizedNamed(s string) (Named, error) {
 		remote = remainder
 	}
 	if strings.ToLower(remote) != remote {
-		return nil, fmt.Errorf(
-			"invalid reference format: repository name (%s) must be lowercase",
-			remote,
-		)
+		return nil, fmt.Errorf("invalid reference format: repository name (%s) must be lowercase", remote)
 	}
 
 	ref, err := Parse(domain + "/" + remainder)
@@ -197,10 +191,7 @@ func familiarizeName(named namedRepository) repository {
 			//  is true (currently), technically it would be possible for Docker
 			//  Hub to use those (e.g. "library/distros/ubuntu:latest").
 			//  See https://github.com/distribution/distribution/pull/3769#issuecomment-1302031785.
-			if remainder := strings.TrimPrefix(repo.path, officialRepoPrefix); !strings.ContainsRune(
-				remainder,
-				'/',
-			) {
+			if remainder := strings.TrimPrefix(repo.path, officialRepoPrefix); !strings.ContainsRune(remainder, '/') {
 				repo.path = remainder
 			}
 		}

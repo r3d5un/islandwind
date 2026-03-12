@@ -145,10 +145,7 @@ func (encodePlanTextFloat32) Encode(value any, buf []byte) (newBuf []byte, err e
 
 type encodePlanFloat4CodecBinaryFloat64Valuer struct{}
 
-func (encodePlanFloat4CodecBinaryFloat64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanFloat4CodecBinaryFloat64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Float64Valuer).Float64Value()
 	if err != nil {
 		return nil, err
@@ -163,10 +160,7 @@ func (encodePlanFloat4CodecBinaryFloat64Valuer) Encode(
 
 type encodePlanFloat4CodecBinaryInt64Valuer struct{}
 
-func (encodePlanFloat4CodecBinaryInt64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanFloat4CodecBinaryInt64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Int64Valuer).Int64Value()
 	if err != nil {
 		return nil, err
@@ -302,12 +296,7 @@ func (scanPlanTextAnyToFloat32) Scan(src []byte, dst any) error {
 	return nil
 }
 
-func (c Float4Codec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c Float4Codec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

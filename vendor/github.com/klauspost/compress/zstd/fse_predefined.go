@@ -27,18 +27,10 @@ var (
 
 	// maxTableSymbol is the biggest supported symbol for each table type
 	// https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#the-codes-for-literals-lengths-match-lengths-and-offsets
-	maxTableSymbol = [3]uint8{
-		tableLiteralLengths: maxLiteralLengthSymbol,
-		tableOffsets:        maxOffsetLengthSymbol,
-		tableMatchLengths:   maxMatchLengthSymbol,
-	}
+	maxTableSymbol = [3]uint8{tableLiteralLengths: maxLiteralLengthSymbol, tableOffsets: maxOffsetLengthSymbol, tableMatchLengths: maxMatchLengthSymbol}
 
 	// bitTables is the bits table for each table.
-	bitTables = [3][]byte{
-		tableLiteralLengths: llBitsTable[:],
-		tableOffsets:        nil,
-		tableMatchLengths:   mlBitsTable[:],
-	}
+	bitTables = [3][]byte{tableLiteralLengths: llBitsTable[:], tableOffsets: nil, tableMatchLengths: mlBitsTable[:]}
 )
 
 type tableIndex uint8
@@ -111,39 +103,7 @@ func initPredefined() {
 			baseLine: 1,
 			addBits:  1,
 		}
-		fillBase(
-			tmp[2:],
-			1,
-			2,
-			3,
-			4,
-			5,
-			6,
-			7,
-			8,
-			9,
-			10,
-			11,
-			12,
-			13,
-			14,
-			15,
-			16,
-			17,
-			18,
-			19,
-			20,
-			21,
-			22,
-			23,
-			24,
-			25,
-			26,
-			27,
-			28,
-			29,
-			30,
-		)
+		fillBase(tmp[2:], 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30)
 		symbolTableX[tableOffsets] = tmp
 
 		// Fill predefined tables and transform them.

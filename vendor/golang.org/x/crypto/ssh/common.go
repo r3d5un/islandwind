@@ -283,10 +283,7 @@ func hashFunc(format string) (crypto.Hash, error) {
 		return 0, nil
 	case KeyAlgoRSA, InsecureKeyAlgoDSA:
 		if fips140.Enabled() {
-			return 0, fmt.Errorf(
-				"ssh: hash algorithm for format %q not allowed in FIPS 140 mode",
-				format,
-			)
+			return 0, fmt.Errorf("ssh: hash algorithm for format %q not allowed in FIPS 140 mode", format)
 		}
 		return crypto.SHA1, nil
 	default:
@@ -440,12 +437,7 @@ func (a *DirectionAlgorithms) rekeyBytes() int64 {
 	// 2^(BLOCKSIZE/4) blocks. For all AES flavors BLOCKSIZE is
 	// 128.
 	switch a.Cipher {
-	case CipherAES128CTR,
-		CipherAES192CTR,
-		CipherAES256CTR,
-		CipherAES128GCM,
-		CipherAES256GCM,
-		InsecureCipherAES128CBC:
+	case CipherAES128CTR, CipherAES192CTR, CipherAES256CTR, CipherAES128GCM, CipherAES256GCM, InsecureCipherAES128CBC:
 		return 16 * (1 << 32)
 
 	}
@@ -460,28 +452,15 @@ var aeadCiphers = map[string]bool{
 	CipherChaCha20Poly1305: true,
 }
 
-func findAgreedAlgorithms(
-	isClient bool,
-	clientKexInit, serverKexInit *kexInitMsg,
-) (algs *NegotiatedAlgorithms, err error) {
+func findAgreedAlgorithms(isClient bool, clientKexInit, serverKexInit *kexInitMsg) (algs *NegotiatedAlgorithms, err error) {
 	result := &NegotiatedAlgorithms{}
 
-	result.KeyExchange, err = findCommon(
-		"key exchange",
-		clientKexInit.KexAlgos,
-		serverKexInit.KexAlgos,
-		isClient,
-	)
+	result.KeyExchange, err = findCommon("key exchange", clientKexInit.KexAlgos, serverKexInit.KexAlgos, isClient)
 	if err != nil {
 		return
 	}
 
-	result.HostKey, err = findCommon(
-		"host key",
-		clientKexInit.ServerHostKeyAlgos,
-		serverKexInit.ServerHostKeyAlgos,
-		isClient,
-	)
+	result.HostKey, err = findCommon("host key", clientKexInit.ServerHostKeyAlgos, serverKexInit.ServerHostKeyAlgos, isClient)
 	if err != nil {
 		return
 	}
@@ -491,66 +470,36 @@ func findAgreedAlgorithms(
 		ctos, stoc = stoc, ctos
 	}
 
-	ctos.Cipher, err = findCommon(
-		"client to server cipher",
-		clientKexInit.CiphersClientServer,
-		serverKexInit.CiphersClientServer,
-		isClient,
-	)
+	ctos.Cipher, err = findCommon("client to server cipher", clientKexInit.CiphersClientServer, serverKexInit.CiphersClientServer, isClient)
 	if err != nil {
 		return
 	}
 
-	stoc.Cipher, err = findCommon(
-		"server to client cipher",
-		clientKexInit.CiphersServerClient,
-		serverKexInit.CiphersServerClient,
-		isClient,
-	)
+	stoc.Cipher, err = findCommon("server to client cipher", clientKexInit.CiphersServerClient, serverKexInit.CiphersServerClient, isClient)
 	if err != nil {
 		return
 	}
 
 	if !aeadCiphers[ctos.Cipher] {
-		ctos.MAC, err = findCommon(
-			"client to server MAC",
-			clientKexInit.MACsClientServer,
-			serverKexInit.MACsClientServer,
-			isClient,
-		)
+		ctos.MAC, err = findCommon("client to server MAC", clientKexInit.MACsClientServer, serverKexInit.MACsClientServer, isClient)
 		if err != nil {
 			return
 		}
 	}
 
 	if !aeadCiphers[stoc.Cipher] {
-		stoc.MAC, err = findCommon(
-			"server to client MAC",
-			clientKexInit.MACsServerClient,
-			serverKexInit.MACsServerClient,
-			isClient,
-		)
+		stoc.MAC, err = findCommon("server to client MAC", clientKexInit.MACsServerClient, serverKexInit.MACsServerClient, isClient)
 		if err != nil {
 			return
 		}
 	}
 
-	ctos.compression, err = findCommon(
-		"client to server compression",
-		clientKexInit.CompressionClientServer,
-		serverKexInit.CompressionClientServer,
-		isClient,
-	)
+	ctos.compression, err = findCommon("client to server compression", clientKexInit.CompressionClientServer, serverKexInit.CompressionClientServer, isClient)
 	if err != nil {
 		return
 	}
 
-	stoc.compression, err = findCommon(
-		"server to client compression",
-		clientKexInit.CompressionServerClient,
-		serverKexInit.CompressionServerClient,
-		isClient,
-	)
+	stoc.compression, err = findCommon("server to client compression", clientKexInit.CompressionServerClient, serverKexInit.CompressionServerClient, isClient)
 	if err != nil {
 		return
 	}
@@ -615,8 +564,7 @@ func (c *Config) SetDefaults() {
 		if kexAlgoMap[k] != nil {
 			// Ignore the KEX if we have no kexAlgoMap definition.
 			kexs = append(kexs, k)
-			if k == KeyExchangeCurve25519 &&
-				!slices.Contains(c.KeyExchanges, keyExchangeCurve25519LibSSH) {
+			if k == KeyExchangeCurve25519 && !slices.Contains(c.KeyExchanges, keyExchangeCurve25519LibSSH) {
 				kexs = append(kexs, keyExchangeCurve25519LibSSH)
 			}
 		}
@@ -648,12 +596,7 @@ func (c *Config) SetDefaults() {
 // buildDataSignedForAuth returns the data that is signed in order to prove
 // possession of a private key. See RFC 4252, section 7. algo is the advertised
 // algorithm, and may be a certificate type.
-func buildDataSignedForAuth(
-	sessionID []byte,
-	req userAuthRequestMsg,
-	algo string,
-	pubKey []byte,
-) []byte {
+func buildDataSignedForAuth(sessionID []byte, req userAuthRequestMsg, algo string, pubKey []byte) []byte {
 	data := struct {
 		Session []byte
 		Type    byte

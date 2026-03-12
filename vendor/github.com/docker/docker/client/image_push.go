@@ -19,11 +19,7 @@ import (
 // It executes the privileged function if the operation is unauthorized
 // and it tries one more time.
 // It's up to the caller to handle the io.ReadCloser and close it properly.
-func (cli *Client) ImagePush(
-	ctx context.Context,
-	image string,
-	options image.PushOptions,
-) (io.ReadCloser, error) {
+func (cli *Client) ImagePush(ctx context.Context, image string, options image.PushOptions) (io.ReadCloser, error) {
 	ref, err := reference.ParseNormalizedNamed(image)
 	if err != nil {
 		return nil, err
@@ -69,12 +65,7 @@ func (cli *Client) ImagePush(
 	return resp.Body, nil
 }
 
-func (cli *Client) tryImagePush(
-	ctx context.Context,
-	imageID string,
-	query url.Values,
-	registryAuth string,
-) (*http.Response, error) {
+func (cli *Client) tryImagePush(ctx context.Context, imageID string, query url.Values, registryAuth string) (*http.Response, error) {
 	// Always send a body (which may be an empty JSON document ("{}")) to prevent
 	// EOF errors on older daemons which had faulty fallback code for handling
 	// authentication in the body when no auth-header was set, resulting in;

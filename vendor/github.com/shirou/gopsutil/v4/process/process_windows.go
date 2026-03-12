@@ -254,9 +254,7 @@ func pidsWithContext(_ context.Context) ([]int32, error) {
 		if err := windows.EnumProcesses(ps, &read); err != nil {
 			return nil, err
 		}
-		if uint32(
-			len(ps),
-		) == read/dwordSize { // ps buffer was too small to host every results, retry with a bigger one
+		if uint32(len(ps)) == read/dwordSize { // ps buffer was too small to host every results, retry with a bigger one
 			psSize += 1024
 			continue
 		}
@@ -362,11 +360,7 @@ func (p *Process) ExeWithContext(_ context.Context) (string, error) {
 		return windows.UTF16ToString(buf), nil
 	}
 	// XP fallback
-	ret, _, err := procGetProcessImageFileNameW.Call(
-		uintptr(c),
-		uintptr(unsafe.Pointer(&buf[0])),
-		uintptr(size),
-	)
+	ret, _, err := procGetProcessImageFileNameW.Call(uintptr(c), uintptr(unsafe.Pointer(&buf[0])), uintptr(size))
 	if ret == 0 {
 		return "", err
 	}
@@ -419,13 +413,8 @@ func (p *Process) createTimeWithContext(_ context.Context) (int64, error) {
 }
 
 func (p *Process) CwdWithContext(_ context.Context) (string, error) {
-	h, err := windows.OpenProcess(
-		processQueryInformation|windows.PROCESS_VM_READ,
-		false,
-		uint32(p.Pid),
-	)
-	if errors.Is(err, windows.ERROR_ACCESS_DENIED) ||
-		errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
+	h, err := windows.OpenProcess(processQueryInformation|windows.PROCESS_VM_READ, false, uint32(p.Pid))
+	if errors.Is(err, windows.ERROR_ACCESS_DENIED) || errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
 		return "", nil
 	}
 	if err != nil {
@@ -441,12 +430,7 @@ func (p *Process) CwdWithContext(_ context.Context) (string, error) {
 			return "", err
 		}
 		if userProcParams.CurrentDirectoryPathNameLength > 0 {
-			cwd := readProcessMemory(
-				syscall.Handle(h),
-				procIs32Bits,
-				uint64(userProcParams.CurrentDirectoryPathAddress),
-				uint(userProcParams.CurrentDirectoryPathNameLength),
-			)
+			cwd := readProcessMemory(syscall.Handle(h), procIs32Bits, uint64(userProcParams.CurrentDirectoryPathAddress), uint(userProcParams.CurrentDirectoryPathNameLength))
 			if len(cwd) != int(userProcParams.CurrentDirectoryPathNameLength) {
 				return "", errors.New("cannot read current working directory")
 			}
@@ -595,10 +579,7 @@ func (p *Process) NumFDsWithContext(_ context.Context) (int32, error) {
 	defer windows.CloseHandle(handle)
 
 	var handleCount uint32
-	ret, _, err := procGetProcessHandleCount.Call(
-		uintptr(handle),
-		uintptr(unsafe.Pointer(&handleCount)),
-	)
+	ret, _, err := procGetProcessHandleCount.Call(uintptr(handle), uintptr(unsafe.Pointer(&handleCount)))
 	if ret == 0 {
 		return 0, err
 	}
@@ -639,16 +620,8 @@ func (p *Process) TimesWithContext(_ context.Context) (*cpu.TimesStat, error) {
 	// below from psutil's _psutil_windows.c, and in turn from Python's
 	// Modules/posixmodule.c
 
-	user := float64(
-		sysTimes.UserTime.HighDateTime,
-	)*429.4967296 + float64(
-		sysTimes.UserTime.LowDateTime,
-	)*1e-7
-	kernel := float64(
-		sysTimes.KernelTime.HighDateTime,
-	)*429.4967296 + float64(
-		sysTimes.KernelTime.LowDateTime,
-	)*1e-7
+	user := float64(sysTimes.UserTime.HighDateTime)*429.4967296 + float64(sysTimes.UserTime.LowDateTime)*1e-7
+	kernel := float64(sysTimes.KernelTime.HighDateTime)*429.4967296 + float64(sysTimes.KernelTime.LowDateTime)*1e-7
 
 	return &cpu.TimesStat{
 		User:   user,
@@ -748,10 +721,7 @@ func (p *Process) OpenFilesWithContext(ctx context.Context) ([]OpenFilesStat, er
 	}
 
 	handlesList := (*common.SystemExtendedHandleInformation)(unsafe.Pointer(&buffer[0]))
-	handles := make(
-		[]common.SystemExtendedHandleTableEntryInformation,
-		int(handlesList.NumberOfHandles),
-	)
+	handles := make([]common.SystemExtendedHandleTableEntryInformation, int(handlesList.NumberOfHandles))
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&handles))
 	hdr.Data = uintptr(unsafe.Pointer(&handlesList.Handles[0]))
 
@@ -765,15 +735,8 @@ func (p *Process) OpenFilesWithContext(ctx context.Context) ([]OpenFilesStat, er
 		if int32(handle.UniqueProcessId) != p.Pid {
 			continue
 		}
-		if windows.DuplicateHandle(
-			process,
-			windows.Handle(handle.HandleValue),
-			currentProcess,
-			(*windows.Handle)(&file),
-			0,
-			true,
-			windows.DUPLICATE_SAME_ACCESS,
-		) != nil {
+		if windows.DuplicateHandle(process, windows.Handle(handle.HandleValue), currentProcess, (*windows.Handle)(&file),
+			0, true, windows.DUPLICATE_SAME_ACCESS) != nil {
 			continue
 		}
 		// release the new handle
@@ -790,12 +753,7 @@ func (p *Process) OpenFilesWithContext(ctx context.Context) ([]OpenFilesStat, er
 		go func() {
 			defer close(ch)
 			var buf [syscall.MAX_LONG_PATH]uint16
-			n, err := windows.GetFinalPathNameByHandle(
-				windows.Handle(file),
-				&buf[0],
-				syscall.MAX_LONG_PATH,
-				0,
-			)
+			n, err := windows.GetFinalPathNameByHandle(windows.Handle(file), &buf[0], syscall.MAX_LONG_PATH, 0)
 			if err != nil {
 				return
 			}
@@ -992,13 +950,7 @@ func getMemoryInfo(pid int32) (PROCESS_MEMORY_COUNTERS, error) {
 }
 
 func getProcessMemoryInfo(h windows.Handle, mem *PROCESS_MEMORY_COUNTERS) (err error) {
-	r1, _, e1 := syscall.Syscall(
-		procGetProcessMemoryInfo.Addr(),
-		3,
-		uintptr(h),
-		uintptr(unsafe.Pointer(mem)),
-		uintptr(unsafe.Sizeof(*mem)),
-	)
+	r1, _, e1 := syscall.Syscall(procGetProcessMemoryInfo.Addr(), 3, uintptr(h), uintptr(unsafe.Pointer(mem)), uintptr(unsafe.Sizeof(*mem)))
 	if r1 == 0 {
 		if e1 != 0 {
 			err = error(e1)
@@ -1042,23 +994,13 @@ func getUserProcessParams32(handle windows.Handle) (rtlUserProcessParameters32, 
 		return rtlUserProcessParameters32{}, fmt.Errorf("cannot locate process PEB: %w", err)
 	}
 
-	buf := readProcessMemory(
-		syscall.Handle(handle),
-		true,
-		pebAddress,
-		uint(unsafe.Sizeof(processEnvironmentBlock32{})),
-	)
+	buf := readProcessMemory(syscall.Handle(handle), true, pebAddress, uint(unsafe.Sizeof(processEnvironmentBlock32{})))
 	if len(buf) != int(unsafe.Sizeof(processEnvironmentBlock32{})) {
 		return rtlUserProcessParameters32{}, errors.New("cannot read process PEB")
 	}
 	peb := (*processEnvironmentBlock32)(unsafe.Pointer(&buf[0]))
 	userProcessAddress := uint64(peb.ProcessParameters)
-	buf = readProcessMemory(
-		syscall.Handle(handle),
-		true,
-		userProcessAddress,
-		uint(unsafe.Sizeof(rtlUserProcessParameters32{})),
-	)
+	buf = readProcessMemory(syscall.Handle(handle), true, userProcessAddress, uint(unsafe.Sizeof(rtlUserProcessParameters32{})))
 	if len(buf) != int(unsafe.Sizeof(rtlUserProcessParameters32{})) {
 		return rtlUserProcessParameters32{}, errors.New("cannot read user process parameters")
 	}
@@ -1071,23 +1013,13 @@ func getUserProcessParams64(handle windows.Handle) (rtlUserProcessParameters64, 
 		return rtlUserProcessParameters64{}, fmt.Errorf("cannot locate process PEB: %w", err)
 	}
 
-	buf := readProcessMemory(
-		syscall.Handle(handle),
-		false,
-		pebAddress,
-		uint(unsafe.Sizeof(processEnvironmentBlock64{})),
-	)
+	buf := readProcessMemory(syscall.Handle(handle), false, pebAddress, uint(unsafe.Sizeof(processEnvironmentBlock64{})))
 	if len(buf) != int(unsafe.Sizeof(processEnvironmentBlock64{})) {
 		return rtlUserProcessParameters64{}, errors.New("cannot read process PEB")
 	}
 	peb := (*processEnvironmentBlock64)(unsafe.Pointer(&buf[0]))
 	userProcessAddress := peb.ProcessParameters
-	buf = readProcessMemory(
-		syscall.Handle(handle),
-		false,
-		userProcessAddress,
-		uint(unsafe.Sizeof(rtlUserProcessParameters64{})),
-	)
+	buf = readProcessMemory(syscall.Handle(handle), false, userProcessAddress, uint(unsafe.Sizeof(rtlUserProcessParameters64{})))
 	if len(buf) != int(unsafe.Sizeof(rtlUserProcessParameters64{})) {
 		return rtlUserProcessParameters64{}, errors.New("cannot read user process parameters")
 	}
@@ -1140,13 +1072,8 @@ func is32BitProcess(h windows.Handle) bool {
 }
 
 func getProcessEnvironmentVariables(ctx context.Context, pid int32) ([]string, error) {
-	h, err := windows.OpenProcess(
-		processQueryInformation|windows.PROCESS_VM_READ,
-		false,
-		uint32(pid),
-	)
-	if errors.Is(err, windows.ERROR_ACCESS_DENIED) ||
-		errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
+	h, err := windows.OpenProcess(processQueryInformation|windows.PROCESS_VM_READ, false, uint32(pid))
+	if errors.Is(err, windows.ERROR_ACCESS_DENIED) || errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
 		return nil, nil
 	}
 	if err != nil {
@@ -1219,12 +1146,7 @@ type processReader struct {
 }
 
 func (p *processReader) Read(buf []byte) (int, error) {
-	processMemory := readProcessMemory(
-		syscall.Handle(p.processHandle),
-		p.is32BitProcess,
-		p.offset,
-		uint(len(buf)),
-	)
+	processMemory := readProcessMemory(syscall.Handle(p.processHandle), p.is32BitProcess, p.offset, uint(len(buf)))
 	if len(processMemory) == 0 {
 		return 0, io.EOF
 	}
@@ -1234,13 +1156,8 @@ func (p *processReader) Read(buf []byte) (int, error) {
 }
 
 func getProcessCommandLine(pid int32) (string, error) {
-	h, err := windows.OpenProcess(
-		processQueryInformation|windows.PROCESS_VM_READ,
-		false,
-		uint32(pid),
-	)
-	if errors.Is(err, windows.ERROR_ACCESS_DENIED) ||
-		errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
+	h, err := windows.OpenProcess(processQueryInformation|windows.PROCESS_VM_READ, false, uint32(pid))
+	if errors.Is(err, windows.ERROR_ACCESS_DENIED) || errors.Is(err, windows.ERROR_INVALID_PARAMETER) {
 		return "", nil
 	}
 	if err != nil {
@@ -1256,12 +1173,7 @@ func getProcessCommandLine(pid int32) (string, error) {
 			return "", err
 		}
 		if userProcParams.CommandLineLength > 0 {
-			cmdLine := readProcessMemory(
-				syscall.Handle(h),
-				procIs32Bits,
-				uint64(userProcParams.CommandLineAddress),
-				uint(userProcParams.CommandLineLength),
-			)
+			cmdLine := readProcessMemory(syscall.Handle(h), procIs32Bits, uint64(userProcParams.CommandLineAddress), uint(userProcParams.CommandLineLength))
 			if len(cmdLine) != int(userProcParams.CommandLineLength) {
 				return "", errors.New("cannot read cmdline")
 			}

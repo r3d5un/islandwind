@@ -48,9 +48,7 @@ type Float64ObservableCounterConfig struct {
 
 // NewFloat64ObservableCounterConfig returns a new
 // [Float64ObservableCounterConfig] with all opts applied.
-func NewFloat64ObservableCounterConfig(
-	opts ...Float64ObservableCounterOption,
-) Float64ObservableCounterConfig {
+func NewFloat64ObservableCounterConfig(opts ...Float64ObservableCounterOption) Float64ObservableCounterConfig {
 	var config Float64ObservableCounterConfig
 	for _, o := range opts {
 		config = o.applyFloat64ObservableCounter(config)
@@ -138,9 +136,7 @@ func (c Float64ObservableUpDownCounterConfig) Callbacks() []Float64Callback {
 // [InstrumentOption] for other options that can be used as a
 // Float64ObservableUpDownCounterOption.
 type Float64ObservableUpDownCounterOption interface {
-	applyFloat64ObservableUpDownCounter(
-		Float64ObservableUpDownCounterConfig,
-	) Float64ObservableUpDownCounterConfig
+	applyFloat64ObservableUpDownCounter(Float64ObservableUpDownCounterConfig) Float64ObservableUpDownCounterConfig
 }
 
 // Float64ObservableGauge is an instrument used to asynchronously record
@@ -169,9 +165,7 @@ type Float64ObservableGaugeConfig struct {
 
 // NewFloat64ObservableGaugeConfig returns a new [Float64ObservableGaugeConfig]
 // with all opts applied.
-func NewFloat64ObservableGaugeConfig(
-	opts ...Float64ObservableGaugeOption,
-) Float64ObservableGaugeConfig {
+func NewFloat64ObservableGaugeConfig(opts ...Float64ObservableGaugeOption) Float64ObservableGaugeConfig {
 	var config Float64ObservableGaugeConfig
 	for _, o := range opts {
 		config = o.applyFloat64ObservableGauge(config)
@@ -265,9 +259,7 @@ func (o float64CallbackOpt) applyFloat64ObservableUpDownCounter(
 	return cfg
 }
 
-func (o float64CallbackOpt) applyFloat64ObservableGauge(
-	cfg Float64ObservableGaugeConfig,
-) Float64ObservableGaugeConfig {
+func (o float64CallbackOpt) applyFloat64ObservableGauge(cfg Float64ObservableGaugeConfig) Float64ObservableGaugeConfig {
 	cfg.callbacks = append(cfg.callbacks, o.cback)
 	return cfg
 }

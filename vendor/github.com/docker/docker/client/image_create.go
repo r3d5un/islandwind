@@ -14,11 +14,7 @@ import (
 
 // ImageCreate creates a new image based on the parent options.
 // It returns the JSON content in the response body.
-func (cli *Client) ImageCreate(
-	ctx context.Context,
-	parentReference string,
-	options image.CreateOptions,
-) (io.ReadCloser, error) {
+func (cli *Client) ImageCreate(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error) {
 	ref, err := reference.ParseNormalizedNamed(parentReference)
 	if err != nil {
 		return nil, err
@@ -37,11 +33,7 @@ func (cli *Client) ImageCreate(
 	return resp.Body, nil
 }
 
-func (cli *Client) tryImageCreate(
-	ctx context.Context,
-	query url.Values,
-	registryAuth string,
-) (*http.Response, error) {
+func (cli *Client) tryImageCreate(ctx context.Context, query url.Values, registryAuth string) (*http.Response, error) {
 	return cli.post(ctx, "/images/create", query, nil, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})

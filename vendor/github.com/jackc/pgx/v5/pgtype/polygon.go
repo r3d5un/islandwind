@@ -236,12 +236,7 @@ func (scanPlanTextAnyToPolygonScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanPolygon(Polygon{P: points, Valid: true})
 }
 
-func (c PolygonCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c PolygonCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

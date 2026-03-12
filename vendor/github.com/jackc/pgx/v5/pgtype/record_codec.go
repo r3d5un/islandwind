@@ -53,11 +53,7 @@ func (plan *scanPlanBinaryRecordToCompositeIndexScanner) Scan(src []byte, target
 		if fieldTarget != nil {
 			fieldPlan := plan.m.PlanScan(scanner.OID(), BinaryFormatCode, fieldTarget)
 			if fieldPlan == nil {
-				return fmt.Errorf(
-					"unable to scan OID %d in binary format into %v",
-					scanner.OID(),
-					fieldTarget,
-				)
+				return fmt.Errorf("unable to scan OID %d in binary format into %v", scanner.OID(), fieldTarget)
 			}
 
 			err := fieldPlan.Scan(scanner.Bytes(), fieldTarget)
@@ -74,12 +70,7 @@ func (plan *scanPlanBinaryRecordToCompositeIndexScanner) Scan(src []byte, target
 	return nil
 }
 
-func (RecordCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (RecordCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}
@@ -111,11 +102,7 @@ func (RecordCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (an
 			var v any
 			fieldPlan := m.PlanScan(scanner.OID(), BinaryFormatCode, &v)
 			if fieldPlan == nil {
-				return nil, fmt.Errorf(
-					"unable to scan OID %d in binary format into %v",
-					scanner.OID(),
-					v,
-				)
+				return nil, fmt.Errorf("unable to scan OID %d in binary format into %v", scanner.OID(), v)
 			}
 
 			err := fieldPlan.Scan(scanner.Bytes(), &v)

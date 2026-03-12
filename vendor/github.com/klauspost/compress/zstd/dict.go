@@ -142,13 +142,8 @@ func loadDict(b []byte) (*dict, error) {
 	}
 	d.content = make([]byte, br.remain())
 	copy(d.content, br.unread())
-	if d.offsets[0] > len(d.content) || d.offsets[1] > len(d.content) ||
-		d.offsets[2] > len(d.content) {
-		return nil, fmt.Errorf(
-			"initial offset bigger than dictionary content size %d, offsets: %v",
-			len(d.content),
-			d.offsets,
-		)
+	if d.offsets[0] > len(d.content) || d.offsets[1] > len(d.content) || d.offsets[2] > len(d.content) {
+		return nil, fmt.Errorf("initial offset bigger than dictionary content size %d, offsets: %v", len(d.content), d.offsets)
 	}
 
 	return &d, nil
@@ -235,15 +230,7 @@ func BuildDict(o BuildDictOptions) ([]byte, error) {
 	}
 	block := blockEnc{lowMem: false}
 	block.init()
-	enc := encoder(
-		&bestFastEncoder{
-			fastBase: fastBase{
-				maxMatchOff: int32(maxMatchLen),
-				bufferReset: math.MaxInt32 - int32(maxMatchLen*2),
-				lowMem:      false,
-			},
-		},
-	)
+	enc := encoder(&bestFastEncoder{fastBase: fastBase{maxMatchOff: int32(maxMatchLen), bufferReset: math.MaxInt32 - int32(maxMatchLen*2), lowMem: false}})
 	if o.Level != 0 {
 		eOpts := encoderOptions{
 			level:      o.Level,
@@ -566,12 +553,7 @@ func BuildDict(o BuildDictOptions) ([]byte, error) {
 		println("Input size:", totalSize)
 		println("Plain Compressed:", plain)
 		println("Dict Compressed:", withDict)
-		println(
-			"Saved:",
-			plain-withDict,
-			(plain-withDict)/len(contents),
-			"bytes per input (rounded down)",
-		)
+		println("Saved:", plain-withDict, (plain-withDict)/len(contents), "bytes per input (rounded down)")
 	}
 	return out.Bytes(), nil
 }

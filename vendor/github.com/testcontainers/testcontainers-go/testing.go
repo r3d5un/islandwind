@@ -23,10 +23,7 @@ func SkipIfProviderIsNotHealthy(t *testing.T) {
 	t.Helper()
 	defer func() {
 		if r := recover(); r != nil {
-			t.Skipf(
-				"Recovered from panic: %v. Docker is not running. Testcontainers can't perform is work without it",
-				r,
-			)
+			t.Skipf("Recovered from panic: %v. Docker is not running. Testcontainers can't perform is work without it", r)
 		}
 	}()
 
@@ -182,12 +179,7 @@ func isCleanupSafe(err error) bool {
 // RequireContainerExec is a helper function that executes a command in a container
 // It insures that there is no error during the execution
 // Finally returns the output of its execution
-func RequireContainerExec(
-	ctx context.Context,
-	t *testing.T,
-	container Container,
-	cmd []string,
-) string {
+func RequireContainerExec(ctx context.Context, t *testing.T, container Container, cmd []string) string {
 	t.Helper()
 
 	code, out, err := container.Exec(ctx, cmd)

@@ -136,22 +136,13 @@ type Tx interface {
 	// being closed.
 	Rollback(ctx context.Context) error
 
-	CopyFrom(
-		ctx context.Context,
-		tableName Identifier,
-		columnNames []string,
-		rowSrc CopyFromSource,
-	) (int64, error)
+	CopyFrom(ctx context.Context, tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int64, error)
 	SendBatch(ctx context.Context, b *Batch) BatchResults
 	LargeObjects() LargeObjects
 
 	Prepare(ctx context.Context, name, sql string) (*pgconn.StatementDescription, error)
 
-	Exec(
-		ctx context.Context,
-		sql string,
-		arguments ...any,
-	) (commandTag pgconn.CommandTag, err error)
+	Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error)
 	Query(ctx context.Context, sql string, args ...any) (Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) Row
 
@@ -232,11 +223,7 @@ func (tx *dbTx) Rollback(ctx context.Context) error {
 }
 
 // Exec delegates to the underlying *Conn
-func (tx *dbTx) Exec(
-	ctx context.Context,
-	sql string,
-	arguments ...any,
-) (commandTag pgconn.CommandTag, err error) {
+func (tx *dbTx) Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error) {
 	if tx.closed {
 		return pgconn.CommandTag{}, ErrTxClosed
 	}
@@ -245,10 +232,7 @@ func (tx *dbTx) Exec(
 }
 
 // Prepare delegates to the underlying *Conn
-func (tx *dbTx) Prepare(
-	ctx context.Context,
-	name, sql string,
-) (*pgconn.StatementDescription, error) {
+func (tx *dbTx) Prepare(ctx context.Context, name, sql string) (*pgconn.StatementDescription, error) {
 	if tx.closed {
 		return nil, ErrTxClosed
 	}
@@ -274,12 +258,7 @@ func (tx *dbTx) QueryRow(ctx context.Context, sql string, args ...any) Row {
 }
 
 // CopyFrom delegates to the underlying *Conn
-func (tx *dbTx) CopyFrom(
-	ctx context.Context,
-	tableName Identifier,
-	columnNames []string,
-	rowSrc CopyFromSource,
-) (int64, error) {
+func (tx *dbTx) CopyFrom(ctx context.Context, tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int64, error) {
 	if tx.closed {
 		return 0, ErrTxClosed
 	}
@@ -346,11 +325,7 @@ func (sp *dbSimulatedNestedTx) Rollback(ctx context.Context) error {
 }
 
 // Exec delegates to the underlying Tx
-func (sp *dbSimulatedNestedTx) Exec(
-	ctx context.Context,
-	sql string,
-	arguments ...any,
-) (commandTag pgconn.CommandTag, err error) {
+func (sp *dbSimulatedNestedTx) Exec(ctx context.Context, sql string, arguments ...any) (commandTag pgconn.CommandTag, err error) {
 	if sp.closed {
 		return pgconn.CommandTag{}, ErrTxClosed
 	}
@@ -359,10 +334,7 @@ func (sp *dbSimulatedNestedTx) Exec(
 }
 
 // Prepare delegates to the underlying Tx
-func (sp *dbSimulatedNestedTx) Prepare(
-	ctx context.Context,
-	name, sql string,
-) (*pgconn.StatementDescription, error) {
+func (sp *dbSimulatedNestedTx) Prepare(ctx context.Context, name, sql string) (*pgconn.StatementDescription, error) {
 	if sp.closed {
 		return nil, ErrTxClosed
 	}
@@ -388,12 +360,7 @@ func (sp *dbSimulatedNestedTx) QueryRow(ctx context.Context, sql string, args ..
 }
 
 // CopyFrom delegates to the underlying *Conn
-func (sp *dbSimulatedNestedTx) CopyFrom(
-	ctx context.Context,
-	tableName Identifier,
-	columnNames []string,
-	rowSrc CopyFromSource,
-) (int64, error) {
+func (sp *dbSimulatedNestedTx) CopyFrom(ctx context.Context, tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int64, error) {
 	if sp.closed {
 		return 0, ErrTxClosed
 	}

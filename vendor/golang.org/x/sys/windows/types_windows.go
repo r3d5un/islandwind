@@ -2133,8 +2133,7 @@ type SocketAddress struct {
 
 // IP returns an IPv4 or IPv6 address, or nil if the underlying SocketAddress is neither.
 func (addr *SocketAddress) IP() net.IP {
-	if uintptr(addr.SockaddrLength) >= unsafe.Sizeof(RawSockaddrInet4{}) &&
-		addr.Sockaddr.Addr.Family == AF_INET {
+	if uintptr(addr.SockaddrLength) >= unsafe.Sizeof(RawSockaddrInet4{}) && addr.Sockaddr.Addr.Family == AF_INET {
 		return (*RawSockaddrInet4)(unsafe.Pointer(addr.Sockaddr)).Addr[:]
 	} else if uintptr(addr.SockaddrLength) >= unsafe.Sizeof(RawSockaddrInet6{}) && addr.Sockaddr.Addr.Family == AF_INET6 {
 		return (*RawSockaddrInet6)(unsafe.Pointer(addr.Sockaddr)).Addr[:]

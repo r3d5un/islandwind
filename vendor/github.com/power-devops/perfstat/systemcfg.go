@@ -355,8 +355,7 @@ func POWER8() bool {
 
 func POWER7OrNewer() bool {
 	impl := unix.Getsystemcfg(SC_IMPL)
-	if impl&IMPL_POWER10 != 0 || impl&IMPL_POWER9 != 0 || impl&IMPL_POWER8 != 0 ||
-		impl&IMPL_POWER7 != 0 {
+	if impl&IMPL_POWER10 != 0 || impl&IMPL_POWER9 != 0 || impl&IMPL_POWER8 != 0 || impl&IMPL_POWER7 != 0 {
 		return true
 	}
 	return false

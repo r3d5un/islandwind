@@ -162,10 +162,7 @@ func parseLocalDateTime(b []byte) (LocalDateTime, []byte, error) {
 
 	const localDateTimeByteMinLen = 11
 	if len(b) < localDateTimeByteMinLen {
-		return dt, nil, unstable.NewParserError(
-			b,
-			"local datetimes are expected to have the format YYYY-MM-DDTHH:MM:SS[.NNNNNNNNN]",
-		)
+		return dt, nil, unstable.NewParserError(b, "local datetimes are expected to have the format YYYY-MM-DDTHH:MM:SS[.NNNNNNNNN]")
 	}
 
 	date, err := parseLocalDate(b[:10])
@@ -176,10 +173,7 @@ func parseLocalDateTime(b []byte) (LocalDateTime, []byte, error) {
 
 	sep := b[10]
 	if sep != 'T' && sep != ' ' && sep != 't' {
-		return dt, nil, unstable.NewParserError(
-			b[10:11],
-			"datetime separator is expected to be T or a space",
-		)
+		return dt, nil, unstable.NewParserError(b[10:11], "datetime separator is expected to be T or a space")
 	}
 
 	t, rest, err := parseLocalTime(b[11:])
@@ -203,10 +197,7 @@ func parseLocalTime(b []byte) (LocalTime, []byte, error) {
 	// check if b matches to have expected format HH:MM:SS[.NNNNNN]
 	const localTimeByteLen = 8
 	if len(b) < localTimeByteLen {
-		return t, nil, unstable.NewParserError(
-			b,
-			"times are expected to have the format HH:MM:SS[.NNNNNN]",
-		)
+		return t, nil, unstable.NewParserError(b, "times are expected to have the format HH:MM:SS[.NNNNNN]")
 	}
 
 	var err error
@@ -231,10 +222,7 @@ func parseLocalTime(b []byte) (LocalTime, []byte, error) {
 		return t, nil, unstable.NewParserError(b[3:5], "minutes cannot be greater 59")
 	}
 	if b[5] != ':' {
-		return t, nil, unstable.NewParserError(
-			b[5:6],
-			"expecting colon between minutes and seconds",
-		)
+		return t, nil, unstable.NewParserError(b[5:6], "expecting colon between minutes and seconds")
 	}
 
 	t.Second, err = parseDecimalDigits(b[6:8])
@@ -256,10 +244,7 @@ func parseLocalTime(b []byte) (LocalTime, []byte, error) {
 		for i, c := range b[1:] {
 			if !isDigit(c) {
 				if i == 0 {
-					return t, nil, unstable.NewParserError(
-						b[0:1],
-						"need at least one digit after fraction point",
-					)
+					return t, nil, unstable.NewParserError(b[0:1], "need at least one digit after fraction point")
 				}
 				break
 			}
@@ -317,22 +302,13 @@ func parseFloat(b []byte) (float64, error) {
 	for i, c := range cleaned {
 		if c == '.' {
 			if dotAlreadySeen {
-				return 0, unstable.NewParserError(
-					b[i:i+1],
-					"float can have at most one decimal point",
-				)
+				return 0, unstable.NewParserError(b[i:i+1], "float can have at most one decimal point")
 			}
 			if !isDigit(cleaned[i-1]) {
-				return 0, unstable.NewParserError(
-					b[i-1:i+1],
-					"float decimal point must be preceded by a digit",
-				)
+				return 0, unstable.NewParserError(b[i-1:i+1], "float decimal point must be preceded by a digit")
 			}
 			if !isDigit(cleaned[i+1]) {
-				return 0, unstable.NewParserError(
-					b[i:i+2],
-					"float decimal point must be followed by a digit",
-				)
+				return 0, unstable.NewParserError(b[i:i+2], "float decimal point must be followed by a digit")
 			}
 			dotAlreadySeen = true
 		}
@@ -461,10 +437,7 @@ func checkAndRemoveUnderscoresIntegers(b []byte) ([]byte, error) {
 		c := b[i]
 		if c == '_' {
 			if !before {
-				return nil, unstable.NewParserError(
-					b[i-1:i+1],
-					"number must have at least one digit between underscores",
-				)
+				return nil, unstable.NewParserError(b[i-1:i+1], "number must have at least one digit between underscores")
 			}
 			before = false
 		} else {
@@ -505,16 +478,10 @@ func checkAndRemoveUnderscoresFloats(b []byte) ([]byte, error) {
 		switch c {
 		case '_':
 			if !before {
-				return nil, unstable.NewParserError(
-					b[i-1:i+1],
-					"number must have at least one digit between underscores",
-				)
+				return nil, unstable.NewParserError(b[i-1:i+1], "number must have at least one digit between underscores")
 			}
 			if i < len(b)-1 && (b[i+1] == 'e' || b[i+1] == 'E') {
-				return nil, unstable.NewParserError(
-					b[i+1:i+2],
-					"cannot have underscore before exponent",
-				)
+				return nil, unstable.NewParserError(b[i+1:i+2], "cannot have underscore before exponent")
 			}
 			before = false
 		case '+', '-':
@@ -523,24 +490,15 @@ func checkAndRemoveUnderscoresFloats(b []byte) ([]byte, error) {
 			before = false
 		case 'e', 'E':
 			if i < len(b)-1 && b[i+1] == '_' {
-				return nil, unstable.NewParserError(
-					b[i+1:i+2],
-					"cannot have underscore after exponent",
-				)
+				return nil, unstable.NewParserError(b[i+1:i+2], "cannot have underscore after exponent")
 			}
 			cleaned = append(cleaned, c)
 		case '.':
 			if i < len(b)-1 && b[i+1] == '_' {
-				return nil, unstable.NewParserError(
-					b[i+1:i+2],
-					"cannot have underscore after decimal point",
-				)
+				return nil, unstable.NewParserError(b[i+1:i+2], "cannot have underscore after decimal point")
 			}
 			if i > 0 && b[i-1] == '_' {
-				return nil, unstable.NewParserError(
-					b[i-1:i],
-					"cannot have underscore before decimal point",
-				)
+				return nil, unstable.NewParserError(b[i-1:i], "cannot have underscore before decimal point")
 			}
 			cleaned = append(cleaned, c)
 		default:

@@ -81,27 +81,10 @@ func (f frameHeader) appendTo(dst []byte) []byte {
 		f.ContentSize -= 256
 		dst = append(dst, uint8(f.ContentSize), uint8(f.ContentSize>>8))
 	case 2:
-		dst = append(
-			dst,
-			uint8(f.ContentSize),
-			uint8(f.ContentSize>>8),
-			uint8(f.ContentSize>>16),
-			uint8(f.ContentSize>>24),
-		)
+		dst = append(dst, uint8(f.ContentSize), uint8(f.ContentSize>>8), uint8(f.ContentSize>>16), uint8(f.ContentSize>>24))
 	case 3:
-		dst = append(
-			dst,
-			uint8(f.ContentSize),
-			uint8(f.ContentSize>>8),
-			uint8(f.ContentSize>>16),
-			uint8(f.ContentSize>>24),
-			uint8(
-				f.ContentSize>>32,
-			),
-			uint8(f.ContentSize>>40),
-			uint8(f.ContentSize>>48),
-			uint8(f.ContentSize>>56),
-		)
+		dst = append(dst, uint8(f.ContentSize), uint8(f.ContentSize>>8), uint8(f.ContentSize>>16), uint8(f.ContentSize>>24),
+			uint8(f.ContentSize>>32), uint8(f.ContentSize>>40), uint8(f.ContentSize>>48), uint8(f.ContentSize>>56))
 	default:
 		panic("invalid fcs")
 	}

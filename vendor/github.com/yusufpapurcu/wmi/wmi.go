@@ -83,11 +83,7 @@ func Query(query string, dst interface{}, connectServerArgs ...interface{}) erro
 // className, with the given params.
 //
 // CallMethod is a wrapper around DefaultClient.CallMethod.
-func CallMethod(
-	connectServerArgs []interface{},
-	className, methodName string,
-	params []interface{},
-) (int32, error) {
+func CallMethod(connectServerArgs []interface{}, className, methodName string, params []interface{}) (int32, error) {
 	return DefaultClient.CallMethod(connectServerArgs, className, methodName, params)
 }
 
@@ -191,11 +187,7 @@ func (c *Client) coinitService(connectServerArgs ...interface{}) (*ole.IDispatch
 // are used. See
 // https://docs.microsoft.com/en-us/windows/desktop/WmiSdk/swbemlocator-connectserver
 // for details.
-func (c *Client) CallMethod(
-	connectServerArgs []interface{},
-	className, methodName string,
-	params []interface{},
-) (int32, error) {
+func (c *Client) CallMethod(connectServerArgs []interface{}, className, methodName string, params []interface{}) (int32, error) {
 	service, cleanup, err := c.coinitService(connectServerArgs...)
 	if err != nil {
 		return 0, fmt.Errorf("coinit: %v", err)
@@ -475,7 +467,7 @@ func (c *Client) loadEntity(dst interface{}, src *ole.IDispatch) (errFieldMismat
 					Reason:     "not a Float64",
 				}
 			}
-
+		
 		default:
 			if f.Kind() == reflect.Slice {
 				switch f.Type().Elem().Kind() {

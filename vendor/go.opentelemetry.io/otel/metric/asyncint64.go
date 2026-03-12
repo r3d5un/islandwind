@@ -47,9 +47,7 @@ type Int64ObservableCounterConfig struct {
 
 // NewInt64ObservableCounterConfig returns a new [Int64ObservableCounterConfig]
 // with all opts applied.
-func NewInt64ObservableCounterConfig(
-	opts ...Int64ObservableCounterOption,
-) Int64ObservableCounterConfig {
+func NewInt64ObservableCounterConfig(opts ...Int64ObservableCounterOption) Int64ObservableCounterConfig {
 	var config Int64ObservableCounterConfig
 	for _, o := range opts {
 		config = o.applyInt64ObservableCounter(config)
@@ -137,9 +135,7 @@ func (c Int64ObservableUpDownCounterConfig) Callbacks() []Int64Callback {
 // [InstrumentOption] for other options that can be used as an
 // Int64ObservableUpDownCounterOption.
 type Int64ObservableUpDownCounterOption interface {
-	applyInt64ObservableUpDownCounter(
-		Int64ObservableUpDownCounterConfig,
-	) Int64ObservableUpDownCounterConfig
+	applyInt64ObservableUpDownCounter(Int64ObservableUpDownCounterConfig) Int64ObservableUpDownCounterConfig
 }
 
 // Int64ObservableGauge is an instrument used to asynchronously record
@@ -247,9 +243,7 @@ type int64CallbackOpt struct {
 	cback Int64Callback
 }
 
-func (o int64CallbackOpt) applyInt64ObservableCounter(
-	cfg Int64ObservableCounterConfig,
-) Int64ObservableCounterConfig {
+func (o int64CallbackOpt) applyInt64ObservableCounter(cfg Int64ObservableCounterConfig) Int64ObservableCounterConfig {
 	cfg.callbacks = append(cfg.callbacks, o.cback)
 	return cfg
 }
@@ -261,9 +255,7 @@ func (o int64CallbackOpt) applyInt64ObservableUpDownCounter(
 	return cfg
 }
 
-func (o int64CallbackOpt) applyInt64ObservableGauge(
-	cfg Int64ObservableGaugeConfig,
-) Int64ObservableGaugeConfig {
+func (o int64CallbackOpt) applyInt64ObservableGauge(cfg Int64ObservableGaugeConfig) Int64ObservableGaugeConfig {
 	cfg.callbacks = append(cfg.callbacks, o.cback)
 	return cfg
 }

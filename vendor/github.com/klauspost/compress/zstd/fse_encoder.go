@@ -54,12 +54,7 @@ type symbolTransform struct {
 
 // String prints values as a human readable string.
 func (s symbolTransform) String() string {
-	return fmt.Sprintf(
-		"{deltabits: %08x, findstate:%d outbits:%d}",
-		s.deltaNbBits,
-		s.deltaFindState,
-		s.outBits,
-	)
+	return fmt.Sprintf("{deltabits: %08x, findstate:%d outbits:%d}", s.deltaNbBits, s.deltaFindState, s.outBits)
 }
 
 // Histogram allows to populate the histogram and skip that step in the compression,
@@ -137,11 +132,7 @@ func (s *fseEncoder) buildCTable() error {
 			cumul[u+1] = cumul[u] + v
 		}
 		if uint32(cumul[s.symbolLen]) != tableSize {
-			return fmt.Errorf(
-				"internal error: expected cumul[s.symbolLen] (%d) == tableSize (%d)",
-				cumul[s.symbolLen],
-				tableSize,
-			)
+			return fmt.Errorf("internal error: expected cumul[s.symbolLen] (%d) == tableSize (%d)", cumul[s.symbolLen], tableSize)
 		}
 		cumul[s.symbolLen] = int16(tableSize) + 1
 	}
@@ -413,9 +404,7 @@ func (s *fseEncoder) normalizeCount2(length int) error {
 	var (
 		vStepLog = 62 - uint64(tableLog)
 		mid      = uint64((1 << (vStepLog - 1)) - 1)
-		rStep    = (((1 << vStepLog) * uint64(toDistribute)) + mid) / uint64(
-			total,
-		) // scale on remaining
+		rStep    = (((1 << vStepLog) * uint64(toDistribute)) + mid) / uint64(total) // scale on remaining
 		tmpTotal = mid
 	)
 	for i, cnt := range s.count[:s.symbolLen] {
@@ -596,15 +585,7 @@ func (s *fseEncoder) writeCount(out []byte) ([]byte, error) {
 	}
 
 	if outP+2 > len(out) {
-		return nil, fmt.Errorf(
-			"internal error: %d > %d, maxheader: %d, sl: %d, tl: %d, normcount: %v",
-			outP+2,
-			len(out),
-			maxHeaderSize,
-			s.symbolLen,
-			int(tableLog),
-			s.norm[:s.symbolLen],
-		)
+		return nil, fmt.Errorf("internal error: %d > %d, maxheader: %d, sl: %d, tl: %d, normcount: %v", outP+2, len(out), maxHeaderSize, s.symbolLen, int(tableLog), s.norm[:s.symbolLen])
 	}
 	out[outP] = byte(bitStream)
 	out[outP+1] = byte(bitStream >> 8)

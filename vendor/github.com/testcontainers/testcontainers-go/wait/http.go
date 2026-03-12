@@ -83,9 +83,7 @@ func (ws *HTTPStrategy) WithPort(port nat.Port) *HTTPStrategy {
 	return ws
 }
 
-func (ws *HTTPStrategy) WithStatusCodeMatcher(
-	statusCodeMatcher func(status int) bool,
-) *HTTPStrategy {
+func (ws *HTTPStrategy) WithStatusCodeMatcher(statusCodeMatcher func(status int) bool) *HTTPStrategy {
 	ws.StatusCodeMatcher = statusCodeMatcher
 	return ws
 }
@@ -321,12 +319,7 @@ func (ws *HTTPStrategy) WaitUntilReady(ctx context.Context, target StrategyTarge
 			if err := checkTarget(ctx, target); err != nil {
 				return err
 			}
-			req, err := http.NewRequestWithContext(
-				ctx,
-				ws.Method,
-				endpoint.String(),
-				bytes.NewReader(body),
-			)
+			req, err := http.NewRequestWithContext(ctx, ws.Method, endpoint.String(), bytes.NewReader(body))
 			if err != nil {
 				return err
 			}

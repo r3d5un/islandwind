@@ -13,11 +13,7 @@ func (*ParseComplete) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *ParseComplete) Decode(src []byte) error {
 	if len(src) != 0 {
-		return &invalidMessageLenErr{
-			messageType: "ParseComplete",
-			expectedLen: 0,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "ParseComplete", expectedLen: 0, actualLen: len(src)}
 	}
 
 	return nil

@@ -94,11 +94,7 @@ func NewConnector(dsn string) (*Connector, error) {
 	// DateStyle needs a similar treatment.
 	if datestyle, ok := o["datestyle"]; ok {
 		if datestyle != "ISO, MDY" {
-			return nil, fmt.Errorf(
-				"setting datestyle must be absent or %v; got %v",
-				"ISO, MDY",
-				datestyle,
-			)
+			return nil, fmt.Errorf("setting datestyle must be absent or %v; got %v", "ISO, MDY", datestyle)
 		}
 	} else {
 		o["datestyle"] = "ISO, MDY"

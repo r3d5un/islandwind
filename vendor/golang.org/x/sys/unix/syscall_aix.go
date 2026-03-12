@@ -217,13 +217,7 @@ func Accept(fd int) (nfd int, sa Sockaddr, err error) {
 	return
 }
 
-func recvmsgRaw(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	flags int,
-	rsa *RawSockaddrAny,
-) (n, oobn int, recvflags int, err error) {
+func recvmsgRaw(fd int, iov []Iovec, oob []byte, flags int, rsa *RawSockaddrAny) (n, oobn int, recvflags int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(unsafe.Pointer(rsa))
 	msg.Namelen = uint32(SizeofSockaddrAny)
@@ -251,14 +245,7 @@ func recvmsgRaw(
 	return
 }
 
-func sendmsgN(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	ptr unsafe.Pointer,
-	salen _Socklen,
-	flags int,
-) (n int, err error) {
+func sendmsgN(fd int, iov []Iovec, oob []byte, ptr unsafe.Pointer, salen _Socklen, flags int) (n int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(unsafe.Pointer(ptr))
 	msg.Namelen = uint32(salen)

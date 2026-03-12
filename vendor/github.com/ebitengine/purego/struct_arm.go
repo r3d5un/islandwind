@@ -8,12 +8,7 @@ import (
 	"unsafe"
 )
 
-func addStruct(
-	v reflect.Value,
-	numInts, numFloats, numStack *int,
-	addInt, addFloat, addStack func(uintptr),
-	keepAlive []any,
-) []any {
+func addStruct(v reflect.Value, numInts, numFloats, numStack *int, addInt, addFloat, addStack func(uintptr), keepAlive []any) []any {
 	size := v.Type().Size()
 	if size == 0 {
 		return keepAlive
@@ -44,8 +39,7 @@ func getStruct(outType reflect.Type, syscall syscall15Args) (v reflect.Value) {
 	}
 	if outSize <= 8 {
 		// Fits in two registers
-		return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b uintptr }{syscall.a1, syscall.a2})).
-			Elem()
+		return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b uintptr }{syscall.a1, syscall.a2})).Elem()
 	}
 	// Larger structs returned via pointer in a1
 	return reflect.NewAt(outType, *(*unsafe.Pointer)(unsafe.Pointer(&syscall.a1))).Elem()

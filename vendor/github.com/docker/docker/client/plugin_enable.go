@@ -9,11 +9,7 @@ import (
 )
 
 // PluginEnable enables a plugin
-func (cli *Client) PluginEnable(
-	ctx context.Context,
-	name string,
-	options types.PluginEnableOptions,
-) error {
+func (cli *Client) PluginEnable(ctx context.Context, name string, options types.PluginEnableOptions) error {
 	name, err := trimID("plugin", name)
 	if err != nil {
 		return err

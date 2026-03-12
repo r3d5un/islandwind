@@ -57,9 +57,7 @@ func zstdMatcher() matcher {
 			return false
 		}
 		// magic number from 0x184D2A50 to 0x184D2A5F.
-		if binary.LittleEndian.Uint32(
-			source[:4],
-		)&zstdMagicSkippableMask == zstdMagicSkippableStart {
+		if binary.LittleEndian.Uint32(source[:4])&zstdMagicSkippableMask == zstdMagicSkippableStart {
 			return true
 		}
 		return false

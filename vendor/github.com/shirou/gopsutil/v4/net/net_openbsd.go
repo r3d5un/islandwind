@@ -157,11 +157,7 @@ func IOCountersWithContext(ctx context.Context, pernic bool) ([]IOCountersStat, 
 	return ret, nil
 }
 
-func IOCountersByFileWithContext(
-	ctx context.Context,
-	pernic bool,
-	_ string,
-) ([]IOCountersStat, error) {
+func IOCountersByFileWithContext(ctx context.Context, pernic bool, _ string) ([]IOCountersStat, error) {
 	return IOCountersWithContext(ctx, pernic)
 }
 
@@ -318,12 +314,7 @@ func ConnectionsMaxWithContext(_ context.Context, _ string, _ int) ([]Connection
 	return nil, common.ErrNotImplementedError
 }
 
-func ConnectionsPidMaxWithContext(
-	_ context.Context,
-	_ string,
-	_ int32,
-	_ int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithContext(_ context.Context, _ string, _ int32, _ int) ([]ConnectionStat, error) {
 	return nil, common.ErrNotImplementedError
 }
 
@@ -331,36 +322,18 @@ func ConnectionsWithoutUidsWithContext(ctx context.Context, kind string) ([]Conn
 	return ConnectionsMaxWithoutUidsWithContext(ctx, kind, 0)
 }
 
-func ConnectionsMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsMaxWithoutUidsWithContext(ctx context.Context, kind string, maxConn int) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, 0, maxConn)
 }
 
-func ConnectionsPidWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-) ([]ConnectionStat, error) {
+func ConnectionsPidWithoutUidsWithContext(ctx context.Context, kind string, pid int32) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, 0)
 }
 
-func ConnectionsPidMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithoutUidsWithContext(ctx context.Context, kind string, pid int32, maxConn int) ([]ConnectionStat, error) {
 	return connectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, maxConn)
 }
 
-func connectionsPidMaxWithoutUidsWithContext(
-	_ context.Context,
-	_ string,
-	_ int32,
-	_ int,
-) ([]ConnectionStat, error) {
+func connectionsPidMaxWithoutUidsWithContext(_ context.Context, _ string, _ int32, _ int) ([]ConnectionStat, error) {
 	return nil, common.ErrNotImplementedError
 }

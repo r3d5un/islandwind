@@ -22,11 +22,7 @@ func ConnectionsMaxWithContext(_ context.Context, _ string, _ int) ([]Connection
 	return []ConnectionStat{}, common.ErrNotImplementedError
 }
 
-func ConnectionsPidWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-) ([]ConnectionStat, error) {
+func ConnectionsPidWithContext(ctx context.Context, kind string, pid int32) ([]ConnectionStat, error) {
 	var ret []ConnectionStat
 
 	args := []string{"-i"}
@@ -163,12 +159,7 @@ func parseNetAddr(line string) (laddr, raddr Addr, err error) {
 	return laddr, raddr, err
 }
 
-func ConnectionsPidMaxWithContext(
-	_ context.Context,
-	_ string,
-	_ int32,
-	_ int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithContext(_ context.Context, _ string, _ int32, _ int) ([]ConnectionStat, error) {
 	return []ConnectionStat{}, common.ErrNotImplementedError
 }
 
@@ -176,36 +167,18 @@ func ConnectionsWithoutUidsWithContext(ctx context.Context, kind string) ([]Conn
 	return ConnectionsMaxWithoutUidsWithContext(ctx, kind, 0)
 }
 
-func ConnectionsMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsMaxWithoutUidsWithContext(ctx context.Context, kind string, maxConn int) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, 0, maxConn)
 }
 
-func ConnectionsPidWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-) ([]ConnectionStat, error) {
+func ConnectionsPidWithoutUidsWithContext(ctx context.Context, kind string, pid int32) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, 0)
 }
 
-func ConnectionsPidMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithoutUidsWithContext(ctx context.Context, kind string, pid int32, maxConn int) ([]ConnectionStat, error) {
 	return connectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, maxConn)
 }
 
-func connectionsPidMaxWithoutUidsWithContext(
-	_ context.Context,
-	_ string,
-	_ int32,
-	_ int,
-) ([]ConnectionStat, error) {
+func connectionsPidMaxWithoutUidsWithContext(_ context.Context, _ string, _ int32, _ int) ([]ConnectionStat, error) {
 	return []ConnectionStat{}, common.ErrNotImplementedError
 }

@@ -405,13 +405,7 @@ func GreaterOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...in
 		h.Helper()
 	}
 	failMessage := fmt.Sprintf("\"%v\" is not greater than or equal to \"%v\"", e1, e2)
-	return compareTwoValues(
-		t,
-		e1,
-		e2,
-		[]compareResult{compareGreater, compareEqual},
-		failMessage,
-		msgAndArgs...)
+	return compareTwoValues(t, e1, e2, []compareResult{compareGreater, compareEqual}, failMessage, msgAndArgs...)
 }
 
 // Less asserts that the first element is less than the second
@@ -438,13 +432,7 @@ func LessOrEqual(t TestingT, e1 interface{}, e2 interface{}, msgAndArgs ...inter
 		h.Helper()
 	}
 	failMessage := fmt.Sprintf("\"%v\" is not less than or equal to \"%v\"", e1, e2)
-	return compareTwoValues(
-		t,
-		e1,
-		e2,
-		[]compareResult{compareLess, compareEqual},
-		failMessage,
-		msgAndArgs...)
+	return compareTwoValues(t, e1, e2, []compareResult{compareLess, compareEqual}, failMessage, msgAndArgs...)
 }
 
 // Positive asserts that the specified element is positive
@@ -457,13 +445,7 @@ func Positive(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
 	failMessage := fmt.Sprintf("\"%v\" is not positive", e)
-	return compareTwoValues(
-		t,
-		e,
-		zero.Interface(),
-		[]compareResult{compareGreater},
-		failMessage,
-		msgAndArgs...)
+	return compareTwoValues(t, e, zero.Interface(), []compareResult{compareGreater}, failMessage, msgAndArgs...)
 }
 
 // Negative asserts that the specified element is negative
@@ -476,23 +458,10 @@ func Negative(t TestingT, e interface{}, msgAndArgs ...interface{}) bool {
 	}
 	zero := reflect.Zero(reflect.TypeOf(e))
 	failMessage := fmt.Sprintf("\"%v\" is not negative", e)
-	return compareTwoValues(
-		t,
-		e,
-		zero.Interface(),
-		[]compareResult{compareLess},
-		failMessage,
-		msgAndArgs...)
+	return compareTwoValues(t, e, zero.Interface(), []compareResult{compareLess}, failMessage, msgAndArgs...)
 }
 
-func compareTwoValues(
-	t TestingT,
-	e1 interface{},
-	e2 interface{},
-	allowedComparesResults []compareResult,
-	failMessage string,
-	msgAndArgs ...interface{},
-) bool {
+func compareTwoValues(t TestingT, e1 interface{}, e2 interface{}, allowedComparesResults []compareResult, failMessage string, msgAndArgs ...interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}

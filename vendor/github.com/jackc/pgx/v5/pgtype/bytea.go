@@ -106,10 +106,7 @@ func (encodePlanBytesCodecBinaryBytes) Encode(value any, buf []byte) (newBuf []b
 
 type encodePlanBytesCodecBinaryBytesValuer struct{}
 
-func (encodePlanBytesCodecBinaryBytesValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanBytesCodecBinaryBytesValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	b, err := value.(BytesValuer).BytesValue()
 	if err != nil {
 		return nil, err
@@ -136,10 +133,7 @@ func (encodePlanBytesCodecTextBytes) Encode(value any, buf []byte) (newBuf []byt
 
 type encodePlanBytesCodecTextBytesValuer struct{}
 
-func (encodePlanBytesCodecTextBytesValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanBytesCodecTextBytesValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	b, err := value.(BytesValuer).BytesValue()
 	if err != nil {
 		return nil, err
@@ -242,12 +236,7 @@ func decodeHexBytea(src []byte) ([]byte, error) {
 	return buf, nil
 }
 
-func (c ByteaCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c ByteaCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return c.DecodeValue(m, oid, format, src)
 }
 

@@ -208,12 +208,7 @@ func (scanPlanTextAnyToLineScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanLine(Line{A: a, B: b, C: c, Valid: true})
 }
 
-func (c LineCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c LineCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

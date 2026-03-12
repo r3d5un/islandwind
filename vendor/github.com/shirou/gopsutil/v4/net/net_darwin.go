@@ -49,11 +49,7 @@ func parseNetstatLine(line string) (stat *IOCountersStat, linkID *uint, err erro
 		base = 0
 	}
 	if numberColumns < 11 || numberColumns > 13 {
-		return nil, nil, fmt.Errorf(
-			"line %q do have an invalid number of columns %d",
-			line,
-			numberColumns,
-		)
+		return nil, nil, fmt.Errorf("line %q do have an invalid number of columns %d", line, numberColumns)
 	}
 
 	parsed := make([]uint64, 0, 7)
@@ -82,10 +78,7 @@ func parseNetstatLine(line string) (stat *IOCountersStat, linkID *uint, err erro
 	}
 
 	stat = &IOCountersStat{
-		Name: strings.Trim(
-			columns[0],
-			"*",
-		), // remove the * that sometimes is on right on interface
+		Name:        strings.Trim(columns[0], "*"), // remove the * that sometimes is on right on interface
 		PacketsRecv: parsed[0],
 		Errin:       parsed[1],
 		BytesRecv:   parsed[2],
@@ -259,11 +252,7 @@ func IOCountersWithContext(ctx context.Context, pernic bool) ([]IOCountersStat, 
 	return ret, nil
 }
 
-func IOCountersByFileWithContext(
-	ctx context.Context,
-	pernic bool,
-	_ string,
-) ([]IOCountersStat, error) {
+func IOCountersByFileWithContext(ctx context.Context, pernic bool, _ string) ([]IOCountersStat, error) {
 	return IOCountersWithContext(ctx, pernic)
 }
 

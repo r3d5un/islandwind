@@ -18,11 +18,9 @@ import (
 )
 
 var (
-	ClocksPerSec = float64(128)
-	cpuMatch     = regexp.MustCompile(`^CPU:`)
-	originMatch  = regexp.MustCompile(
-		`Origin\s*=\s*"(.+)"\s+Id\s*=\s*(.+)\s+Family\s*=\s*(.+)\s+Model\s*=\s*(.+)\s+Stepping\s*=\s*(.+)`,
-	)
+	ClocksPerSec   = float64(128)
+	cpuMatch       = regexp.MustCompile(`^CPU:`)
+	originMatch    = regexp.MustCompile(`Origin\s*=\s*"(.+)"\s+Id\s*=\s*(.+)\s+Family\s*=\s*(.+)\s+Model\s*=\s*(.+)\s+Stepping\s*=\s*(.+)`)
 	featuresMatch  = regexp.MustCompile(`Features=.+<(.+)>`)
 	featuresMatch2 = regexp.MustCompile(`Features2=[a-f\dx]+<(.+)>`)
 	cpuEnd         = regexp.MustCompile(`^Trying to mount root`)

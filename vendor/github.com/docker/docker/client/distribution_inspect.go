@@ -10,15 +10,9 @@ import (
 )
 
 // DistributionInspect returns the image digest with the full manifest.
-func (cli *Client) DistributionInspect(
-	ctx context.Context,
-	imageRef, encodedRegistryAuth string,
-) (registry.DistributionInspect, error) {
+func (cli *Client) DistributionInspect(ctx context.Context, imageRef, encodedRegistryAuth string) (registry.DistributionInspect, error) {
 	if imageRef == "" {
-		return registry.DistributionInspect{}, objectNotFoundError{
-			object: "distribution",
-			id:     imageRef,
-		}
+		return registry.DistributionInspect{}, objectNotFoundError{object: "distribution", id: imageRef}
 	}
 
 	if err := cli.NewVersionError(ctx, "1.30", "distribution inspect"); err != nil {

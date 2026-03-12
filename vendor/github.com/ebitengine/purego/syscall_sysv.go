@@ -15,9 +15,7 @@ import (
 
 var syscall15XABI0 uintptr
 
-func syscall_syscall15X(
-	fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15 uintptr,
-) (r1, r2, err uintptr) {
+func syscall_syscall15X(fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15 uintptr) (r1, r2, err uintptr) {
 	args := thePool.Get().(*syscall15Args)
 	defer thePool.Put(args)
 
@@ -226,12 +224,7 @@ func callbackWrap(a *callbackArgs) {
 	ret := fn.Call(args)
 	if len(ret) > 0 {
 		switch k := ret[0].Kind(); k {
-		case reflect.Uint,
-			reflect.Uint64,
-			reflect.Uint32,
-			reflect.Uint16,
-			reflect.Uint8,
-			reflect.Uintptr:
+		case reflect.Uint, reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uintptr:
 			a.result = uintptr(ret[0].Uint())
 		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8:
 			a.result = uintptr(ret[0].Int())
@@ -254,12 +247,7 @@ func callbackWrap(a *callbackArgs) {
 // callbackArgFromStack reads an argument from the tightly-packed stack area on Darwin ARM64.
 // The C ABI on Darwin ARM64 packs small types on the stack without padding to 8 bytes.
 // This function handles proper alignment and advances stackByteOffset accordingly.
-func callbackArgFromStack(
-	argsBase unsafe.Pointer,
-	stackSlot int,
-	stackByteOffset *uintptr,
-	inType reflect.Type,
-) reflect.Value {
+func callbackArgFromStack(argsBase unsafe.Pointer, stackSlot int, stackByteOffset *uintptr, inType reflect.Type) reflect.Value {
 	// Calculate base address of stack area (after float and int registers)
 	stackBase := unsafe.Add(argsBase, stackSlot*int(ptrSize))
 

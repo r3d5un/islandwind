@@ -189,11 +189,7 @@ func ParseAll(specifiers []string) ([]specs.Platform, error) {
 func Parse(specifier string) (specs.Platform, error) {
 	if strings.Contains(specifier, "*") {
 		// TODO(stevvooe): need to work out exact wildcard handling
-		return specs.Platform{}, fmt.Errorf(
-			"%q: wildcards not yet supported: %w",
-			specifier,
-			errInvalidArgument,
-		)
+		return specs.Platform{}, fmt.Errorf("%q: wildcards not yet supported: %w", specifier, errInvalidArgument)
 	}
 
 	// Limit to 4 elements to prevent unbounded split
@@ -205,13 +201,7 @@ func Parse(specifier string) (specs.Platform, error) {
 			// First element is <os>[(<OSVersion>)]
 			osVer := osAndVersionRe.FindStringSubmatch(part)
 			if osVer == nil {
-				return specs.Platform{}, fmt.Errorf(
-					"%q is an invalid OS component of %q: OSAndVersion specifier component must match %q: %w",
-					part,
-					specifier,
-					osAndVersionRe.String(),
-					errInvalidArgument,
-				)
+				return specs.Platform{}, fmt.Errorf("%q is an invalid OS component of %q: OSAndVersion specifier component must match %q: %w", part, specifier, osAndVersionRe.String(), errInvalidArgument)
 			}
 
 			p.OS = normalizeOS(osVer[1])
@@ -250,11 +240,7 @@ func Parse(specifier string) (specs.Platform, error) {
 			return p, nil
 		}
 
-		return specs.Platform{}, fmt.Errorf(
-			"%q: unknown operating system or architecture: %w",
-			specifier,
-			errInvalidArgument,
-		)
+		return specs.Platform{}, fmt.Errorf("%q: unknown operating system or architecture: %w", specifier, errInvalidArgument)
 	case 2:
 		// In this case, we treat as a regular OS[(OSVersion)]/arch pair. We don't care
 		// about whether or not we know of the platform.
@@ -274,11 +260,7 @@ func Parse(specifier string) (specs.Platform, error) {
 		return p, nil
 	}
 
-	return specs.Platform{}, fmt.Errorf(
-		"%q: cannot parse platform specifier: %w",
-		specifier,
-		errInvalidArgument,
-	)
+	return specs.Platform{}, fmt.Errorf("%q: cannot parse platform specifier: %w", specifier, errInvalidArgument)
 }
 
 // MustParse is like Parses but panics if the specifier cannot be parsed.

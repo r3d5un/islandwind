@@ -10,10 +10,7 @@ import (
 )
 
 // NodeList returns the list of nodes.
-func (cli *Client) NodeList(
-	ctx context.Context,
-	options swarm.NodeListOptions,
-) ([]swarm.Node, error) {
+func (cli *Client) NodeList(ctx context.Context, options swarm.NodeListOptions) ([]swarm.Node, error) {
 	query := url.Values{}
 
 	if options.Filters.Len() > 0 {

@@ -255,10 +255,7 @@ func (l *forwardList) handleChannels(in <-chan NewChannel) {
 		case "forwarded-streamlocal@openssh.com":
 			var payload forwardedStreamLocalPayload
 			if err = Unmarshal(ch.ExtraData(), &payload); err != nil {
-				ch.Reject(
-					ConnectionFailed,
-					"could not parse forwarded-streamlocal@openssh.com payload: "+err.Error(),
-				)
+				ch.Reject(ConnectionFailed, "could not parse forwarded-streamlocal@openssh.com payload: "+err.Error())
 				continue
 			}
 			addr = payload.SocketPath

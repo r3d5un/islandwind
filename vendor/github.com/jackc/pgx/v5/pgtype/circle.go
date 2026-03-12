@@ -144,12 +144,7 @@ func (CircleCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPl
 	return nil
 }
 
-func (c CircleCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c CircleCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

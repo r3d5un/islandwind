@@ -39,14 +39,8 @@ var TimeFormats = []TimeFormat{
 	{time.RFC822, TimeFormatNamedTimezone},
 	{time.RFC850, TimeFormatNamedTimezone},
 	{"2006-01-02 15:04:05.999999999 -0700 MST", TimeFormatNumericAndNamedTimezone}, // Time.String()
-	{
-		"2006-01-02T15:04:05-0700",
-		TimeFormatNumericTimezone,
-	}, // RFC3339 without timezone hh:mm colon
-	{
-		"2006-01-02 15:04:05Z0700",
-		TimeFormatNumericTimezone,
-	}, // RFC3339 without T or timezone hh:mm colon
+	{"2006-01-02T15:04:05-0700", TimeFormatNumericTimezone},                        // RFC3339 without timezone hh:mm colon
+	{"2006-01-02 15:04:05Z0700", TimeFormatNumericTimezone},                        // RFC3339 without T or timezone hh:mm colon
 	{"2006-01-02 15:04:05", TimeFormatNoTimezone},
 	{time.ANSIC, TimeFormatNoTimezone},
 	{time.UnixDate, TimeFormatNamedTimezone},

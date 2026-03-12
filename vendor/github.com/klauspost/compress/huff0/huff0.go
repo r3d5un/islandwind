@@ -145,12 +145,7 @@ func (s *Scratch) prepare(in []byte) (*Scratch, error) {
 		s.TableLog = tableLogDefault
 	}
 	if s.TableLog > tableLogMax || s.TableLog < minTablelog {
-		return nil, fmt.Errorf(
-			" invalid tableLog %d (%d -> %d)",
-			s.TableLog,
-			minTablelog,
-			tableLogMax,
-		)
+		return nil, fmt.Errorf(" invalid tableLog %d (%d -> %d)", s.TableLog, minTablelog, tableLogMax)
 	}
 	if s.MaxDecodedSize <= 0 || s.MaxDecodedSize > BlockSizeMax {
 		s.MaxDecodedSize = BlockSizeMax

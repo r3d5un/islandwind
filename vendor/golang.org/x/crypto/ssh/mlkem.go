@@ -20,11 +20,7 @@ import (
 // draft-kampanakis-curdle-ssh-pq-ke-05 section 2.3.3.
 type mlkem768WithCurve25519sha256 struct{}
 
-func (kex *mlkem768WithCurve25519sha256) Client(
-	c packetConn,
-	rand io.Reader,
-	magics *handshakeMagics,
-) (*kexResult, error) {
+func (kex *mlkem768WithCurve25519sha256) Client(c packetConn, rand io.Reader, magics *handshakeMagics) (*kexResult, error) {
 	var c25519kp curve25519KeyPair
 	if err := c25519kp.generate(rand); err != nil {
 		return nil, err
@@ -66,10 +62,7 @@ func (kex *mlkem768WithCurve25519sha256) Client(
 	}
 
 	// Complete Curve25519 ECDH to obtain its shared key.
-	c25519Secret, err := curve25519.X25519(
-		c25519kp.priv[:],
-		reply.EphemeralPubKey[mlkem.CiphertextSize768:],
-	)
+	c25519Secret, err := curve25519.X25519(c25519kp.priv[:], reply.EphemeralPubKey[mlkem.CiphertextSize768:])
 	if err != nil {
 		return nil, fmt.Errorf("ssh: peer's mlkem768x25519 public value is not valid: %w", err)
 	}
@@ -98,13 +91,7 @@ func (kex *mlkem768WithCurve25519sha256) Client(
 	}, nil
 }
 
-func (kex *mlkem768WithCurve25519sha256) Server(
-	c packetConn,
-	rand io.Reader,
-	magics *handshakeMagics,
-	priv AlgorithmSigner,
-	algo string,
-) (*kexResult, error) {
+func (kex *mlkem768WithCurve25519sha256) Server(c packetConn, rand io.Reader, magics *handshakeMagics, priv AlgorithmSigner, algo string) (*kexResult, error) {
 	packet, err := c.readPacket()
 	if err != nil {
 		return nil, err
@@ -119,9 +106,7 @@ func (kex *mlkem768WithCurve25519sha256) Server(
 		return nil, errors.New("ssh: peer's ML-KEM768/curve25519 public value has wrong length")
 	}
 
-	encapsulationKey, err := mlkem.NewEncapsulationKey768(
-		kexInit.ClientPubKey[:mlkem.EncapsulationKeySize768],
-	)
+	encapsulationKey, err := mlkem.NewEncapsulationKey768(kexInit.ClientPubKey[:mlkem.EncapsulationKeySize768])
 	if err != nil {
 		return nil, fmt.Errorf("ssh: peer's ML-KEM768 encapsulation key is not valid: %w", err)
 	}
@@ -134,15 +119,9 @@ func (kex *mlkem768WithCurve25519sha256) Server(
 	if err := c25519kp.generate(rand); err != nil {
 		return nil, err
 	}
-	c25519Secret, err := curve25519.X25519(
-		c25519kp.priv[:],
-		kexInit.ClientPubKey[mlkem.EncapsulationKeySize768:],
-	)
+	c25519Secret, err := curve25519.X25519(c25519kp.priv[:], kexInit.ClientPubKey[mlkem.EncapsulationKeySize768:])
 	if err != nil {
-		return nil, fmt.Errorf(
-			"ssh: peer's ML-KEM768/curve25519 public value is not valid: %w",
-			err,
-		)
+		return nil, fmt.Errorf("ssh: peer's ML-KEM768/curve25519 public value is not valid: %w", err)
 	}
 	hybridKey := append(mlkem768Ciphertext, c25519kp.pub[:]...)
 

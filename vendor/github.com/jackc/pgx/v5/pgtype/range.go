@@ -211,10 +211,7 @@ func parseUntypedBinaryRange(src []byte) (*untypedBinaryRange, error) {
 
 	if rangeType&emptyMask > 0 {
 		if len(src[rp:]) > 0 {
-			return nil, fmt.Errorf(
-				"unexpected trailing bytes parsing empty range: %v",
-				len(src[rp:]),
-			)
+			return nil, fmt.Errorf("unexpected trailing bytes parsing empty range: %v", len(src[rp:]))
 		}
 		ubr.LowerType = Empty
 		ubr.UpperType = Empty
@@ -239,10 +236,7 @@ func parseUntypedBinaryRange(src []byte) (*untypedBinaryRange, error) {
 
 	if ubr.LowerType == Unbounded && ubr.UpperType == Unbounded {
 		if len(src[rp:]) > 0 {
-			return nil, fmt.Errorf(
-				"unexpected trailing bytes parsing unbounded range: %v",
-				len(src[rp:]),
-			)
+			return nil, fmt.Errorf("unexpected trailing bytes parsing unbounded range: %v", len(src[rp:]))
 		}
 		return ubr, nil
 	}

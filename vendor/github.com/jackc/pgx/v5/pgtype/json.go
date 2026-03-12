@@ -94,10 +94,7 @@ func (p jsonPointerScanPlan) Scan(src []byte, dst any) error {
 
 type encodePlanJSONCodecEitherFormatString struct{}
 
-func (encodePlanJSONCodecEitherFormatString) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanJSONCodecEitherFormatString) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	jsonString := value.(string)
 	buf = append(buf, jsonString...)
 	return buf, nil
@@ -105,10 +102,7 @@ func (encodePlanJSONCodecEitherFormatString) Encode(
 
 type encodePlanJSONCodecEitherFormatByteSlice struct{}
 
-func (encodePlanJSONCodecEitherFormatByteSlice) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanJSONCodecEitherFormatByteSlice) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	jsonBytes := value.([]byte)
 	if jsonBytes == nil {
 		return nil, nil
@@ -120,10 +114,7 @@ func (encodePlanJSONCodecEitherFormatByteSlice) Encode(
 
 type encodePlanJSONCodecEitherFormatJSONRawMessage struct{}
 
-func (encodePlanJSONCodecEitherFormatJSONRawMessage) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanJSONCodecEitherFormatJSONRawMessage) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	jsonBytes := value.(json.RawMessage)
 	if jsonBytes == nil {
 		return nil, nil
@@ -137,10 +128,7 @@ type encodePlanJSONCodecEitherFormatMarshal struct {
 	marshal func(v any) ([]byte, error)
 }
 
-func (e *encodePlanJSONCodecEitherFormatMarshal) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (e *encodePlanJSONCodecEitherFormatMarshal) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	jsonBytes, err := e.marshal(value)
 	if err != nil {
 		return nil, err
@@ -234,12 +222,7 @@ func (s *scanPlanJSONToJSONUnmarshal) Scan(src []byte, dst any) error {
 	return s.unmarshal(src, dst)
 }
 
-func (c *JSONCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *JSONCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

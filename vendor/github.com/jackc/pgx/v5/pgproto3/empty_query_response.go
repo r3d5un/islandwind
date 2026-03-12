@@ -13,11 +13,7 @@ func (*EmptyQueryResponse) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *EmptyQueryResponse) Decode(src []byte) error {
 	if len(src) != 0 {
-		return &invalidMessageLenErr{
-			messageType: "EmptyQueryResponse",
-			expectedLen: 0,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "EmptyQueryResponse", expectedLen: 0, actualLen: len(src)}
 	}
 
 	return nil

@@ -119,22 +119,12 @@ func (f *FlagSet) GetDurationSlice(name string) ([]time.Duration, error) {
 
 // DurationSliceVar defines a durationSlice flag with specified name, default value, and usage string.
 // The argument p points to a []time.Duration variable in which to store the value of the flag.
-func (f *FlagSet) DurationSliceVar(
-	p *[]time.Duration,
-	name string,
-	value []time.Duration,
-	usage string,
-) {
+func (f *FlagSet) DurationSliceVar(p *[]time.Duration, name string, value []time.Duration, usage string) {
 	f.VarP(newDurationSliceValue(value, p), name, "", usage)
 }
 
 // DurationSliceVarP is like DurationSliceVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) DurationSliceVarP(
-	p *[]time.Duration,
-	name, shorthand string,
-	value []time.Duration,
-	usage string,
-) {
+func (f *FlagSet) DurationSliceVarP(p *[]time.Duration, name, shorthand string, value []time.Duration, usage string) {
 	f.VarP(newDurationSliceValue(value, p), name, shorthand, usage)
 }
 
@@ -145,12 +135,7 @@ func DurationSliceVar(p *[]time.Duration, name string, value []time.Duration, us
 }
 
 // DurationSliceVarP is like DurationSliceVar, but accepts a shorthand letter that can be used after a single dash.
-func DurationSliceVarP(
-	p *[]time.Duration,
-	name, shorthand string,
-	value []time.Duration,
-	usage string,
-) {
+func DurationSliceVarP(p *[]time.Duration, name, shorthand string, value []time.Duration, usage string) {
 	CommandLine.VarP(newDurationSliceValue(value, p), name, shorthand, usage)
 }
 
@@ -163,11 +148,7 @@ func (f *FlagSet) DurationSlice(name string, value []time.Duration, usage string
 }
 
 // DurationSliceP is like DurationSlice, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) DurationSliceP(
-	name, shorthand string,
-	value []time.Duration,
-	usage string,
-) *[]time.Duration {
+func (f *FlagSet) DurationSliceP(name, shorthand string, value []time.Duration, usage string) *[]time.Duration {
 	p := []time.Duration{}
 	f.DurationSliceVarP(&p, name, shorthand, value, usage)
 	return &p

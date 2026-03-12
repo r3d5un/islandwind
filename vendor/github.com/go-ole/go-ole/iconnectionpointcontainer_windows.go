@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package ole
@@ -12,10 +11,7 @@ func (v *IConnectionPointContainer) EnumConnectionPoints(points interface{}) err
 	return NewError(E_NOTIMPL)
 }
 
-func (v *IConnectionPointContainer) FindConnectionPoint(
-	iid *GUID,
-	point **IConnectionPoint,
-) (err error) {
+func (v *IConnectionPointContainer) FindConnectionPoint(iid *GUID, point **IConnectionPoint) (err error) {
 	hr, _, _ := syscall.Syscall(
 		v.VTable().FindConnectionPoint,
 		3,

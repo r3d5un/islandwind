@@ -167,10 +167,7 @@ func StdCopy(dstout, dsterr io.Writer, src io.Reader) (written int64, _ error) {
 		// we might have an error from the source mixed up in our multiplexed
 		// stream. if we do, return it.
 		if stream == Systemerr {
-			return written, fmt.Errorf(
-				"error from daemon in stream: %s",
-				string(buf[stdWriterPrefixLen:frameSize+stdWriterPrefixLen]),
-			)
+			return written, fmt.Errorf("error from daemon in stream: %s", string(buf[stdWriterPrefixLen:frameSize+stdWriterPrefixLen]))
 		}
 
 		// Write the retrieved frame (without header)

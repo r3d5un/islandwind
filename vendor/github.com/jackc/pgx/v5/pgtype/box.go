@@ -221,12 +221,7 @@ func (scanPlanTextAnyToBoxScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanBox(Box{P: [2]Vec2{{x1, y1}, {x2, y2}}, Valid: true})
 }
 
-func (c BoxCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c BoxCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

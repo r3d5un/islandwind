@@ -15,11 +15,7 @@ import (
 )
 
 // PluginInstall installs a plugin
-func (cli *Client) PluginInstall(
-	ctx context.Context,
-	name string,
-	options types.PluginInstallOptions,
-) (_ io.ReadCloser, retErr error) {
+func (cli *Client) PluginInstall(ctx context.Context, name string, options types.PluginInstallOptions) (_ io.ReadCloser, retErr error) {
 	query := url.Values{}
 	if _, err := reference.ParseNormalizedNamed(options.RemoteRef); err != nil {
 		return nil, errors.Wrap(err, "invalid remote reference")
@@ -72,32 +68,19 @@ func (cli *Client) PluginInstall(
 	return pr, nil
 }
 
-func (cli *Client) tryPluginPrivileges(
-	ctx context.Context,
-	query url.Values,
-	registryAuth string,
-) (*http.Response, error) {
+func (cli *Client) tryPluginPrivileges(ctx context.Context, query url.Values, registryAuth string) (*http.Response, error) {
 	return cli.get(ctx, "/plugins/privileges", query, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})
 }
 
-func (cli *Client) tryPluginPull(
-	ctx context.Context,
-	query url.Values,
-	privileges types.PluginPrivileges,
-	registryAuth string,
-) (*http.Response, error) {
+func (cli *Client) tryPluginPull(ctx context.Context, query url.Values, privileges types.PluginPrivileges, registryAuth string) (*http.Response, error) {
 	return cli.post(ctx, "/plugins/pull", query, privileges, http.Header{
 		registry.AuthHeader: {registryAuth},
 	})
 }
 
-func (cli *Client) checkPluginPermissions(
-	ctx context.Context,
-	query url.Values,
-	options types.PluginInstallOptions,
-) (types.PluginPrivileges, error) {
+func (cli *Client) checkPluginPermissions(ctx context.Context, query url.Values, options types.PluginInstallOptions) (types.PluginPrivileges, error) {
 	resp, err := cli.tryPluginPrivileges(ctx, query, options.RegistryAuth)
 	if cerrdefs.IsUnauthorized(err) && options.PrivilegeFunc != nil {
 		// todo: do inspect before to check existing name before checking privileges
@@ -121,17 +104,13 @@ func (cli *Client) checkPluginPermissions(
 	}
 	ensureReaderClosed(resp)
 
-	if !options.AcceptAllPermissions && options.AcceptPermissionsFunc != nil &&
-		len(privileges) > 0 {
+	if !options.AcceptAllPermissions && options.AcceptPermissionsFunc != nil && len(privileges) > 0 {
 		accept, err := options.AcceptPermissionsFunc(ctx, privileges)
 		if err != nil {
 			return nil, err
 		}
 		if !accept {
-			return nil, errors.Errorf(
-				"permission denied while installing plugin %s",
-				options.RemoteRef,
-			)
+			return nil, errors.Errorf("permission denied while installing plugin %s", options.RemoteRef)
 		}
 	}
 	return privileges, nil

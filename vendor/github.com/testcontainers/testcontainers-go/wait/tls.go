@@ -109,10 +109,7 @@ func (ws *TLSStrategy) String() string {
 	}
 
 	if ws.certFiles != nil {
-		parts = append(
-			parts,
-			fmt.Sprintf("cert %q and key %q", ws.certFiles.certPEMFile, ws.certFiles.keyPEMFile),
-		)
+		parts = append(parts, fmt.Sprintf("cert %q and key %q", ws.certFiles.certPEMFile, ws.certFiles.keyPEMFile))
 	}
 
 	if len(parts) == 0 {
@@ -171,12 +168,7 @@ func (ws *TLSStrategy) WaitUntilReady(ctx context.Context, target StrategyTarget
 
 				cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 				if err != nil {
-					return fmt.Errorf(
-						"x509 key pair %q %q: %w",
-						ws.certFiles.certPEMFile,
-						ws.certFiles.keyPEMFile,
-						err,
-					)
+					return fmt.Errorf("x509 key pair %q %q: %w", ws.certFiles.certPEMFile, ws.certFiles.keyPEMFile, err)
 				}
 
 				ws.tlsConfig.Certificates = []tls.Certificate{cert}

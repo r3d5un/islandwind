@@ -160,10 +160,7 @@ func setRawTerminalOutput(fd uintptr) (*State, error) {
 
 	// Ignore failures, since winterm.DISABLE_NEWLINE_AUTO_RETURN might not be supported on this
 	// version of Windows.
-	_ = windows.SetConsoleMode(
-		windows.Handle(fd),
-		oldState.mode|windows.DISABLE_NEWLINE_AUTO_RETURN,
-	)
+	_ = windows.SetConsoleMode(windows.Handle(fd), oldState.mode|windows.DISABLE_NEWLINE_AUTO_RETURN)
 	return oldState, err
 }
 

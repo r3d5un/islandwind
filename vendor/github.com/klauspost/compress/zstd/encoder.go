@@ -457,11 +457,7 @@ func (e *Encoder) Close() error {
 	}
 	if s.frameContentSize > 0 {
 		if s.nInput != s.frameContentSize {
-			return fmt.Errorf(
-				"frame content size %d given, but %d bytes was written",
-				s.frameContentSize,
-				s.nInput,
-			)
+			return fmt.Errorf("frame content size %d given, but %d bytes was written", s.frameContentSize, s.nInput)
 		}
 	}
 	if e.state.fullFrameWritten {

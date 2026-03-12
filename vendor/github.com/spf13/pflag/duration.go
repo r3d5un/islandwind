@@ -44,12 +44,7 @@ func (f *FlagSet) DurationVar(p *time.Duration, name string, value time.Duration
 }
 
 // DurationVarP is like DurationVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) DurationVarP(
-	p *time.Duration,
-	name, shorthand string,
-	value time.Duration,
-	usage string,
-) {
+func (f *FlagSet) DurationVarP(p *time.Duration, name, shorthand string, value time.Duration, usage string) {
 	f.VarP(newDurationValue(value, p), name, shorthand, usage)
 }
 
@@ -73,11 +68,7 @@ func (f *FlagSet) Duration(name string, value time.Duration, usage string) *time
 }
 
 // DurationP is like Duration, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) DurationP(
-	name, shorthand string,
-	value time.Duration,
-	usage string,
-) *time.Duration {
+func (f *FlagSet) DurationP(name, shorthand string, value time.Duration, usage string) *time.Duration {
 	p := new(time.Duration)
 	f.DurationVarP(p, name, shorthand, value, usage)
 	return p

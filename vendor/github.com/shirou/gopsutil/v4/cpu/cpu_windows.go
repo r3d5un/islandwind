@@ -22,11 +22,9 @@ import (
 
 var (
 	procGetNativeSystemInfo              = common.Modkernel32.NewProc("GetNativeSystemInfo")
-	procGetLogicalProcessorInformationEx = common.Modkernel32.NewProc(
-		"GetLogicalProcessorInformationEx",
-	)
-	procGetSystemFirmwareTable = common.Modkernel32.NewProc("GetSystemFirmwareTable")
-	procCallNtPowerInformation = common.ModPowrProf.NewProc("CallNtPowerInformation")
+	procGetLogicalProcessorInformationEx = common.Modkernel32.NewProc("GetLogicalProcessorInformationEx")
+	procGetSystemFirmwareTable           = common.Modkernel32.NewProc("GetSystemFirmwareTable")
+	procCallNtPowerInformation           = common.ModPowrProf.NewProc("CallNtPowerInformation")
 )
 
 type win32_Processor struct { //nolint:revive //FIXME
@@ -72,9 +70,7 @@ const (
 	win32_SystemProcessorPerformanceInformationClass = 8 //nolint:revive //FIXME
 
 	// size of systemProcessorPerformanceInfoSize in memory
-	win32_SystemProcessorPerformanceInfoSize = uint32(
-		unsafe.Sizeof(win32_SystemProcessorPerformanceInformation{}),
-	) //nolint:revive //FIXME
+	win32_SystemProcessorPerformanceInfoSize = uint32(unsafe.Sizeof(win32_SystemProcessorPerformanceInformation{})) //nolint:revive //FIXME
 
 	firmwareTableProviderSignatureRSMB = 0x52534d42 // "RSMB"  https://gitlab.winehq.org/dreamer/wine/-/blame/wine-7.0-rc6/dlls/ntdll/unix/system.c#L230
 	smBiosHeaderSize                   = 8          // SMBIOS header size
@@ -221,15 +217,8 @@ func InfoWithContext(ctx context.Context) ([]InfoStat, error) {
 					}
 				}
 
-				registryKeyPath := filepath.Join(
-					centralProcessorRegistryKey,
-					strconv.Itoa(globalLpl),
-				)
-				key, err := registry.OpenKey(
-					registry.LOCAL_MACHINE,
-					registryKeyPath,
-					registry.QUERY_VALUE|registry.READ,
-				)
+				registryKeyPath := filepath.Join(centralProcessorRegistryKey, strconv.Itoa(globalLpl))
+				key, err := registry.OpenKey(registry.LOCAL_MACHINE, registryKeyPath, registry.QUERY_VALUE|registry.READ)
 				if err == nil {
 					model = getRegistryStringValueIfUnset(key, "ProcessorNameString", model)
 					vendorId = getRegistryStringValueIfUnset(key, "VendorIdentifier", vendorId)
@@ -290,22 +279,14 @@ func perfInfo() ([]win32_SystemProcessorPerformanceInformation, error) {
 	// See https://godoc.org/golang.org/x/sys/windows#LazyProc.Call for more information
 	retCode, _, err := common.ProcNtQuerySystemInformation.Call(
 		win32_SystemProcessorPerformanceInformationClass, // System Information Class -> SystemProcessorPerformanceInformation
-		uintptr(
-			unsafe.Pointer(&resultBuffer[0]),
-		), // pointer to first element in result buffer
-		bufferSize, // size of the buffer in memory
-		uintptr(
-			unsafe.Pointer(&retSize),
-		), // pointer to the size of the returned results the windows proc will set this
+		uintptr(unsafe.Pointer(&resultBuffer[0])),        // pointer to first element in result buffer
+		bufferSize,                        // size of the buffer in memory
+		uintptr(unsafe.Pointer(&retSize)), // pointer to the size of the returned results the windows proc will set this
 	)
 
 	// check return code for errors
 	if retCode != 0 {
-		return nil, fmt.Errorf(
-			"call to NtQuerySystemInformation returned %d. err: %s",
-			retCode,
-			err.Error(),
-		)
+		return nil, fmt.Errorf("call to NtQuerySystemInformation returned %d. err: %s", retCode, err.Error())
 	}
 
 	// calculate the number of returned elements based on the returned size
@@ -393,8 +374,7 @@ func getSMBIOSProcessorInfo() (family uint8, processorId string, err error) {
 		if typ == smbiosEndOfTable {
 			break
 		}
-		if typ == smbiosTypeProcessor && length >= smbiosProcessorMinLength &&
-			i+int(length) <= len(buf) {
+		if typ == smbiosTypeProcessor && length >= smbiosProcessorMinLength && i+int(length) <= len(buf) {
 			// Ensure we have enough bytes for procIdBytes
 			if i+16 > len(buf) {
 				break
@@ -404,25 +384,9 @@ func getSMBIOSProcessorInfo() (family uint8, processorId string, err error) {
 			// Extract processor ID bytes (8 bytes total) from offsets 8-15
 			procIdBytes := buf[i+8 : i+16]
 			// Convert first 4 bytes to 32-bit EAX register value (little endian)
-			eax := uint32(
-				procIdBytes[0],
-			) | uint32(
-				procIdBytes[1],
-			)<<8 | uint32(
-				procIdBytes[2],
-			)<<16 | uint32(
-				procIdBytes[3],
-			)<<24
+			eax := uint32(procIdBytes[0]) | uint32(procIdBytes[1])<<8 | uint32(procIdBytes[2])<<16 | uint32(procIdBytes[3])<<24
 			// Convert last 4 bytes to 32-bit EDX register value (little endian)
-			edx := uint32(
-				procIdBytes[4],
-			) | uint32(
-				procIdBytes[5],
-			)<<8 | uint32(
-				procIdBytes[6],
-			)<<16 | uint32(
-				procIdBytes[7],
-			)<<24
+			edx := uint32(procIdBytes[4]) | uint32(procIdBytes[5])<<8 | uint32(procIdBytes[6])<<16 | uint32(procIdBytes[7])<<24
 			// Format processor ID as 16 character hex string (EDX+EAX)
 			procId := fmt.Sprintf("%08X%08X", edx, eax)
 			return family, procId, nil
@@ -447,16 +411,10 @@ func getSMBIOSProcessorInfo() (family uint8, processorId string, err error) {
 	return 0, "", fmt.Errorf("SMBIOS processor information not found: %w", syscall.ERROR_NOT_FOUND)
 }
 
-func getSystemLogicalProcessorInformationEx(
-	relationship relationship,
-) ([]systemLogicalProcessorInformationEx, error) {
+func getSystemLogicalProcessorInformationEx(relationship relationship) ([]systemLogicalProcessorInformationEx, error) {
 	var length uint32
 	// First call to determine the required buffer size
-	_, _, err := procGetLogicalProcessorInformationEx.Call(
-		uintptr(relationship),
-		0,
-		uintptr(unsafe.Pointer(&length)),
-	)
+	_, _, err := procGetLogicalProcessorInformationEx.Call(uintptr(relationship), 0, uintptr(unsafe.Pointer(&length)))
 	if err != nil && !errors.Is(err, windows.ERROR_INSUFFICIENT_BUFFER) {
 		return nil, fmt.Errorf("failed to get buffer size: %w", err)
 	}
@@ -465,11 +423,7 @@ func getSystemLogicalProcessorInformationEx(
 	buffer := make([]byte, length)
 
 	// Second call to retrieve the processor information
-	_, _, err = procGetLogicalProcessorInformationEx.Call(
-		uintptr(relationship),
-		uintptr(unsafe.Pointer(&buffer[0])),
-		uintptr(unsafe.Pointer(&length)),
-	)
+	_, _, err = procGetLogicalProcessorInformationEx.Call(uintptr(relationship), uintptr(unsafe.Pointer(&buffer[0])), uintptr(unsafe.Pointer(&length)))
 	if err != nil && !errors.Is(err, windows.NTE_OP_OK) {
 		return nil, fmt.Errorf("failed to get logical processor information: %w", err)
 	}
@@ -478,9 +432,7 @@ func getSystemLogicalProcessorInformationEx(
 	offset := uintptr(0)
 	var infos []systemLogicalProcessorInformationEx
 	for offset < uintptr(length) {
-		info := (*systemLogicalProcessorInformationEx)(
-			unsafe.Pointer(uintptr(unsafe.Pointer(&buffer[0])) + offset),
-		)
+		info := (*systemLogicalProcessorInformationEx)(unsafe.Pointer(uintptr(unsafe.Pointer(&buffer[0])) + offset))
 		infos = append(infos, *info)
 		offset += uintptr(info.size)
 	}

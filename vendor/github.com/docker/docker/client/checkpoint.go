@@ -14,9 +14,5 @@ import (
 type CheckpointAPIClient interface {
 	CheckpointCreate(ctx context.Context, container string, options checkpoint.CreateOptions) error
 	CheckpointDelete(ctx context.Context, container string, options checkpoint.DeleteOptions) error
-	CheckpointList(
-		ctx context.Context,
-		container string,
-		options checkpoint.ListOptions,
-	) ([]checkpoint.Summary, error)
+	CheckpointList(ctx context.Context, container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error)
 }

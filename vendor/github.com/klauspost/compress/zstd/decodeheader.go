@@ -170,9 +170,7 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 		case 2:
 			h.DictionaryID = uint32(b[0]) | (uint32(b[1]) << 8)
 		case 4:
-			h.DictionaryID = uint32(
-				b[0],
-			) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24)
+			h.DictionaryID = uint32(b[0]) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24)
 		}
 	}
 
@@ -203,9 +201,7 @@ func (h *Header) DecodeAndStrip(in []byte) (remain []byte, err error) {
 			// When FCS_Field_Size is 2, the offset of 256 is added.
 			h.FrameContentSize = uint64(b[0]) | (uint64(b[1]) << 8) + 256
 		case 4:
-			h.FrameContentSize = uint64(
-				b[0],
-			) | (uint64(b[1]) << 8) | (uint64(b[2]) << 16) | (uint64(b[3]) << 24)
+			h.FrameContentSize = uint64(b[0]) | (uint64(b[1]) << 8) | (uint64(b[2]) << 16) | (uint64(b[3]) << 24)
 		case 8:
 			d1 := uint32(b[0]) | (uint32(b[1]) << 8) | (uint32(b[2]) << 16) | (uint32(b[3]) << 24)
 			d2 := uint32(b[4]) | (uint32(b[5]) << 8) | (uint32(b[6]) << 16) | (uint32(b[7]) << 24)

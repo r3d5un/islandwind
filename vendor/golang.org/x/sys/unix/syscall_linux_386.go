@@ -52,14 +52,7 @@ func setTimeval(sec, usec int64) Timeval {
 //sys	mmap2(addr uintptr, length uintptr, prot int, flags int, fd int, pageOffset uintptr) (xaddr uintptr, err error)
 //sys	Pause() (err error)
 
-func mmap(
-	addr uintptr,
-	length uintptr,
-	prot int,
-	flags int,
-	fd int,
-	offset int64,
-) (xaddr uintptr, err error) {
+func mmap(addr uintptr, length uintptr, prot int, flags int, fd int, offset int64) (xaddr uintptr, err error) {
 	page := uintptr(offset / 4096)
 	if offset != int64(page)*4096 {
 		return 0, EINVAL
@@ -149,15 +142,7 @@ const (
 )
 
 func accept4(s int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (fd int, err error) {
-	fd, e := socketcall(
-		_ACCEPT4,
-		uintptr(s),
-		uintptr(unsafe.Pointer(rsa)),
-		uintptr(unsafe.Pointer(addrlen)),
-		uintptr(flags),
-		0,
-		0,
-	)
+	fd, e := socketcall(_ACCEPT4, uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)), uintptr(flags), 0, 0)
 	if e != 0 {
 		err = e
 	}
@@ -165,15 +150,7 @@ func accept4(s int, rsa *RawSockaddrAny, addrlen *_Socklen, flags int) (fd int, 
 }
 
 func getsockname(s int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
-	_, e := rawsocketcall(
-		_GETSOCKNAME,
-		uintptr(s),
-		uintptr(unsafe.Pointer(rsa)),
-		uintptr(unsafe.Pointer(addrlen)),
-		0,
-		0,
-		0,
-	)
+	_, e := rawsocketcall(_GETSOCKNAME, uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)), 0, 0, 0)
 	if e != 0 {
 		err = e
 	}
@@ -181,15 +158,7 @@ func getsockname(s int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
 }
 
 func getpeername(s int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
-	_, e := rawsocketcall(
-		_GETPEERNAME,
-		uintptr(s),
-		uintptr(unsafe.Pointer(rsa)),
-		uintptr(unsafe.Pointer(addrlen)),
-		0,
-		0,
-		0,
-	)
+	_, e := rawsocketcall(_GETPEERNAME, uintptr(s), uintptr(unsafe.Pointer(rsa)), uintptr(unsafe.Pointer(addrlen)), 0, 0, 0)
 	if e != 0 {
 		err = e
 	}
@@ -197,15 +166,7 @@ func getpeername(s int, rsa *RawSockaddrAny, addrlen *_Socklen) (err error) {
 }
 
 func socketpair(domain int, typ int, flags int, fd *[2]int32) (err error) {
-	_, e := rawsocketcall(
-		_SOCKETPAIR,
-		uintptr(domain),
-		uintptr(typ),
-		uintptr(flags),
-		uintptr(unsafe.Pointer(fd)),
-		0,
-		0,
-	)
+	_, e := rawsocketcall(_SOCKETPAIR, uintptr(domain), uintptr(typ), uintptr(flags), uintptr(unsafe.Pointer(fd)), 0, 0)
 	if e != 0 {
 		err = e
 	}
@@ -237,15 +198,7 @@ func socket(domain int, typ int, proto int) (fd int, err error) {
 }
 
 func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen) (err error) {
-	_, e := socketcall(
-		_GETSOCKOPT,
-		uintptr(s),
-		uintptr(level),
-		uintptr(name),
-		uintptr(val),
-		uintptr(unsafe.Pointer(vallen)),
-		0,
-	)
+	_, e := socketcall(_GETSOCKOPT, uintptr(s), uintptr(level), uintptr(name), uintptr(val), uintptr(unsafe.Pointer(vallen)), 0)
 	if e != 0 {
 		err = e
 	}
@@ -253,41 +206,19 @@ func getsockopt(s int, level int, name int, val unsafe.Pointer, vallen *_Socklen
 }
 
 func setsockopt(s int, level int, name int, val unsafe.Pointer, vallen uintptr) (err error) {
-	_, e := socketcall(
-		_SETSOCKOPT,
-		uintptr(s),
-		uintptr(level),
-		uintptr(name),
-		uintptr(val),
-		vallen,
-		0,
-	)
+	_, e := socketcall(_SETSOCKOPT, uintptr(s), uintptr(level), uintptr(name), uintptr(val), vallen, 0)
 	if e != 0 {
 		err = e
 	}
 	return
 }
 
-func recvfrom(
-	s int,
-	p []byte,
-	flags int,
-	from *RawSockaddrAny,
-	fromlen *_Socklen,
-) (n int, err error) {
+func recvfrom(s int, p []byte, flags int, from *RawSockaddrAny, fromlen *_Socklen) (n int, err error) {
 	var base uintptr
 	if len(p) > 0 {
 		base = uintptr(unsafe.Pointer(&p[0]))
 	}
-	n, e := socketcall(
-		_RECVFROM,
-		uintptr(s),
-		base,
-		uintptr(len(p)),
-		uintptr(flags),
-		uintptr(unsafe.Pointer(from)),
-		uintptr(unsafe.Pointer(fromlen)),
-	)
+	n, e := socketcall(_RECVFROM, uintptr(s), base, uintptr(len(p)), uintptr(flags), uintptr(unsafe.Pointer(from)), uintptr(unsafe.Pointer(fromlen)))
 	if e != 0 {
 		err = e
 	}
@@ -299,15 +230,7 @@ func sendto(s int, p []byte, flags int, to unsafe.Pointer, addrlen _Socklen) (er
 	if len(p) > 0 {
 		base = uintptr(unsafe.Pointer(&p[0]))
 	}
-	_, e := socketcall(
-		_SENDTO,
-		uintptr(s),
-		base,
-		uintptr(len(p)),
-		uintptr(flags),
-		uintptr(to),
-		uintptr(addrlen),
-	)
+	_, e := socketcall(_SENDTO, uintptr(s), base, uintptr(len(p)), uintptr(flags), uintptr(to), uintptr(addrlen))
 	if e != 0 {
 		err = e
 	}
@@ -347,12 +270,7 @@ func Shutdown(s, how int) (err error) {
 }
 
 func Fstatfs(fd int, buf *Statfs_t) (err error) {
-	_, _, e := Syscall(
-		SYS_FSTATFS64,
-		uintptr(fd),
-		unsafe.Sizeof(*buf),
-		uintptr(unsafe.Pointer(buf)),
-	)
+	_, _, e := Syscall(SYS_FSTATFS64, uintptr(fd), unsafe.Sizeof(*buf), uintptr(unsafe.Pointer(buf)))
 	if e != 0 {
 		err = e
 	}
@@ -364,12 +282,7 @@ func Statfs(path string, buf *Statfs_t) (err error) {
 	if err != nil {
 		return err
 	}
-	_, _, e := Syscall(
-		SYS_STATFS64,
-		uintptr(unsafe.Pointer(pathp)),
-		unsafe.Sizeof(*buf),
-		uintptr(unsafe.Pointer(buf)),
-	)
+	_, _, e := Syscall(SYS_STATFS64, uintptr(unsafe.Pointer(pathp)), unsafe.Sizeof(*buf), uintptr(unsafe.Pointer(buf)))
 	if e != 0 {
 		err = e
 	}

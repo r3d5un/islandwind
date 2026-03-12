@@ -10,10 +10,7 @@ import (
 )
 
 // VolumeList returns the volumes configured in the docker host.
-func (cli *Client) VolumeList(
-	ctx context.Context,
-	options volume.ListOptions,
-) (volume.ListResponse, error) {
+func (cli *Client) VolumeList(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error) {
 	query := url.Values{}
 
 	if options.Filters.Len() > 0 {

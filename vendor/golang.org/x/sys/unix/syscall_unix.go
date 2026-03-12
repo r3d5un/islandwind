@@ -102,13 +102,7 @@ type mmapper struct {
 	munmap func(addr uintptr, length uintptr) error
 }
 
-func (m *mmapper) Mmap(
-	fd int,
-	offset int64,
-	length int,
-	prot int,
-	flags int,
-) (data []byte, err error) {
+func (m *mmapper) Mmap(fd int, offset int64, length int, prot int, flags int) (data []byte, err error) {
 	if length <= 0 {
 		return nil, EINVAL
 	}
@@ -160,14 +154,7 @@ func Munmap(b []byte) (err error) {
 	return mapper.Munmap(b)
 }
 
-func MmapPtr(
-	fd int,
-	offset int64,
-	addr unsafe.Pointer,
-	length uintptr,
-	prot int,
-	flags int,
-) (ret unsafe.Pointer, err error) {
+func MmapPtr(fd int, offset int64, addr unsafe.Pointer, length uintptr, prot int, flags int) (ret unsafe.Pointer, err error) {
 	xaddr, err := mapper.mmap(uintptr(addr), length, prot, flags, fd, offset)
 	return unsafe.Pointer(xaddr), err
 }
@@ -373,11 +360,7 @@ func Recvfrom(fd int, p []byte, flags int) (n int, from Sockaddr, err error) {
 // If the underlying socket type is not SOCK_DGRAM, a received message
 // containing oob data and a single '\0' of non-control data is treated as if
 // the message contained only control data, i.e. n will be zero on return.
-func Recvmsg(
-	fd int,
-	p, oob []byte,
-	flags int,
-) (n, oobn int, recvflags int, from Sockaddr, err error) {
+func Recvmsg(fd int, p, oob []byte, flags int) (n, oobn int, recvflags int, from Sockaddr, err error) {
 	var iov [1]Iovec
 	if len(p) > 0 {
 		iov[0].Base = &p[0]
@@ -397,12 +380,7 @@ func Recvmsg(
 // RecvmsgBuffers receives a message from a socket using the recvmsg system
 // call. This function is equivalent to Recvmsg, but non-control data read is
 // scattered into the buffers slices.
-func RecvmsgBuffers(
-	fd int,
-	buffers [][]byte,
-	oob []byte,
-	flags int,
-) (n, oobn int, recvflags int, from Sockaddr, err error) {
+func RecvmsgBuffers(fd int, buffers [][]byte, oob []byte, flags int) (n, oobn int, recvflags int, from Sockaddr, err error) {
 	iov := make([]Iovec, len(buffers))
 	for i := range buffers {
 		if len(buffers[i]) > 0 {
@@ -474,13 +452,7 @@ func SendmsgN(fd int, p, oob []byte, to Sockaddr, flags int) (n int, err error) 
 // SendmsgBuffers sends a message on a socket to an address using the sendmsg
 // system call. This function is equivalent to SendmsgN, but the non-control
 // data is gathered from buffers.
-func SendmsgBuffers(
-	fd int,
-	buffers [][]byte,
-	oob []byte,
-	to Sockaddr,
-	flags int,
-) (n int, err error) {
+func SendmsgBuffers(fd int, buffers [][]byte, oob []byte, to Sockaddr, flags int) (n int, err error) {
 	iov := make([]Iovec, len(buffers))
 	for i := range buffers {
 		if len(buffers[i]) > 0 {

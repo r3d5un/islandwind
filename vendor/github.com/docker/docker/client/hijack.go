@@ -16,24 +16,12 @@ import (
 )
 
 // postHijacked sends a POST request and hijacks the connection.
-func (cli *Client) postHijacked(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	body interface{},
-	headers map[string][]string,
-) (types.HijackedResponse, error) {
+func (cli *Client) postHijacked(ctx context.Context, path string, query url.Values, body interface{}, headers map[string][]string) (types.HijackedResponse, error) {
 	bodyEncoded, err := encodeData(body)
 	if err != nil {
 		return types.HijackedResponse{}, err
 	}
-	req, err := cli.buildRequest(
-		ctx,
-		http.MethodPost,
-		cli.getAPIPath(ctx, path, query),
-		bodyEncoded,
-		headers,
-	)
+	req, err := cli.buildRequest(ctx, http.MethodPost, cli.getAPIPath(ctx, path, query), bodyEncoded, headers)
 	if err != nil {
 		return types.HijackedResponse{}, err
 	}
@@ -51,11 +39,7 @@ func (cli *Client) postHijacked(
 }
 
 // DialHijack returns a hijacked connection with negotiated protocol proto.
-func (cli *Client) DialHijack(
-	ctx context.Context,
-	url, proto string,
-	meta map[string][]string,
-) (net.Conn, error) {
+func (cli *Client) DialHijack(ctx context.Context, url, proto string, meta map[string][]string) (net.Conn, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, http.NoBody)
 	if err != nil {
 		return nil, err
@@ -66,21 +50,14 @@ func (cli *Client) DialHijack(
 	return conn, err
 }
 
-func setupHijackConn(
-	dialer func(context.Context) (net.Conn, error),
-	req *http.Request,
-	proto string,
-) (_ net.Conn, _ string, retErr error) {
+func setupHijackConn(dialer func(context.Context) (net.Conn, error), req *http.Request, proto string) (_ net.Conn, _ string, retErr error) {
 	ctx := req.Context()
 	req.Header.Set("Connection", "Upgrade")
 	req.Header.Set("Upgrade", proto)
 
 	conn, err := dialer(ctx)
 	if err != nil {
-		return nil, "", errors.Wrap(
-			err,
-			"cannot connect to the Docker daemon. Is 'docker daemon' running on this host?",
-		)
+		return nil, "", errors.Wrap(err, "cannot connect to the Docker daemon. Is 'docker daemon' running on this host?")
 	}
 	defer func() {
 		if retErr != nil {

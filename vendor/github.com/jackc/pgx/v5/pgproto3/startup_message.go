@@ -31,11 +31,7 @@ func (dst *StartupMessage) Decode(src []byte) error {
 	rp := 4
 
 	if dst.ProtocolVersion != ProtocolVersionNumber {
-		return fmt.Errorf(
-			"Bad startup message version number. Expected %d, got %d",
-			ProtocolVersionNumber,
-			dst.ProtocolVersion,
-		)
+		return fmt.Errorf("Bad startup message version number. Expected %d, got %d", ProtocolVersionNumber, dst.ProtocolVersion)
 	}
 
 	dst.Parameters = make(map[string]string)

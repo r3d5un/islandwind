@@ -255,12 +255,7 @@ func (scanPlanTextAnyToPathScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanPath(Path{P: points, Closed: closed, Valid: true})
 }
 
-func (c PathCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c PathCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

@@ -36,11 +36,7 @@ func (o *LargeObjects) Create(ctx context.Context, oid uint32) (uint32, error) {
 
 // Open opens an existing large object with the given mode. ctx will also be used for all operations on the opened large
 // object.
-func (o *LargeObjects) Open(
-	ctx context.Context,
-	oid uint32,
-	mode LargeObjectMode,
-) (*LargeObject, error) {
+func (o *LargeObjects) Open(ctx context.Context, oid uint32, mode LargeObjectMode) (*LargeObject, error) {
 	var fd int32
 	err := o.tx.QueryRow(ctx, "select lo_open($1, $2)", oid, mode).Scan(&fd)
 	if err != nil {
@@ -89,8 +85,7 @@ func (o *LargeObject) Write(p []byte) (int, error) {
 		}
 
 		var n int
-		err := o.tx.QueryRow(o.ctx, "select lowrite($1, $2)", o.fd, p[nTotal:nTotal+expected]).
-			Scan(&n)
+		err := o.tx.QueryRow(o.ctx, "select lowrite($1, $2)", o.fd, p[nTotal:nTotal+expected]).Scan(&n)
 		if err != nil {
 			return nTotal, err
 		}

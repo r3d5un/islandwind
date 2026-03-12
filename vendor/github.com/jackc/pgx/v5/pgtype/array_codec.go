@@ -265,12 +265,7 @@ func (c *ArrayCodec) decodeBinary(m *Map, arrayOID uint32, src []byte, array Arr
 		return nil
 	}
 
-	elementScanPlan := c.ElementType.Codec.PlanScan(
-		m,
-		c.ElementType.OID,
-		BinaryFormatCode,
-		array.ScanIndex(0),
-	)
+	elementScanPlan := c.ElementType.Codec.PlanScan(m, c.ElementType.OID, BinaryFormatCode, array.ScanIndex(0))
 	if elementScanPlan == nil {
 		elementScanPlan = m.PlanScan(c.ElementType.OID, BinaryFormatCode, array.ScanIndex(0))
 	}
@@ -308,12 +303,7 @@ func (c *ArrayCodec) decodeText(m *Map, arrayOID uint32, src []byte, array Array
 		return nil
 	}
 
-	elementScanPlan := c.ElementType.Codec.PlanScan(
-		m,
-		c.ElementType.OID,
-		TextFormatCode,
-		array.ScanIndex(0),
-	)
+	elementScanPlan := c.ElementType.Codec.PlanScan(m, c.ElementType.OID, TextFormatCode, array.ScanIndex(0))
 	if elementScanPlan == nil {
 		elementScanPlan = m.PlanScan(c.ElementType.OID, TextFormatCode, array.ScanIndex(0))
 	}
@@ -364,12 +354,7 @@ func (spac *scanPlanArrayCodec) Scan(src []byte, dst any) error {
 	}
 }
 
-func (c *ArrayCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *ArrayCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

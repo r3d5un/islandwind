@@ -254,12 +254,7 @@ func (scanPlanTextAnyToHstoreScanner) scanString(src string, scanner HstoreScann
 	return scanner.ScanHstore(hstore)
 }
 
-func (c HstoreCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c HstoreCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 
@@ -305,13 +300,7 @@ func (p *hstoreParser) consume() (b byte, end bool) {
 }
 
 func unexpectedByteErr(actualB, expectedB byte) error {
-	return fmt.Errorf(
-		"expected '%c' ('%#v'); found '%c' ('%#v')",
-		expectedB,
-		expectedB,
-		actualB,
-		actualB,
-	)
+	return fmt.Errorf("expected '%c' ('%#v'); found '%c' ('%#v')", expectedB, expectedB, actualB, actualB)
 }
 
 // consumeExpectedByte consumes expectedB from the string, or returns an error.

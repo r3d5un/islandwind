@@ -49,9 +49,7 @@ func FromEnv(c *Client) error {
 // WithDialContext applies the dialer to the client transport. This can be
 // used to set the Timeout and KeepAlive settings of the client. It returns
 // an error if the client does not have a [http.Transport] configured.
-func WithDialContext(
-	dialContext func(ctx context.Context, network, addr string) (net.Conn, error),
-) Opt {
+func WithDialContext(dialContext func(ctx context.Context, network, addr string) (net.Conn, error)) Opt {
 	return func(c *Client) error {
 		if transport, ok := c.client.Transport.(*http.Transport); ok {
 			transport.DialContext = dialContext

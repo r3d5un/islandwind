@@ -40,11 +40,7 @@ func Compress4X(in []byte, s *Scratch) (out []byte, reUsed bool, err error) {
 	return compress(in, s, s.compress4X)
 }
 
-func compress(
-	in []byte,
-	s *Scratch,
-	compressor func(src []byte) ([]byte, error),
-) (out []byte, reUsed bool, err error) {
+func compress(in []byte, s *Scratch, compressor func(src []byte) ([]byte, error)) (out []byte, reUsed bool, err error) {
 	// Nuke previous table if we cannot reuse anyway.
 	if s.Reuse == ReusePolicyNone {
 		s.prevTable = s.prevTable[:0]
@@ -535,11 +531,7 @@ func (s *Scratch) buildCTable() error {
 
 	// fill result into tree (val, nbBits)
 	if maxNbBits > tableLogMax {
-		return fmt.Errorf(
-			"internal error: maxNbBits (%d) > tableLogMax (%d)",
-			maxNbBits,
-			tableLogMax,
-		)
+		return fmt.Errorf("internal error: maxNbBits (%d) > tableLogMax (%d)", maxNbBits, tableLogMax)
 	}
 	var nbPerRank [tableLogMax + 1]uint16
 	var valPerRank [16]uint16

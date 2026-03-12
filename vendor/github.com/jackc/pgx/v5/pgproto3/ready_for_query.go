@@ -16,11 +16,7 @@ func (*ReadyForQuery) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *ReadyForQuery) Decode(src []byte) error {
 	if len(src) != 1 {
-		return &invalidMessageLenErr{
-			messageType: "ReadyForQuery",
-			expectedLen: 1,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "ReadyForQuery", expectedLen: 1, actualLen: len(src)}
 	}
 
 	dst.TxStatus = src[0]

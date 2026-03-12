@@ -61,10 +61,7 @@ func (p *textMapPropagator) Inject(ctx context.Context, carrier propagation.Text
 }
 
 // Extract reads cross-cutting concerns from the carrier into a Context.
-func (p *textMapPropagator) Extract(
-	ctx context.Context,
-	carrier propagation.TextMapCarrier,
-) context.Context {
+func (p *textMapPropagator) Extract(ctx context.Context, carrier propagation.TextMapCarrier) context.Context {
 	return p.effectiveDelegate().Extract(ctx, carrier)
 }
 

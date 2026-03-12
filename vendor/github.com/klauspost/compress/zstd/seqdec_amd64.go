@@ -45,20 +45,12 @@ func sequenceDecs_decodeSync_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeSyn
 // sequenceDecs_decodeSync_safe_amd64 does the same as above, but does not write more than output buffer.
 //
 //go:noescape
-func sequenceDecs_decodeSync_safe_amd64(
-	s *sequenceDecs,
-	br *bitReader,
-	ctx *decodeSyncAsmContext,
-) int
+func sequenceDecs_decodeSync_safe_amd64(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 
 // sequenceDecs_decodeSync_safe_bmi2 does the same as above, but does not write more than output buffer.
 //
 //go:noescape
-func sequenceDecs_decodeSync_safe_bmi2(
-	s *sequenceDecs,
-	br *bitReader,
-	ctx *decodeSyncAsmContext,
-) int
+func sequenceDecs_decodeSync_safe_bmi2(s *sequenceDecs, br *bitReader, ctx *decodeSyncAsmContext) int
 
 // decode sequences from the stream with the provided history but without a dictionary.
 func (s *sequenceDecs) decodeSyncSimple(hist []byte) (bool, error) {
@@ -146,20 +138,7 @@ func (s *sequenceDecs) decodeSyncSimple(hist []byte) (bool, error) {
 	case errorNotEnoughSpace:
 		size := ctx.outPosition + ctx.ll + ctx.ml
 		if debugDecoder {
-			println(
-				"msl:",
-				s.maxSyncLen,
-				"cap",
-				cap(s.out),
-				"bef:",
-				startSize,
-				"sz:",
-				size-startSize,
-				"mbs:",
-				maxBlockSize,
-				"outsz:",
-				cap(s.out)-startSize,
-			)
+			println("msl:", s.maxSyncLen, "cap", cap(s.out), "bef:", startSize, "sz:", size-startSize, "mbs:", maxBlockSize, "outsz:", cap(s.out)-startSize)
 		}
 		return true, fmt.Errorf("output bigger than max block size (%d)", maxBlockSize)
 
@@ -302,11 +281,7 @@ func (s *sequenceDecs) decode(seqs []seqVals) error {
 
 		case errorNotEnoughLiterals:
 			ll := ctx.seqs[i].ll
-			return fmt.Errorf(
-				"unexpected literal count, want %d bytes, but only %d is available",
-				ll,
-				ctx.litRemain+ll,
-			)
+			return fmt.Errorf("unexpected literal count, want %d bytes, but only %d is available", ll, ctx.litRemain+ll)
 		case errorOverread:
 			return io.ErrUnexpectedEOF
 		}
@@ -370,12 +345,7 @@ func (s *sequenceDecs) executeSimple(seqs []seqVals, hist []byte) error {
 	}
 
 	if debugDecoder {
-		printf(
-			"Execute %d seqs with literals: %d into %d bytes\n",
-			len(seqs),
-			len(s.literals),
-			s.seqSize,
-		)
+		printf("Execute %d seqs with literals: %d into %d bytes\n", len(seqs), len(s.literals), s.seqSize)
 	}
 
 	var t = len(s.out)

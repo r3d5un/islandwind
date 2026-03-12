@@ -44,8 +44,7 @@ func scanUnquotedKey(b []byte) ([]byte, []byte) {
 }
 
 func isUnquotedKeyChar(r byte) bool {
-	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' ||
-		r == '_'
+	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' || r == '_'
 }
 
 func scanLiteralString(b []byte) ([]byte, []byte, error) {
@@ -101,10 +100,7 @@ func scanMultilineLiteralString(b []byte) ([]byte, []byte, error) {
 				i++
 
 				if i < len(b) && b[i] == '\'' {
-					return nil, nil, NewParserError(
-						b[i-3:i+1],
-						"''' not allowed in multiline literal string",
-					)
+					return nil, nil, NewParserError(b[i-3:i+1], "''' not allowed in multiline literal string")
 				}
 
 				return b[:i], b[i:], nil
@@ -197,10 +193,7 @@ func scanBasicString(b []byte) ([]byte, bool, []byte, error) {
 		case '"':
 			return b[:i+1], escaped, b[i+1:], nil
 		case '\n', '\r':
-			return nil, escaped, nil, NewParserError(
-				b[i:i+1],
-				"basic strings cannot have new lines",
-			)
+			return nil, escaped, nil, NewParserError(b[i:i+1], "basic strings cannot have new lines")
 		case '\\':
 			if len(b) < i+2 {
 				return nil, escaped, nil, NewParserError(b[i:i+1], "need a character after \\")
@@ -251,10 +244,7 @@ func scanMultilineBasicString(b []byte) ([]byte, bool, []byte, error) {
 				i++
 
 				if i < len(b) && b[i] == '"' {
-					return nil, escaped, nil, NewParserError(
-						b[i-3:i+1],
-						`""" not allowed in multiline basic string`,
-					)
+					return nil, escaped, nil, NewParserError(b[i-3:i+1], `""" not allowed in multiline basic string`)
 				}
 
 				return b[:i], escaped, b[i:], nil
@@ -276,8 +266,5 @@ func scanMultilineBasicString(b []byte) ([]byte, bool, []byte, error) {
 		}
 	}
 
-	return nil, escaped, nil, NewParserError(
-		b[len(b):],
-		`multiline basic string not terminated by """`,
-	)
+	return nil, escaped, nil, NewParserError(b[len(b):], `multiline basic string not terminated by """`)
 }

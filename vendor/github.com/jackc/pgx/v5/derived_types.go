@@ -177,18 +177,7 @@ func (c *Conn) LoadTypes(ctx context.Context, typeNames []string) ([]*pgtype.Typ
 	result := make([]*pgtype.Type, 0, 100)
 	for rows.Next() {
 		ti := derivedTypeInfo{}
-		err = rows.Scan(
-			&ti.TypeName,
-			&ti.NspName,
-			&ti.Typtype,
-			&ti.Typbasetype,
-			&ti.Typelem,
-			&ti.Oid,
-			&ti.Rngtypid,
-			&ti.Rngsubtype,
-			&ti.Attnames,
-			&ti.Atttypids,
-		)
+		err = rows.Scan(&ti.TypeName, &ti.NspName, &ti.Typtype, &ti.Typbasetype, &ti.Typelem, &ti.Oid, &ti.Rngtypid, &ti.Rngsubtype, &ti.Attnames, &ti.Atttypids)
 		if err != nil {
 			return nil, fmt.Errorf("While scanning type information: %w", err)
 		}
@@ -197,45 +186,24 @@ func (c *Conn) LoadTypes(ctx context.Context, typeNames []string) ([]*pgtype.Typ
 		case "b": // array
 			dt, ok := m.TypeForOID(ti.Typelem)
 			if !ok {
-				return nil, fmt.Errorf(
-					"Array element OID %v not registered while loading pgtype %q",
-					ti.Typelem,
-					ti.TypeName,
-				)
+				return nil, fmt.Errorf("Array element OID %v not registered while loading pgtype %q", ti.Typelem, ti.TypeName)
 			}
-			type_ = &pgtype.Type{
-				Name:  ti.TypeName,
-				OID:   ti.Oid,
-				Codec: &pgtype.ArrayCodec{ElementType: dt},
-			}
+			type_ = &pgtype.Type{Name: ti.TypeName, OID: ti.Oid, Codec: &pgtype.ArrayCodec{ElementType: dt}}
 		case "c": // composite
 			var fields []pgtype.CompositeCodecField
 			for i, fieldName := range ti.Attnames {
 				dt, ok := m.TypeForOID(ti.Atttypids[i])
 				if !ok {
-					return nil, fmt.Errorf(
-						"Unknown field for composite type %q:  field %q (OID %v) is not already registered.",
-						ti.TypeName,
-						fieldName,
-						ti.Atttypids[i],
-					)
+					return nil, fmt.Errorf("Unknown field for composite type %q:  field %q (OID %v) is not already registered.", ti.TypeName, fieldName, ti.Atttypids[i])
 				}
 				fields = append(fields, pgtype.CompositeCodecField{Name: fieldName, Type: dt})
 			}
 
-			type_ = &pgtype.Type{
-				Name:  ti.TypeName,
-				OID:   ti.Oid,
-				Codec: &pgtype.CompositeCodec{Fields: fields},
-			}
+			type_ = &pgtype.Type{Name: ti.TypeName, OID: ti.Oid, Codec: &pgtype.CompositeCodec{Fields: fields}}
 		case "d": // domain
 			dt, ok := m.TypeForOID(ti.Typbasetype)
 			if !ok {
-				return nil, fmt.Errorf(
-					"Domain base type OID %v was not already registered, needed for %q",
-					ti.Typbasetype,
-					ti.TypeName,
-				)
+				return nil, fmt.Errorf("Domain base type OID %v was not already registered, needed for %q", ti.Typbasetype, ti.TypeName)
 			}
 
 			type_ = &pgtype.Type{Name: ti.TypeName, OID: ti.Oid, Codec: dt.Codec}
@@ -244,49 +212,25 @@ func (c *Conn) LoadTypes(ctx context.Context, typeNames []string) ([]*pgtype.Typ
 		case "r": // range
 			dt, ok := m.TypeForOID(ti.Rngsubtype)
 			if !ok {
-				return nil, fmt.Errorf(
-					"Range element OID %v was not already registered, needed for %q",
-					ti.Rngsubtype,
-					ti.TypeName,
-				)
+				return nil, fmt.Errorf("Range element OID %v was not already registered, needed for %q", ti.Rngsubtype, ti.TypeName)
 			}
 
-			type_ = &pgtype.Type{
-				Name:  ti.TypeName,
-				OID:   ti.Oid,
-				Codec: &pgtype.RangeCodec{ElementType: dt},
-			}
+			type_ = &pgtype.Type{Name: ti.TypeName, OID: ti.Oid, Codec: &pgtype.RangeCodec{ElementType: dt}}
 		case "m": // multirange
 			dt, ok := m.TypeForOID(ti.Rngtypid)
 			if !ok {
-				return nil, fmt.Errorf(
-					"Multirange element OID %v was not already registered, needed for %q",
-					ti.Rngtypid,
-					ti.TypeName,
-				)
+				return nil, fmt.Errorf("Multirange element OID %v was not already registered, needed for %q", ti.Rngtypid, ti.TypeName)
 			}
 
-			type_ = &pgtype.Type{
-				Name:  ti.TypeName,
-				OID:   ti.Oid,
-				Codec: &pgtype.MultirangeCodec{ElementType: dt},
-			}
+			type_ = &pgtype.Type{Name: ti.TypeName, OID: ti.Oid, Codec: &pgtype.MultirangeCodec{ElementType: dt}}
 		default:
-			return nil, fmt.Errorf(
-				"Unknown typtype %q was found while registering %q",
-				ti.Typtype,
-				ti.TypeName,
-			)
+			return nil, fmt.Errorf("Unknown typtype %q was found while registering %q", ti.Typtype, ti.TypeName)
 		}
 
 		// the type_ is imposible to be null
 		m.RegisterType(type_)
 		if ti.NspName != "" {
-			nspType := &pgtype.Type{
-				Name:  ti.NspName + "." + type_.Name,
-				OID:   type_.OID,
-				Codec: type_.Codec,
-			}
+			nspType := &pgtype.Type{Name: ti.NspName + "." + type_.Name, OID: type_.OID, Codec: type_.Codec}
 			m.RegisterType(nspType)
 			result = append(result, nspType)
 		}

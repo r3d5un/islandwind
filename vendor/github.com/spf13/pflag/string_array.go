@@ -80,12 +80,7 @@ func (f *FlagSet) StringArrayVar(p *[]string, name string, value []string, usage
 }
 
 // StringArrayVarP is like StringArrayVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) StringArrayVarP(
-	p *[]string,
-	name, shorthand string,
-	value []string,
-	usage string,
-) {
+func (f *FlagSet) StringArrayVarP(p *[]string, name, shorthand string, value []string, usage string) {
 	f.VarP(newStringArrayValue(value, p), name, shorthand, usage)
 }
 

@@ -87,11 +87,7 @@ func (c *CoreFoundationLib) CFGetTypeID(cf uintptr) int64 {
 	return fn(cf)
 }
 
-func (c *CoreFoundationLib) CFNumberCreate(
-	allocator uintptr,
-	theType int64,
-	valuePtr uintptr,
-) unsafe.Pointer {
+func (c *CoreFoundationLib) CFNumberCreate(allocator uintptr, theType int64, valuePtr uintptr) unsafe.Pointer {
 	fn := getFunc[CFNumberCreateFunc](c.library, "CFNumberCreate")
 	return fn(allocator, theType, valuePtr)
 }
@@ -101,10 +97,7 @@ func (c *CoreFoundationLib) CFNumberGetValue(num uintptr, theType int64, valuePt
 	return fn(num, theType, valuePtr)
 }
 
-func (c *CoreFoundationLib) CFDictionaryCreate(
-	allocator uintptr,
-	keys, values *unsafe.Pointer,
-	numValues int64,
+func (c *CoreFoundationLib) CFDictionaryCreate(allocator uintptr, keys, values *unsafe.Pointer, numValues int64,
 	keyCallBacks, valueCallBacks uintptr,
 ) unsafe.Pointer {
 	fn := getFunc[CFDictionaryCreateFunc](c.library, "CFDictionaryCreate")
@@ -141,21 +134,12 @@ func (c *CoreFoundationLib) CFStringGetLength(theString uintptr) int64 {
 	return fn(theString)
 }
 
-func (c *CoreFoundationLib) CFStringGetCString(
-	theString uintptr,
-	buffer CStr,
-	bufferSize int64,
-	encoding uint32,
-) {
+func (c *CoreFoundationLib) CFStringGetCString(theString uintptr, buffer CStr, bufferSize int64, encoding uint32) {
 	fn := getFunc[CFStringGetCStringFunc](c.library, "CFStringGetCString")
 	fn(theString, buffer, bufferSize, encoding)
 }
 
-func (c *CoreFoundationLib) CFStringCreateWithCString(
-	alloc uintptr,
-	cStr string,
-	encoding uint32,
-) unsafe.Pointer {
+func (c *CoreFoundationLib) CFStringCreateWithCString(alloc uintptr, cStr string, encoding uint32) unsafe.Pointer {
 	fn := getFunc[CFStringCreateWithCStringFunc](c.library, "CFStringCreateWithCString")
 	return fn(alloc, cStr, encoding)
 }
@@ -192,11 +176,7 @@ func (l *IOKitLib) IOServiceGetMatchingService(mainPort uint32, matching uintptr
 	return fn(mainPort, matching)
 }
 
-func (l *IOKitLib) IOServiceGetMatchingServices(
-	mainPort uint32,
-	matching uintptr,
-	existing *uint32,
-) int32 {
+func (l *IOKitLib) IOServiceGetMatchingServices(mainPort uint32, matching uintptr, existing *uint32) int32 {
 	fn := getFunc[IOServiceGetMatchingServicesFunc](l.library, "IOServiceGetMatchingServices")
 	return fn(mainPort, matching, existing)
 }
@@ -231,25 +211,13 @@ func (l *IOKitLib) IORegistryEntryGetParentEntry(entry uint32, plane string, par
 	return fn(entry, plane, parent)
 }
 
-func (l *IOKitLib) IORegistryEntryCreateCFProperty(
-	entry uint32,
-	key, allocator uintptr,
-	options uint32,
-) unsafe.Pointer {
+func (l *IOKitLib) IORegistryEntryCreateCFProperty(entry uint32, key, allocator uintptr, options uint32) unsafe.Pointer {
 	fn := getFunc[IORegistryEntryCreateCFPropertyFunc](l.library, "IORegistryEntryCreateCFProperty")
 	return fn(entry, key, allocator, options)
 }
 
-func (l *IOKitLib) IORegistryEntryCreateCFProperties(
-	entry uint32,
-	properties unsafe.Pointer,
-	allocator uintptr,
-	options uint32,
-) int32 {
-	fn := getFunc[IORegistryEntryCreateCFPropertiesFunc](
-		l.library,
-		"IORegistryEntryCreateCFProperties",
-	)
+func (l *IOKitLib) IORegistryEntryCreateCFProperties(entry uint32, properties unsafe.Pointer, allocator uintptr, options uint32) int32 {
+	fn := getFunc[IORegistryEntryCreateCFPropertiesFunc](l.library, "IORegistryEntryCreateCFProperties")
 	return fn(entry, properties, allocator, options)
 }
 
@@ -263,11 +231,7 @@ func (l *IOKitLib) IOObjectRelease(object uint32) int32 {
 	return fn(object)
 }
 
-func (l *IOKitLib) IOConnectCallStructMethod(
-	connection, selector uint32,
-	inputStruct, inputStructCnt, outputStruct uintptr,
-	outputStructCnt *uintptr,
-) int32 {
+func (l *IOKitLib) IOConnectCallStructMethod(connection, selector uint32, inputStruct, inputStructCnt, outputStruct uintptr, outputStructCnt *uintptr) int32 {
 	fn := getFunc[IOConnectCallStructMethodFunc](l.library, "IOConnectCallStructMethod")
 	return fn(connection, selector, inputStruct, inputStructCnt, outputStruct, outputStructCnt)
 }
@@ -278,19 +242,11 @@ func (l *IOKitLib) IOHIDEventSystemClientCreate(allocator uintptr) unsafe.Pointe
 }
 
 func (l *IOKitLib) IOHIDEventSystemClientSetMatching(client, match uintptr) int32 {
-	fn := getFunc[IOHIDEventSystemClientSetMatchingFunc](
-		l.library,
-		"IOHIDEventSystemClientSetMatching",
-	)
+	fn := getFunc[IOHIDEventSystemClientSetMatchingFunc](l.library, "IOHIDEventSystemClientSetMatching")
 	return fn(client, match)
 }
 
-func (l *IOKitLib) IOHIDServiceClientCopyEvent(
-	service uintptr,
-	eventType int64,
-	options int32,
-	timeout int64,
-) unsafe.Pointer {
+func (l *IOKitLib) IOHIDServiceClientCopyEvent(service uintptr, eventType int64, options int32, timeout int64) unsafe.Pointer {
 	fn := getFunc[IOHIDServiceClientCopyEventFunc](l.library, "IOHIDServiceClientCopyEvent")
 	return fn(service, eventType, options, timeout)
 }
@@ -306,10 +262,7 @@ func (l *IOKitLib) IOHIDEventGetFloatValue(event uintptr, field int32) float64 {
 }
 
 func (l *IOKitLib) IOHIDEventSystemClientCopyServices(client uintptr) unsafe.Pointer {
-	fn := getFunc[IOHIDEventSystemClientCopyServicesFunc](
-		l.library,
-		"IOHIDEventSystemClientCopyServices",
-	)
+	fn := getFunc[IOHIDEventSystemClientCopyServicesFunc](l.library, "IOHIDEventSystemClientCopyServices")
 	return fn(client)
 }
 
@@ -325,23 +278,14 @@ func NewSystemLib() (*SystemLib, error) {
 	return &SystemLib{library}, nil
 }
 
-func (s *SystemLib) HostProcessorInfo(
-	host uint32,
-	flavor int32,
-	outProcessorCount *uint32,
-	outProcessorInfo uintptr,
+func (s *SystemLib) HostProcessorInfo(host uint32, flavor int32, outProcessorCount *uint32, outProcessorInfo uintptr,
 	outProcessorInfoCnt *uint32,
 ) int32 {
 	fn := getFunc[HostProcessorInfoFunc](s.library, "host_processor_info")
 	return fn(host, flavor, outProcessorCount, outProcessorInfo, outProcessorInfoCnt)
 }
 
-func (s *SystemLib) HostStatistics(
-	host uint32,
-	flavor int32,
-	hostInfoOut uintptr,
-	hostInfoOutCnt *uint32,
-) int32 {
+func (s *SystemLib) HostStatistics(host uint32, flavor int32, hostInfoOut uintptr, hostInfoOutCnt *uint32) int32 {
 	fn := getFunc[HostStatisticsFunc](s.library, "host_statistics")
 	return fn(host, flavor, hostInfoOut, hostInfoOutCnt)
 }
@@ -371,12 +315,7 @@ func (s *SystemLib) ProcPidPath(pid int32, buffer uintptr, bufferSize uint32) in
 	return fn(pid, buffer, bufferSize)
 }
 
-func (s *SystemLib) ProcPidInfo(
-	pid, flavor int32,
-	arg uint64,
-	buffer uintptr,
-	bufferSize int32,
-) int32 {
+func (s *SystemLib) ProcPidInfo(pid, flavor int32, arg uint64, buffer uintptr, bufferSize int32) int32 {
 	fn := getFunc[ProcPidInfoFunc](s.library, "proc_pidinfo")
 	return fn(pid, flavor, arg, buffer, bufferSize)
 }
@@ -552,19 +491,8 @@ func NewSMC() (*SMC, error) {
 	}, nil
 }
 
-func (s *SMC) CallStruct(
-	selector uint32,
-	inputStruct, inputStructCnt, outputStruct uintptr,
-	outputStructCnt *uintptr,
-) int32 {
-	return s.lib.IOConnectCallStructMethod(
-		s.conn,
-		selector,
-		inputStruct,
-		inputStructCnt,
-		outputStruct,
-		outputStructCnt,
-	)
+func (s *SMC) CallStruct(selector uint32, inputStruct, inputStructCnt, outputStruct uintptr, outputStructCnt *uintptr) int32 {
+	return s.lib.IOConnectCallStructMethod(s.conn, selector, inputStruct, inputStructCnt, outputStruct, outputStructCnt)
 }
 
 func (s *SMC) Close() error {

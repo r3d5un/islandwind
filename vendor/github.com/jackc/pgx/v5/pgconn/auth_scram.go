@@ -88,10 +88,7 @@ func (c *PgConn) rxSASLContinue() (*pgproto3.AuthenticationSASLContinue, error) 
 		return nil, ErrorResponseToPgError(m)
 	}
 
-	return nil, fmt.Errorf(
-		"expected AuthenticationSASLContinue message but received unexpected message %T",
-		msg,
-	)
+	return nil, fmt.Errorf("expected AuthenticationSASLContinue message but received unexpected message %T", msg)
 }
 
 func (c *PgConn) rxSASLFinal() (*pgproto3.AuthenticationSASLFinal, error) {
@@ -106,10 +103,7 @@ func (c *PgConn) rxSASLFinal() (*pgproto3.AuthenticationSASLFinal, error) {
 		return nil, ErrorResponseToPgError(m)
 	}
 
-	return nil, fmt.Errorf(
-		"expected AuthenticationSASLFinal message but received unexpected message %T",
-		msg,
-	)
+	return nil, fmt.Errorf("expected AuthenticationSASLFinal message but received unexpected message %T", msg)
 }
 
 type scramClient struct {
@@ -167,41 +161,31 @@ func (sc *scramClient) recvServerFirstMessage(serverFirstMessage []byte) error {
 	sc.serverFirstMessage = serverFirstMessage
 	buf := serverFirstMessage
 	if !bytes.HasPrefix(buf, []byte("r=")) {
-		return errors.New(
-			"invalid SCRAM server-first-message received from server: did not include r=",
-		)
+		return errors.New("invalid SCRAM server-first-message received from server: did not include r=")
 	}
 	buf = buf[2:]
 
 	idx := bytes.IndexByte(buf, ',')
 	if idx == -1 {
-		return errors.New(
-			"invalid SCRAM server-first-message received from server: did not include s=",
-		)
+		return errors.New("invalid SCRAM server-first-message received from server: did not include s=")
 	}
 	sc.clientAndServerNonce = buf[:idx]
 	buf = buf[idx+1:]
 
 	if !bytes.HasPrefix(buf, []byte("s=")) {
-		return errors.New(
-			"invalid SCRAM server-first-message received from server: did not include s=",
-		)
+		return errors.New("invalid SCRAM server-first-message received from server: did not include s=")
 	}
 	buf = buf[2:]
 
 	idx = bytes.IndexByte(buf, ',')
 	if idx == -1 {
-		return errors.New(
-			"invalid SCRAM server-first-message received from server: did not include i=",
-		)
+		return errors.New("invalid SCRAM server-first-message received from server: did not include i=")
 	}
 	saltStr := buf[:idx]
 	buf = buf[idx+1:]
 
 	if !bytes.HasPrefix(buf, []byte("i=")) {
-		return errors.New(
-			"invalid SCRAM server-first-message received from server: did not include i=",
-		)
+		return errors.New("invalid SCRAM server-first-message received from server: did not include i=")
 	}
 	buf = buf[2:]
 	iterationsStr := buf
@@ -236,10 +220,7 @@ func (sc *scramClient) clientFinalMessage() string {
 	if err != nil {
 		panic(err) // This should never happen.
 	}
-	sc.authMessage = bytes.Join(
-		[][]byte{sc.clientFirstMessageBare, sc.serverFirstMessage, clientFinalMessageWithoutProof},
-		[]byte(","),
-	)
+	sc.authMessage = bytes.Join([][]byte{sc.clientFirstMessageBare, sc.serverFirstMessage, clientFinalMessageWithoutProof}, []byte(","))
 
 	clientProof := computeClientProof(sc.saltedPassword, sc.authMessage)
 

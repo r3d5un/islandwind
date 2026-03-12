@@ -300,9 +300,7 @@ func NewWithConfig(ctx context.Context, config *Config) (*Pool, error) {
 				}
 
 				jitterSecs := rand.Float64() * config.MaxConnLifetimeJitter.Seconds()
-				maxAgeTime := time.Now().
-					Add(config.MaxConnLifetime).
-					Add(time.Duration(jitterSecs) * time.Second)
+				maxAgeTime := time.Now().Add(config.MaxConnLifetime).Add(time.Duration(jitterSecs) * time.Second)
 
 				cr := &connResource{
 					conn:       conn,
@@ -403,11 +401,7 @@ func ParseConfig(connString string) (*Config, error) {
 		delete(connConfig.Config.RuntimeParams, "pool_min_idle_conns")
 		n, err := strconv.ParseInt(s, 10, 32)
 		if err != nil {
-			return nil, pgconn.NewParseConfigError(
-				connString,
-				"cannot parse pool_min_idle_conns",
-				err,
-			)
+			return nil, pgconn.NewParseConfigError(connString, "cannot parse pool_min_idle_conns", err)
 		}
 		config.MinIdleConns = int32(n)
 	} else {
@@ -418,11 +412,7 @@ func ParseConfig(connString string) (*Config, error) {
 		delete(connConfig.Config.RuntimeParams, "pool_max_conn_lifetime")
 		d, err := time.ParseDuration(s)
 		if err != nil {
-			return nil, pgconn.NewParseConfigError(
-				connString,
-				"cannot parse pool_max_conn_lifetime",
-				err,
-			)
+			return nil, pgconn.NewParseConfigError(connString, "cannot parse pool_max_conn_lifetime", err)
 		}
 		config.MaxConnLifetime = d
 	} else {
@@ -433,11 +423,7 @@ func ParseConfig(connString string) (*Config, error) {
 		delete(connConfig.Config.RuntimeParams, "pool_max_conn_idle_time")
 		d, err := time.ParseDuration(s)
 		if err != nil {
-			return nil, pgconn.NewParseConfigError(
-				connString,
-				"cannot parse pool_max_conn_idle_time",
-				err,
-			)
+			return nil, pgconn.NewParseConfigError(connString, "cannot parse pool_max_conn_idle_time", err)
 		}
 		config.MaxConnIdleTime = d
 	} else {
@@ -448,11 +434,7 @@ func ParseConfig(connString string) (*Config, error) {
 		delete(connConfig.Config.RuntimeParams, "pool_health_check_period")
 		d, err := time.ParseDuration(s)
 		if err != nil {
-			return nil, pgconn.NewParseConfigError(
-				connString,
-				"cannot parse pool_health_check_period",
-				err,
-			)
+			return nil, pgconn.NewParseConfigError(connString, "cannot parse pool_health_check_period", err)
 		}
 		config.HealthCheckPeriod = d
 	} else {
@@ -463,11 +445,7 @@ func ParseConfig(connString string) (*Config, error) {
 		delete(connConfig.Config.RuntimeParams, "pool_max_conn_lifetime_jitter")
 		d, err := time.ParseDuration(s)
 		if err != nil {
-			return nil, pgconn.NewParseConfigError(
-				connString,
-				"cannot parse pool_max_conn_lifetime_jitter",
-				err,
-			)
+			return nil, pgconn.NewParseConfigError(connString, "cannot parse pool_max_conn_lifetime_jitter", err)
 		}
 		config.MaxConnLifetimeJitter = d
 	}
@@ -674,9 +652,7 @@ func (p *Pool) Acquire(ctx context.Context) (c *Conn, err error) {
 
 		return cr.getConn(p, res), nil
 	}
-	return nil, errors.New(
-		"pgxpool: detected infinite loop acquiring connection; likely bug in PrepareConn or BeforeAcquire hook",
-	)
+	return nil, errors.New("pgxpool: detected infinite loop acquiring connection; likely bug in PrepareConn or BeforeAcquire hook")
 }
 
 // AcquireFunc acquires a *Conn and calls f with that *Conn. ctx will only affect the Acquire. It has no effect on the
@@ -832,12 +808,7 @@ func (p *Pool) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, er
 	return &Tx{t: t, c: c}, nil
 }
 
-func (p *Pool) CopyFrom(
-	ctx context.Context,
-	tableName pgx.Identifier,
-	columnNames []string,
-	rowSrc pgx.CopyFromSource,
-) (int64, error) {
+func (p *Pool) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return 0, err

@@ -204,12 +204,7 @@ func (c *MultirangeCodec) PlanScan(m *Map, oid uint32, format int16, target any)
 	}
 }
 
-func (c *MultirangeCodec) decodeBinary(
-	m *Map,
-	multirangeOID uint32,
-	src []byte,
-	multirange MultirangeSetter,
-) error {
+func (c *MultirangeCodec) decodeBinary(m *Map, multirangeOID uint32, src []byte, multirange MultirangeSetter) error {
 	rp := 0
 
 	elementCount := int(binary.BigEndian.Uint32(src[rp:]))
@@ -224,12 +219,7 @@ func (c *MultirangeCodec) decodeBinary(
 		return nil
 	}
 
-	elementScanPlan := c.ElementType.Codec.PlanScan(
-		m,
-		c.ElementType.OID,
-		BinaryFormatCode,
-		multirange.ScanIndex(0),
-	)
+	elementScanPlan := c.ElementType.Codec.PlanScan(m, c.ElementType.OID, BinaryFormatCode, multirange.ScanIndex(0))
 	if elementScanPlan == nil {
 		elementScanPlan = m.PlanScan(c.ElementType.OID, BinaryFormatCode, multirange.ScanIndex(0))
 	}
@@ -252,12 +242,7 @@ func (c *MultirangeCodec) decodeBinary(
 	return nil
 }
 
-func (c *MultirangeCodec) decodeText(
-	m *Map,
-	multirangeOID uint32,
-	src []byte,
-	multirange MultirangeSetter,
-) error {
+func (c *MultirangeCodec) decodeText(m *Map, multirangeOID uint32, src []byte, multirange MultirangeSetter) error {
 	elements, err := parseUntypedTextMultirange(src)
 	if err != nil {
 		return err
@@ -272,12 +257,7 @@ func (c *MultirangeCodec) decodeText(
 		return nil
 	}
 
-	elementScanPlan := c.ElementType.Codec.PlanScan(
-		m,
-		c.ElementType.OID,
-		TextFormatCode,
-		multirange.ScanIndex(0),
-	)
+	elementScanPlan := c.ElementType.Codec.PlanScan(m, c.ElementType.OID, TextFormatCode, multirange.ScanIndex(0))
 	if elementScanPlan == nil {
 		elementScanPlan = m.PlanScan(c.ElementType.OID, TextFormatCode, multirange.ScanIndex(0))
 	}
@@ -323,12 +303,7 @@ func (spac *scanPlanMultirangeCodec) Scan(src []byte, dst any) error {
 	}
 }
 
-func (c *MultirangeCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *MultirangeCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

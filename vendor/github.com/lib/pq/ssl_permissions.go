@@ -22,12 +22,8 @@ const (
 )
 
 var (
-	errSSLKeyHasUnacceptableUserPermissions = errors.New(
-		"permissions for files not owned by root should be u=rw (0600) or less",
-	)
-	errSSLKeyHasUnacceptableRootPermissions = errors.New(
-		"permissions for root owned files should be u=rw,g=r (0640) or less",
-	)
+	errSSLKeyHasUnacceptableUserPermissions = errors.New("permissions for files not owned by root should be u=rw (0600) or less")
+	errSSLKeyHasUnacceptableRootPermissions = errors.New("permissions for root owned files should be u=rw,g=r (0640) or less")
 )
 
 // sslKeyPermissions checks the permissions on user-supplied ssl key files.
@@ -44,8 +40,7 @@ func sslKeyPermissions(sslkey string) error {
 
 	// return ErrSSLKeyHasWorldPermissions for backwards compatability with
 	// existing code.
-	if err == errSSLKeyHasUnacceptableUserPermissions ||
-		err == errSSLKeyHasUnacceptableRootPermissions {
+	if err == errSSLKeyHasUnacceptableUserPermissions || err == errSSLKeyHasUnacceptableRootPermissions {
 		err = ErrSSLKeyHasWorldPermissions
 	}
 	return err

@@ -79,11 +79,7 @@ func (p *JSONProgress) String() string {
 		if 50-percentage > 0 {
 			numSpaces = 50 - percentage
 		}
-		pbBox = fmt.Sprintf(
-			"[%s>%s] ",
-			strings.Repeat("=", percentage),
-			strings.Repeat(" ", numSpaces),
-		)
+		pbBox = fmt.Sprintf("[%s>%s] ", strings.Repeat("=", percentage), strings.Repeat(" ", numSpaces))
 	}
 
 	switch {
@@ -236,13 +232,7 @@ func (jm *JSONMessage) Display(out io.Writer, isTerminal bool) error {
 //   - auxCallback allows handling the [JSONMessage.Aux] field. It is
 //     called if a JSONMessage contains an Aux field, in which case
 //     DisplayJSONMessagesStream does not present the JSONMessage.
-func DisplayJSONMessagesStream(
-	in io.Reader,
-	out io.Writer,
-	terminalFd uintptr,
-	isTerminal bool,
-	auxCallback func(JSONMessage),
-) error {
+func DisplayJSONMessagesStream(in io.Reader, out io.Writer, terminalFd uintptr, isTerminal bool, auxCallback func(JSONMessage)) error {
 	var (
 		dec = json.NewDecoder(in)
 		ids = make(map[string]uint)

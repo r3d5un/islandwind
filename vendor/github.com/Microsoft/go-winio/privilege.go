@@ -140,14 +140,7 @@ func adjustPrivileges(token windows.Token, privileges []uint64, action uint32) e
 	}
 	prevState := make([]byte, b.Len())
 	reqSize := uint32(0)
-	success, err := adjustTokenPrivileges(
-		token,
-		false,
-		&b.Bytes()[0],
-		uint32(len(prevState)),
-		&prevState[0],
-		&reqSize,
-	)
+	success, err := adjustTokenPrivileges(token, false, &b.Bytes()[0], uint32(len(prevState)), &prevState[0], &reqSize)
 	if !success {
 		return err
 	}
@@ -168,13 +161,7 @@ func getPrivilegeName(luid uint64) string {
 	var displayNameBuffer [256]uint16
 	displayBufSize := uint32(len(displayNameBuffer))
 	var langID uint32
-	err = lookupPrivilegeDisplayName(
-		"",
-		&nameBuffer[0],
-		&displayNameBuffer[0],
-		&displayBufSize,
-		&langID,
-	)
+	err = lookupPrivilegeDisplayName("", &nameBuffer[0], &displayNameBuffer[0], &displayBufSize, &langID)
 	if err != nil {
 		return fmt.Sprintf("<unknown privilege %s>", string(utf16.Decode(nameBuffer[:bufSize])))
 	}
@@ -189,12 +176,7 @@ func newThreadToken() (windows.Token, error) {
 	}
 
 	var token windows.Token
-	err = openThreadToken(
-		getCurrentThread(),
-		windows.TOKEN_ADJUST_PRIVILEGES|windows.TOKEN_QUERY,
-		false,
-		&token,
-	)
+	err = openThreadToken(getCurrentThread(), windows.TOKEN_ADJUST_PRIVILEGES|windows.TOKEN_QUERY, false, &token)
 	if err != nil {
 		rerr := revertToSelf()
 		if rerr != nil {

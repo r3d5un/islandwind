@@ -383,12 +383,6 @@ const (
 
 //sys	mremapNetBSD(oldp uintptr, oldsize uintptr, newp uintptr, newsize uintptr, flags int) (xaddr uintptr, err error) = SYS_MREMAP
 
-func mremap(
-	oldaddr uintptr,
-	oldlength uintptr,
-	newlength uintptr,
-	flags int,
-	newaddr uintptr,
-) (uintptr, error) {
+func mremap(oldaddr uintptr, oldlength uintptr, newlength uintptr, flags int, newaddr uintptr) (uintptr, error) {
 	return mremapNetBSD(oldaddr, oldlength, newaddr, newlength, flags)
 }

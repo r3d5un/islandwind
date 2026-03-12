@@ -19,9 +19,7 @@ var (
 )
 
 var (
-	_ ContainerMountSource = (*GenericBindMountSource)(
-		nil,
-	) // Deprecated: use Files or HostConfigModifier in the ContainerRequest, or copy files container APIs to make containers portable across Docker environments
+	_ ContainerMountSource = (*GenericBindMountSource)(nil) // Deprecated: use Files or HostConfigModifier in the ContainerRequest, or copy files container APIs to make containers portable across Docker environments
 	_ ContainerMountSource = (*GenericVolumeMountSource)(nil)
 	_ ContainerMountSource = (*GenericTmpfsMountSource)(nil)
 	_ ContainerMountSource = (*GenericImageMountSource)(nil)

@@ -44,12 +44,7 @@ func x_cgo_bindm(g unsafe.Pointer) {
 //
 //go:nosplit
 //go:norace
-func _cgo_try_pthread_create(
-	thread *pthread_t,
-	attr *pthread_attr_t,
-	pfn unsafe.Pointer,
-	arg *ThreadStart,
-) int {
+func _cgo_try_pthread_create(thread *pthread_t, attr *pthread_attr_t, pfn unsafe.Pointer, arg *ThreadStart) int {
 	var ts syscall.Timespec
 	// tries needs to be the same type as syscall.Timespec.Nsec
 	// but the fields are int32 on 32bit and int64 on 64bit.
@@ -59,16 +54,7 @@ func _cgo_try_pthread_create(
 
 	for tries = 0; tries < 20; tries++ {
 		// inlined this call because it ran out of stack when inlining was disabled
-		err = int(
-			call5(
-				pthread_createABI0,
-				uintptr(unsafe.Pointer(thread)),
-				uintptr(unsafe.Pointer(attr)),
-				uintptr(pfn),
-				uintptr(unsafe.Pointer(arg)),
-				0,
-			),
-		)
+		err = int(call5(pthread_createABI0, uintptr(unsafe.Pointer(thread)), uintptr(unsafe.Pointer(attr)), uintptr(pfn), uintptr(unsafe.Pointer(arg)), 0))
 		if err == 0 {
 			// inlined this call because it ran out of stack when inlining was disabled
 			call5(pthread_detachABI0, uintptr(*thread), 0, 0, 0, 0)

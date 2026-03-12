@@ -144,10 +144,7 @@ func (e *bestFastEncoder) Encode(blk *blockEnc, src []byte) {
 		ml := matchLen(src[1:], src)
 		if ml == len(src)-1 {
 			blk.literals = append(blk.literals, src[0])
-			blk.sequences = append(
-				blk.sequences,
-				seq{litLen: 1, matchLen: uint32(len(src)-1) - zstdMinMatch, offset: 1 + 3},
-			)
+			blk.sequences = append(blk.sequences, seq{litLen: 1, matchLen: uint32(len(src)-1) - zstdMinMatch, offset: 1 + 3})
 			return
 		}
 	}

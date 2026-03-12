@@ -424,8 +424,7 @@ type Node struct {
 // IsZero returns whether the node has all of its fields unset.
 func (n *Node) IsZero() bool {
 	return n.Kind == 0 && n.Style == 0 && n.Tag == "" && n.Value == "" && n.Anchor == "" && n.Alias == nil && n.Content == nil &&
-		n.HeadComment == "" && n.LineComment == "" && n.FootComment == "" && n.Line == 0 &&
-		n.Column == 0
+		n.HeadComment == "" && n.LineComment == "" && n.FootComment == "" && n.Line == 0 && n.Column == 0
 }
 
 // LongTag returns the long form of the tag that indicates the data type for
@@ -571,9 +570,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 				case "inline":
 					inline = true
 				default:
-					return nil, errors.New(
-						fmt.Sprintf("unsupported flag %q in tag %q of type %s", flag, tag, st),
-					)
+					return nil, errors.New(fmt.Sprintf("unsupported flag %q in tag %q of type %s", flag, tag, st))
 				}
 			}
 			tag = fields[0]
@@ -586,9 +583,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 					return nil, errors.New("multiple ,inline maps in struct " + st.String())
 				}
 				if field.Type.Key() != reflect.TypeOf("") {
-					return nil, errors.New(
-						"option ,inline needs a map with string keys in struct " + st.String(),
-					)
+					return nil, errors.New("option ,inline needs a map with string keys in struct " + st.String())
 				}
 				inlineMap = info.Num
 			case reflect.Struct, reflect.Ptr:
@@ -597,9 +592,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 					ftype = ftype.Elem()
 				}
 				if ftype.Kind() != reflect.Struct {
-					return nil, errors.New(
-						"option ,inline may only be used on a struct or map field",
-					)
+					return nil, errors.New("option ,inline may only be used on a struct or map field")
 				}
 				if reflect.PtrTo(ftype).Implements(unmarshalerType) {
 					inlineUnmarshalers = append(inlineUnmarshalers, []int{i})
@@ -690,12 +683,7 @@ func isZero(v reflect.Value) bool {
 		return v.Int() == 0
 	case reflect.Float32, reflect.Float64:
 		return v.Float() == 0
-	case reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return v.Uint() == 0
 	case reflect.Bool:
 		return !v.Bool()

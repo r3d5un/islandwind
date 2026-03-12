@@ -363,34 +363,18 @@ func (d *Decoder) DecodeAll(input, dst []byte) ([]byte, error) {
 		if frame.FrameContentSize != fcsUnknown {
 			if frame.FrameContentSize > d.o.maxDecodedSize-uint64(len(dst)-initialSize) {
 				if debugDecoder {
-					println(
-						"decoder size exceeded; fcs:",
-						frame.FrameContentSize,
-						"> mcs:",
-						d.o.maxDecodedSize-uint64(len(dst)-initialSize),
-						"len:",
-						len(dst),
-					)
+					println("decoder size exceeded; fcs:", frame.FrameContentSize, "> mcs:", d.o.maxDecodedSize-uint64(len(dst)-initialSize), "len:", len(dst))
 				}
 				return dst, ErrDecoderSizeExceeded
 			}
 			if d.o.limitToCap && frame.FrameContentSize > uint64(cap(dst)-len(dst)) {
 				if debugDecoder {
-					println(
-						"decoder size exceeded; fcs:",
-						frame.FrameContentSize,
-						"> (cap-len)",
-						cap(dst)-len(dst),
-					)
+					println("decoder size exceeded; fcs:", frame.FrameContentSize, "> (cap-len)", cap(dst)-len(dst))
 				}
 				return dst, ErrDecoderSizeExceeded
 			}
 			if cap(dst)-len(dst) < int(frame.FrameContentSize) {
-				dst2 := make(
-					[]byte,
-					len(dst),
-					len(dst)+int(frame.FrameContentSize)+compressedBlockOverAlloc,
-				)
+				dst2 := make([]byte, len(dst), len(dst)+int(frame.FrameContentSize)+compressedBlockOverAlloc)
 				copy(dst2, dst)
 				dst = dst2
 			}
@@ -527,12 +511,7 @@ func (d *Decoder) nextBlockSync() (ok bool) {
 		}
 		d.frame.history.ensureBlock()
 		if debugDecoder {
-			println(
-				"History trimmed:",
-				len(d.frame.history.b),
-				"decoded already:",
-				d.syncStream.decodedFrame,
-			)
+			println("History trimmed:", len(d.frame.history.b), "decoded already:", d.syncStream.decodedFrame)
 		}
 		histBefore := len(d.frame.history.b)
 		d.current.err = d.current.d.decodeBuf(&d.frame.history)
@@ -550,25 +529,16 @@ func (d *Decoder) nextBlockSync() (ok bool) {
 		d.syncStream.decodedFrame += uint64(len(d.current.b))
 		if d.syncStream.decodedFrame > d.frame.FrameContentSize {
 			if debugDecoder {
-				printf(
-					"DecodedFrame (%d) > FrameContentSize (%d)\n",
-					d.syncStream.decodedFrame,
-					d.frame.FrameContentSize,
-				)
+				printf("DecodedFrame (%d) > FrameContentSize (%d)\n", d.syncStream.decodedFrame, d.frame.FrameContentSize)
 			}
 			d.current.err = ErrFrameSizeExceeded
 			return false
 		}
 
 		// Check FCS
-		if d.current.d.Last && d.frame.FrameContentSize != fcsUnknown &&
-			d.syncStream.decodedFrame != d.frame.FrameContentSize {
+		if d.current.d.Last && d.frame.FrameContentSize != fcsUnknown && d.syncStream.decodedFrame != d.frame.FrameContentSize {
 			if debugDecoder {
-				printf(
-					"DecodedFrame (%d) != FrameContentSize (%d)\n",
-					d.syncStream.decodedFrame,
-					d.frame.FrameContentSize,
-				)
+				printf("DecodedFrame (%d) != FrameContentSize (%d)\n", d.syncStream.decodedFrame, d.frame.FrameContentSize)
 			}
 			d.current.err = ErrFrameSizeMismatch
 			return false

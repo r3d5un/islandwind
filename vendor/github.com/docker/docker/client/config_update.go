@@ -8,12 +8,7 @@ import (
 )
 
 // ConfigUpdate attempts to update a config
-func (cli *Client) ConfigUpdate(
-	ctx context.Context,
-	id string,
-	version swarm.Version,
-	config swarm.ConfigSpec,
-) error {
+func (cli *Client) ConfigUpdate(ctx context.Context, id string, version swarm.Version, config swarm.ConfigSpec) error {
 	id, err := trimID("config", id)
 	if err != nil {
 		return err

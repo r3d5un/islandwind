@@ -224,16 +224,12 @@ func New(options Options) *Cors {
 
 	// Pre-compute exposed headers header value
 	if len(options.ExposedHeaders) > 0 {
-		c.exposedHeaders = []string{
-			strings.Join(convert(options.ExposedHeaders, http.CanonicalHeaderKey), ", "),
-		}
+		c.exposedHeaders = []string{strings.Join(convert(options.ExposedHeaders, http.CanonicalHeaderKey), ", ")}
 	}
 
 	// Pre-compute prefight Vary header to save allocations
 	if c.allowPrivateNetwork {
-		c.preflightVary = []string{
-			"Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Request-Private-Network",
-		}
+		c.preflightVary = []string{"Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Request-Private-Network"}
 	} else {
 		c.preflightVary = []string{"Origin, Access-Control-Request-Method, Access-Control-Request-Headers"}
 	}
@@ -348,10 +344,7 @@ func (c *Cors) handlePreflight(w http.ResponseWriter, r *http.Request) {
 	}
 	allowed, additionalVaryHeaders := c.isOriginAllowed(r, origin)
 	if len(additionalVaryHeaders) > 0 {
-		headers.Add(
-			"Vary",
-			strings.Join(convert(additionalVaryHeaders, http.CanonicalHeaderKey), ", "),
-		)
+		headers.Add("Vary", strings.Join(convert(additionalVaryHeaders, http.CanonicalHeaderKey), ", "))
 	}
 
 	if origin == "" {
@@ -417,10 +410,7 @@ func (c *Cors) handleActualRequest(w http.ResponseWriter, r *http.Request) {
 		headers["Vary"] = append(vary, headerVaryOrigin[0])
 	}
 	if len(additionalVaryHeaders) > 0 {
-		headers.Add(
-			"Vary",
-			strings.Join(convert(additionalVaryHeaders, http.CanonicalHeaderKey), ", "),
-		)
+		headers.Add("Vary", strings.Join(convert(additionalVaryHeaders, http.CanonicalHeaderKey), ", "))
 	}
 	if origin == "" {
 		c.logf("  Actual request no headers added: missing origin")
@@ -469,10 +459,7 @@ func (c *Cors) OriginAllowed(r *http.Request) bool {
 
 // isOriginAllowed checks if a given origin is allowed to perform cross-domain requests
 // on the endpoint
-func (c *Cors) isOriginAllowed(
-	r *http.Request,
-	origin string,
-) (allowed bool, varyHeaders []string) {
+func (c *Cors) isOriginAllowed(r *http.Request, origin string) (allowed bool, varyHeaders []string) {
 	if c.allowOriginFunc != nil {
 		return c.allowOriginFunc(r, origin)
 	}

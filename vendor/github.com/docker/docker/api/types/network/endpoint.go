@@ -87,10 +87,7 @@ type NetworkSubnet interface {
 }
 
 // IsInRange checks whether static IP addresses are valid in a specific network.
-func (cfg *EndpointIPAMConfig) IsInRange(
-	v4Subnets []NetworkSubnet,
-	v6Subnets []NetworkSubnet,
-) error {
+func (cfg *EndpointIPAMConfig) IsInRange(v4Subnets []NetworkSubnet, v6Subnets []NetworkSubnet) error {
 	var errs []error
 
 	if err := validateEndpointIPAddress(cfg.IPv4Address, v4Subnets); err != nil {
@@ -123,9 +120,7 @@ func validateEndpointIPAddress(epAddr string, ipamSubnets []NetworkSubnet) error
 		return fmt.Errorf("no configured subnet or ip-range contain the IP address %s", epAddr)
 	}
 
-	return errors.New(
-		"user specified IP address is supported only when connecting to networks with user configured subnets",
-	)
+	return errors.New("user specified IP address is supported only when connecting to networks with user configured subnets")
 }
 
 // Validate checks whether cfg is valid.
@@ -137,14 +132,12 @@ func (cfg *EndpointIPAMConfig) Validate() error {
 	var errs []error
 
 	if cfg.IPv4Address != "" {
-		if addr := net.ParseIP(cfg.IPv4Address); addr == nil || addr.To4() == nil ||
-			addr.IsUnspecified() {
+		if addr := net.ParseIP(cfg.IPv4Address); addr == nil || addr.To4() == nil || addr.IsUnspecified() {
 			errs = append(errs, fmt.Errorf("invalid IPv4 address: %s", cfg.IPv4Address))
 		}
 	}
 	if cfg.IPv6Address != "" {
-		if addr := net.ParseIP(cfg.IPv6Address); addr == nil || addr.To4() != nil ||
-			addr.IsUnspecified() {
+		if addr := net.ParseIP(cfg.IPv6Address); addr == nil || addr.To4() != nil || addr.IsUnspecified() {
 			errs = append(errs, fmt.Errorf("invalid IPv6 address: %s", cfg.IPv6Address))
 		}
 	}

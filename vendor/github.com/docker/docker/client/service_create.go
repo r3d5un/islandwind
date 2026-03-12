@@ -16,11 +16,7 @@ import (
 )
 
 // ServiceCreate creates a new service.
-func (cli *Client) ServiceCreate(
-	ctx context.Context,
-	service swarm.ServiceSpec,
-	options swarm.ServiceCreateOptions,
-) (swarm.ServiceCreateResponse, error) {
+func (cli *Client) ServiceCreate(ctx context.Context, service swarm.ServiceSpec, options swarm.ServiceCreateOptions) (swarm.ServiceCreateResponse, error) {
 	var response swarm.ServiceCreateResponse
 
 	// Make sure we negotiated (if the client is configured to do so),
@@ -33,8 +29,7 @@ func (cli *Client) ServiceCreate(
 	}
 
 	// Make sure containerSpec is not nil when no runtime is set or the runtime is set to container
-	if service.TaskTemplate.ContainerSpec == nil &&
-		(service.TaskTemplate.Runtime == "" || service.TaskTemplate.Runtime == swarm.RuntimeContainer) {
+	if service.TaskTemplate.ContainerSpec == nil && (service.TaskTemplate.Runtime == "" || service.TaskTemplate.Runtime == swarm.RuntimeContainer) {
 		service.TaskTemplate.ContainerSpec = &swarm.ContainerSpec{}
 	}
 
@@ -55,24 +50,14 @@ func (cli *Client) ServiceCreate(
 			service.TaskTemplate.ContainerSpec.Image = taggedImg
 		}
 		if options.QueryRegistry {
-			resolveWarning = resolveContainerSpecImage(
-				ctx,
-				cli,
-				&service.TaskTemplate,
-				options.EncodedRegistryAuth,
-			)
+			resolveWarning = resolveContainerSpecImage(ctx, cli, &service.TaskTemplate, options.EncodedRegistryAuth)
 		}
 	case service.TaskTemplate.PluginSpec != nil:
 		if taggedImg := imageWithTagString(service.TaskTemplate.PluginSpec.Remote); taggedImg != "" {
 			service.TaskTemplate.PluginSpec.Remote = taggedImg
 		}
 		if options.QueryRegistry {
-			resolveWarning = resolvePluginSpecRemote(
-				ctx,
-				cli,
-				&service.TaskTemplate,
-				options.EncodedRegistryAuth,
-			)
+			resolveWarning = resolvePluginSpecRemote(ctx, cli, &service.TaskTemplate, options.EncodedRegistryAuth)
 		}
 	}
 
@@ -100,12 +85,7 @@ func (cli *Client) ServiceCreate(
 	return response, err
 }
 
-func resolveContainerSpecImage(
-	ctx context.Context,
-	cli DistributionAPIClient,
-	taskSpec *swarm.TaskSpec,
-	encodedAuth string,
-) string {
+func resolveContainerSpecImage(ctx context.Context, cli DistributionAPIClient, taskSpec *swarm.TaskSpec, encodedAuth string) string {
 	var warning string
 	if img, imgPlatforms, err := imageDigestAndPlatforms(ctx, cli, taskSpec.ContainerSpec.Image, encodedAuth); err != nil {
 		warning = digestWarning(taskSpec.ContainerSpec.Image)
@@ -121,12 +101,7 @@ func resolveContainerSpecImage(
 	return warning
 }
 
-func resolvePluginSpecRemote(
-	ctx context.Context,
-	cli DistributionAPIClient,
-	taskSpec *swarm.TaskSpec,
-	encodedAuth string,
-) string {
+func resolvePluginSpecRemote(ctx context.Context, cli DistributionAPIClient, taskSpec *swarm.TaskSpec, encodedAuth string) string {
 	var warning string
 	if img, imgPlatforms, err := imageDigestAndPlatforms(ctx, cli, taskSpec.PluginSpec.Remote, encodedAuth); err != nil {
 		warning = digestWarning(taskSpec.PluginSpec.Remote)
@@ -142,11 +117,7 @@ func resolvePluginSpecRemote(
 	return warning
 }
 
-func imageDigestAndPlatforms(
-	ctx context.Context,
-	cli DistributionAPIClient,
-	image, encodedAuth string,
-) (string, []swarm.Platform, error) {
+func imageDigestAndPlatforms(ctx context.Context, cli DistributionAPIClient, image, encodedAuth string) (string, []swarm.Platform, error) {
 	distributionInspect, err := cli.DistributionInspect(ctx, image, encodedAuth)
 	var platforms []swarm.Platform
 	if err != nil {
@@ -209,24 +180,17 @@ func imageWithTagString(image string) string {
 // image name that could not be pinned by digest. The formatting
 // is hardcoded, but could me made smarter in the future
 func digestWarning(image string) string {
-	return fmt.Sprintf(
-		"image %s could not be accessed on a registry to record\nits digest. Each node will access %s independently,\npossibly leading to different nodes running different\nversions of the image.\n",
-		image,
-		image,
-	)
+	return fmt.Sprintf("image %s could not be accessed on a registry to record\nits digest. Each node will access %s independently,\npossibly leading to different nodes running different\nversions of the image.\n", image, image)
 }
 
 func validateServiceSpec(s swarm.ServiceSpec) error {
 	if s.TaskTemplate.ContainerSpec != nil && s.TaskTemplate.PluginSpec != nil {
-		return errors.New(
-			"must not specify both a container spec and a plugin spec in the task template",
-		)
+		return errors.New("must not specify both a container spec and a plugin spec in the task template")
 	}
 	if s.TaskTemplate.PluginSpec != nil && s.TaskTemplate.Runtime != swarm.RuntimePlugin {
 		return errors.New("mismatched runtime with plugin spec")
 	}
-	if s.TaskTemplate.ContainerSpec != nil &&
-		(s.TaskTemplate.Runtime != "" && s.TaskTemplate.Runtime != swarm.RuntimeContainer) {
+	if s.TaskTemplate.ContainerSpec != nil && (s.TaskTemplate.Runtime != "" && s.TaskTemplate.Runtime != swarm.RuntimeContainer) {
 		return errors.New("mismatched runtime with container spec")
 	}
 	return nil

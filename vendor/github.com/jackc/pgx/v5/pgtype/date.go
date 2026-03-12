@@ -162,8 +162,7 @@ func (encodePlanDateCodecBinary) Encode(value any, buf []byte) (newBuf []byte, e
 	var daysSinceDateEpoch int32
 	switch date.InfinityModifier {
 	case Finite:
-		tUnix := time.Date(date.Time.Year(), date.Time.Month(), date.Time.Day(), 0, 0, 0, 0, time.UTC).
-			Unix()
+		tUnix := time.Date(date.Time.Year(), date.Time.Month(), date.Time.Day(), 0, 0, 0, 0, time.UTC).Unix()
 		dateEpoch := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
 
 		secSinceDateEpoch := tUnix - dateEpoch
@@ -318,12 +317,7 @@ func (scanPlanTextAnyToDateScanner) Scan(src []byte, dst any) error {
 	}
 }
 
-func (c DateCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c DateCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

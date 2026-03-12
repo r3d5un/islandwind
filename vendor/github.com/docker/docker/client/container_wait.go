@@ -29,11 +29,7 @@ const containerWaitErrorMsgLimit = 2 * 1024 /* Max: 2KiB */
 // wait request or in getting the response. This allows the caller to
 // synchronize ContainerWait with other calls, such as specifying a
 // "next-exit" condition before issuing a ContainerStart request.
-func (cli *Client) ContainerWait(
-	ctx context.Context,
-	containerID string,
-	condition container.WaitCondition,
-) (<-chan container.WaitResponse, <-chan error) {
+func (cli *Client) ContainerWait(ctx context.Context, containerID string, condition container.WaitCondition) (<-chan container.WaitResponse, <-chan error) {
 	resultC := make(chan container.WaitResponse)
 	errC := make(chan error, 1)
 
@@ -101,10 +97,7 @@ func (cli *Client) ContainerWait(
 
 // legacyContainerWait returns immediately and doesn't have an option to wait
 // until the container is removed.
-func (cli *Client) legacyContainerWait(
-	ctx context.Context,
-	containerID string,
-) (<-chan container.WaitResponse, <-chan error) {
+func (cli *Client) legacyContainerWait(ctx context.Context, containerID string) (<-chan container.WaitResponse, <-chan error) {
 	resultC := make(chan container.WaitResponse)
 	errC := make(chan error)
 

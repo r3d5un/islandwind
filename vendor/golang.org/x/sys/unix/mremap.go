@@ -23,8 +23,7 @@ var mapper = &mremapMmapper{
 }
 
 func (m *mremapMmapper) Mremap(oldData []byte, newLength int, flags int) (data []byte, err error) {
-	if newLength <= 0 || len(oldData) == 0 || len(oldData) != cap(oldData) ||
-		flags&mremapFixed != 0 {
+	if newLength <= 0 || len(oldData) == 0 || len(oldData) != cap(oldData) || flags&mremapFixed != 0 {
 		return nil, EINVAL
 	}
 
@@ -35,13 +34,7 @@ func (m *mremapMmapper) Mremap(oldData []byte, newLength int, flags int) (data [
 	if bOld == nil || &bOld[0] != &oldData[0] {
 		return nil, EINVAL
 	}
-	newAddr, errno := m.mremap(
-		uintptr(unsafe.Pointer(&bOld[0])),
-		uintptr(len(bOld)),
-		uintptr(newLength),
-		flags,
-		0,
-	)
+	newAddr, errno := m.mremap(uintptr(unsafe.Pointer(&bOld[0])), uintptr(len(bOld)), uintptr(newLength), flags, 0)
 	if errno != nil {
 		return nil, errno
 	}
@@ -58,13 +51,7 @@ func Mremap(oldData []byte, newLength int, flags int) (data []byte, err error) {
 	return mapper.Mremap(oldData, newLength, flags)
 }
 
-func MremapPtr(
-	oldAddr unsafe.Pointer,
-	oldSize uintptr,
-	newAddr unsafe.Pointer,
-	newSize uintptr,
-	flags int,
-) (ret unsafe.Pointer, err error) {
+func MremapPtr(oldAddr unsafe.Pointer, oldSize uintptr, newAddr unsafe.Pointer, newSize uintptr, flags int) (ret unsafe.Pointer, err error) {
 	xaddr, err := mapper.mremap(uintptr(oldAddr), oldSize, newSize, flags, uintptr(newAddr))
 	return unsafe.Pointer(xaddr), err
 }

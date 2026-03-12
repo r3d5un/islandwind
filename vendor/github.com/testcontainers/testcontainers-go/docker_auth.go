@@ -38,11 +38,7 @@ func DockerImageAuth(ctx context.Context, image string) (string, registry.AuthCo
 }
 
 // dockerImageAuth returns the auth config for the given Docker image.
-func dockerImageAuth(
-	ctx context.Context,
-	image string,
-	configs map[string]registry.AuthConfig,
-) (string, registry.AuthConfig, error) {
+func dockerImageAuth(ctx context.Context, image string, configs map[string]registry.AuthConfig) (string, registry.AuthConfig, error) {
 	defaultRegistry := defaultRegistryFn(ctx)
 	reg := core.ExtractRegistry(image, defaultRegistry)
 
@@ -120,10 +116,7 @@ var creds = &credentialsCache{entries: map[string]credentials{}}
 
 // AuthConfig updates the details in authConfig for the given hostname
 // as determined by the details in configKey.
-func (c *credentialsCache) AuthConfig(
-	hostname, configKey string,
-	authConfig *registry.AuthConfig,
-) error {
+func (c *credentialsCache) AuthConfig(hostname, configKey string, authConfig *registry.AuthConfig) error {
 	u, p, err := creds.get(hostname, configKey)
 	if err != nil {
 		return err

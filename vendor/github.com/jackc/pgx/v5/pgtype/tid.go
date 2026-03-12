@@ -221,17 +221,10 @@ func (scanPlanTextAnyToTIDScanner) Scan(src []byte, dst any) error {
 		return err
 	}
 
-	return scanner.ScanTID(
-		TID{BlockNumber: uint32(blockNumber), OffsetNumber: uint16(offsetNumber), Valid: true},
-	)
+	return scanner.ScanTID(TID{BlockNumber: uint32(blockNumber), OffsetNumber: uint16(offsetNumber), Valid: true})
 }
 
-func (c TIDCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c TIDCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

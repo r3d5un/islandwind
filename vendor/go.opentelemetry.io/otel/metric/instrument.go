@@ -43,9 +43,7 @@ func (o descOpt) applyFloat64Counter(c Float64CounterConfig) Float64CounterConfi
 	return c
 }
 
-func (o descOpt) applyFloat64UpDownCounter(
-	c Float64UpDownCounterConfig,
-) Float64UpDownCounterConfig {
+func (o descOpt) applyFloat64UpDownCounter(c Float64UpDownCounterConfig) Float64UpDownCounterConfig {
 	c.description = string(o)
 	return c
 }
@@ -60,9 +58,7 @@ func (o descOpt) applyFloat64Gauge(c Float64GaugeConfig) Float64GaugeConfig {
 	return c
 }
 
-func (o descOpt) applyFloat64ObservableCounter(
-	c Float64ObservableCounterConfig,
-) Float64ObservableCounterConfig {
+func (o descOpt) applyFloat64ObservableCounter(c Float64ObservableCounterConfig) Float64ObservableCounterConfig {
 	c.description = string(o)
 	return c
 }
@@ -74,9 +70,7 @@ func (o descOpt) applyFloat64ObservableUpDownCounter(
 	return c
 }
 
-func (o descOpt) applyFloat64ObservableGauge(
-	c Float64ObservableGaugeConfig,
-) Float64ObservableGaugeConfig {
+func (o descOpt) applyFloat64ObservableGauge(c Float64ObservableGaugeConfig) Float64ObservableGaugeConfig {
 	c.description = string(o)
 	return c
 }
@@ -101,9 +95,7 @@ func (o descOpt) applyInt64Gauge(c Int64GaugeConfig) Int64GaugeConfig {
 	return c
 }
 
-func (o descOpt) applyInt64ObservableCounter(
-	c Int64ObservableCounterConfig,
-) Int64ObservableCounterConfig {
+func (o descOpt) applyInt64ObservableCounter(c Int64ObservableCounterConfig) Int64ObservableCounterConfig {
 	c.description = string(o)
 	return c
 }
@@ -115,9 +107,7 @@ func (o descOpt) applyInt64ObservableUpDownCounter(
 	return c
 }
 
-func (o descOpt) applyInt64ObservableGauge(
-	c Int64ObservableGaugeConfig,
-) Int64ObservableGaugeConfig {
+func (o descOpt) applyInt64ObservableGauge(c Int64ObservableGaugeConfig) Int64ObservableGaugeConfig {
 	c.description = string(o)
 	return c
 }
@@ -132,9 +122,7 @@ func (o unitOpt) applyFloat64Counter(c Float64CounterConfig) Float64CounterConfi
 	return c
 }
 
-func (o unitOpt) applyFloat64UpDownCounter(
-	c Float64UpDownCounterConfig,
-) Float64UpDownCounterConfig {
+func (o unitOpt) applyFloat64UpDownCounter(c Float64UpDownCounterConfig) Float64UpDownCounterConfig {
 	c.unit = string(o)
 	return c
 }
@@ -149,9 +137,7 @@ func (o unitOpt) applyFloat64Gauge(c Float64GaugeConfig) Float64GaugeConfig {
 	return c
 }
 
-func (o unitOpt) applyFloat64ObservableCounter(
-	c Float64ObservableCounterConfig,
-) Float64ObservableCounterConfig {
+func (o unitOpt) applyFloat64ObservableCounter(c Float64ObservableCounterConfig) Float64ObservableCounterConfig {
 	c.unit = string(o)
 	return c
 }
@@ -163,9 +149,7 @@ func (o unitOpt) applyFloat64ObservableUpDownCounter(
 	return c
 }
 
-func (o unitOpt) applyFloat64ObservableGauge(
-	c Float64ObservableGaugeConfig,
-) Float64ObservableGaugeConfig {
+func (o unitOpt) applyFloat64ObservableGauge(c Float64ObservableGaugeConfig) Float64ObservableGaugeConfig {
 	c.unit = string(o)
 	return c
 }
@@ -190,9 +174,7 @@ func (o unitOpt) applyInt64Gauge(c Int64GaugeConfig) Int64GaugeConfig {
 	return c
 }
 
-func (o unitOpt) applyInt64ObservableCounter(
-	c Int64ObservableCounterConfig,
-) Int64ObservableCounterConfig {
+func (o unitOpt) applyInt64ObservableCounter(c Int64ObservableCounterConfig) Int64ObservableCounterConfig {
 	c.unit = string(o)
 	return c
 }
@@ -204,9 +186,7 @@ func (o unitOpt) applyInt64ObservableUpDownCounter(
 	return c
 }
 
-func (o unitOpt) applyInt64ObservableGauge(
-	c Int64ObservableGaugeConfig,
-) Int64ObservableGaugeConfig {
+func (o unitOpt) applyInt64ObservableGauge(c Int64ObservableGaugeConfig) Int64ObservableGaugeConfig {
 	c.unit = string(o)
 	return c
 }

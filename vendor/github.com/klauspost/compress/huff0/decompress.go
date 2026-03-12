@@ -838,12 +838,7 @@ func (d *Decoder) decompress4X8bit(dst, src []byte) ([]byte, error) {
 		}
 		if offset != endsAt {
 			d.bufs.Put(buf)
-			return nil, fmt.Errorf(
-				"corruption detected: short output block %d, end %d != %d",
-				i,
-				offset,
-				endsAt,
-			)
+			return nil, fmt.Errorf("corruption detected: short output block %d, end %d != %d", i, offset, endsAt)
 		}
 		decoded += offset - dstEvery*i
 		err = br.close()
@@ -1077,12 +1072,7 @@ func (d *Decoder) decompress4X8bitExactly(dst, src []byte) ([]byte, error) {
 		}
 		if offset != endsAt {
 			d.bufs.Put(buf)
-			return nil, fmt.Errorf(
-				"corruption detected: short output block %d, end %d != %d",
-				i,
-				offset,
-				endsAt,
-			)
+			return nil, fmt.Errorf("corruption detected: short output block %d, end %d != %d", i, offset, endsAt)
 		}
 
 		decoded += offset - dstEvery*i
@@ -1132,23 +1122,11 @@ func (s *Scratch) matches(ct cTable, w io.Writer) {
 		// decoder looks at top bits.
 		dec := dt[top]
 		if uint8(dec.entry) != enc.nBits {
-			fmt.Fprintf(
-				w,
-				"symbol 0x%x bit size mismatch (enc: %d, dec:%d).\n",
-				sym,
-				enc.nBits,
-				uint8(dec.entry),
-			)
+			fmt.Fprintf(w, "symbol 0x%x bit size mismatch (enc: %d, dec:%d).\n", sym, enc.nBits, uint8(dec.entry))
 			errs++
 		}
 		if uint8(dec.entry>>8) != uint8(sym) {
-			fmt.Fprintf(
-				w,
-				"symbol 0x%x decoder output mismatch (enc: %d, dec:%d).\n",
-				sym,
-				sym,
-				uint8(dec.entry>>8),
-			)
+			fmt.Fprintf(w, "symbol 0x%x decoder output mismatch (enc: %d, dec:%d).\n", sym, sym, uint8(dec.entry>>8))
 			errs++
 		}
 		if errs > 0 {
@@ -1160,23 +1138,11 @@ func (s *Scratch) matches(ct cTable, w io.Writer) {
 			vval := top | i
 			dec := dt[vval]
 			if uint8(dec.entry) != enc.nBits {
-				fmt.Fprintf(
-					w,
-					"symbol 0x%x bit size mismatch (enc: %d, dec:%d).\n",
-					vval,
-					enc.nBits,
-					uint8(dec.entry),
-				)
+				fmt.Fprintf(w, "symbol 0x%x bit size mismatch (enc: %d, dec:%d).\n", vval, enc.nBits, uint8(dec.entry))
 				errs++
 			}
 			if uint8(dec.entry>>8) != uint8(sym) {
-				fmt.Fprintf(
-					w,
-					"symbol 0x%x decoder output mismatch (enc: %d, dec:%d).\n",
-					vval,
-					sym,
-					uint8(dec.entry>>8),
-				)
+				fmt.Fprintf(w, "symbol 0x%x decoder output mismatch (enc: %d, dec:%d).\n", vval, sym, uint8(dec.entry>>8))
 				errs++
 			}
 			if errs > 20 {

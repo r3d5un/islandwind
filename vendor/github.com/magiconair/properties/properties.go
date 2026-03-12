@@ -841,12 +841,7 @@ func (p *Properties) expand(key, input string) (string, error) {
 // expand recursively expands expressions of '(prefix)key(postfix)' to their corresponding values.
 // The function keeps track of the keys that were already expanded and stops if it
 // detects a circular reference or a malformed expression of the form '(prefix)key'.
-func expand(
-	s string,
-	keys []string,
-	prefix, postfix string,
-	values map[string]string,
-) (string, error) {
+func expand(s string, keys []string, prefix, postfix string, values map[string]string) (string, error) {
 	if len(keys) > maxExpansionDepth {
 		return "", fmt.Errorf("expansion too deep")
 	}

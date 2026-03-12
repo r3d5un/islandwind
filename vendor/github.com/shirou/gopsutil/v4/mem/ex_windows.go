@@ -42,10 +42,7 @@ func (*ExWindows) VirtualMemory() (*ExVirtualMemory, error) {
 	perfInfo.cb = uint32(unsafe.Sizeof(perfInfo))
 	// Analogous to above: perf == 0 is an error according to the GetPerformanceInfo documentation,
 	// use err in that case
-	perf, _, err := procGetPerformanceInfo.Call(
-		uintptr(unsafe.Pointer(&perfInfo)),
-		uintptr(perfInfo.cb),
-	)
+	perf, _, err := procGetPerformanceInfo.Call(uintptr(unsafe.Pointer(&perfInfo)), uintptr(perfInfo.cb))
 	if perf == 0 {
 		return nil, err
 	}

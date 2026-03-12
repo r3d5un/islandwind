@@ -287,11 +287,7 @@ func (s *Scratch) decompress() error {
 			if off == 0 {
 				s.Out = append(s.Out, tmp...)
 				if len(s.Out) >= s.DecompressLimit {
-					return fmt.Errorf(
-						"output size (%d) > DecompressLimit (%d)",
-						len(s.Out),
-						s.DecompressLimit,
-					)
+					return fmt.Errorf("output size (%d) > DecompressLimit (%d)", len(s.Out), s.DecompressLimit)
 				}
 			}
 		}
@@ -329,11 +325,7 @@ func (s *Scratch) decompress() error {
 		}
 		s.Out = append(s.Out, s2.next())
 		if len(s.Out) >= s.DecompressLimit {
-			return fmt.Errorf(
-				"output size (%d) > DecompressLimit (%d)",
-				len(s.Out),
-				s.DecompressLimit,
-			)
+			return fmt.Errorf("output size (%d) > DecompressLimit (%d)", len(s.Out), s.DecompressLimit)
 		}
 	}
 	return br.close()

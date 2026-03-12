@@ -114,14 +114,7 @@ func globalZoneFreeMemory(ctx context.Context) (uint64, error) {
 var kstatMatch = regexp.MustCompile(`(\S+)\s+(\S*)`)
 
 func nonGlobalZoneMemoryCapacity(ctx context.Context) (uint64, error) {
-	out, err := invoke.CommandWithContext(
-		ctx,
-		"kstat",
-		"-p",
-		"-c",
-		"zone_memory_cap",
-		"memory_cap:*:*:physcap",
-	)
+	out, err := invoke.CommandWithContext(ctx, "kstat", "-p", "-c", "zone_memory_cap", "memory_cap:*:*:physcap")
 	if err != nil {
 		return 0, err
 	}
@@ -175,35 +168,16 @@ func parseSwapsCommandOutput(output string) ([]*SwapDevice, error) {
 	// Check header headerFields are as expected.
 	headerFields := strings.Fields(lines[0])
 	if len(headerFields) < freeBlocksCol {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: too few fields in header %q",
-			swapCommand,
-			lines[0],
-		)
+		return nil, fmt.Errorf("couldn't parse %q: too few fields in header %q", swapCommand, lines[0])
 	}
 	if headerFields[nameCol] != "swapfile" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[nameCol],
-			"swapfile",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[nameCol], "swapfile")
 	}
 	if headerFields[totalBlocksCol] != "blocks" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[totalBlocksCol],
-			"blocks",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[totalBlocksCol], "blocks")
 	}
 	if headerFields[freeBlocksCol] != "free" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[freeBlocksCol],
-			"free",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[freeBlocksCol], "free")
 	}
 
 	var swapDevices []*SwapDevice

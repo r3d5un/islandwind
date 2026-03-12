@@ -9,11 +9,7 @@ import (
 )
 
 // NetworkCreate creates a new network in the docker host.
-func (cli *Client) NetworkCreate(
-	ctx context.Context,
-	name string,
-	options network.CreateOptions,
-) (network.CreateResponse, error) {
+func (cli *Client) NetworkCreate(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error) {
 	// Make sure we negotiated (if the client is configured to do so),
 	// as code below contains API-version specific handling of options.
 	//

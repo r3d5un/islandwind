@@ -94,9 +94,7 @@ type ConntrackStat struct {
 	SearchRestart uint32 `json:"searchRestart"` // Conntrack table lookups restarted due to hashtable resizes
 }
 
-func NewConntrackStat(
-	e, s, f, n, inv, ign, del, dlst, ins, insfail, drop, edrop, ie, en, ec, ed, sr uint32,
-) *ConntrackStat {
+func NewConntrackStat(e, s, f, n, inv, ign, del, dlst, ins, insfail, drop, edrop, ie, en, ec, ed, sr uint32) *ConntrackStat {
 	return &ConntrackStat{
 		Entries:       e,
 		Searched:      s,

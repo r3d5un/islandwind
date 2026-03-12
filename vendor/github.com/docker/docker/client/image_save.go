@@ -10,11 +10,7 @@ import (
 //
 // Platforms is an optional parameter that specifies the platforms to save from the image.
 // This is only has effect if the input image is a multi-platform image.
-func (cli *Client) ImageSave(
-	ctx context.Context,
-	imageIDs []string,
-	saveOpts ...ImageSaveOption,
-) (io.ReadCloser, error) {
+func (cli *Client) ImageSave(ctx context.Context, imageIDs []string, saveOpts ...ImageSaveOption) (io.ReadCloser, error) {
 	var opts imageSaveOpts
 	for _, opt := range saveOpts {
 		if err := opt.Apply(&opts); err != nil {

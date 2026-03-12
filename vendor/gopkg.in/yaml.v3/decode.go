@@ -163,9 +163,7 @@ func (p *parser) parse() *Node {
 	case yaml_TAIL_COMMENT_EVENT:
 		panic("internal error: unexpected tail comment event (please report)")
 	default:
-		panic(
-			"internal error: attempted to parse unknown event (please report): " + p.event.typ.String(),
-		)
+		panic("internal error: attempted to parse unknown event (please report): " + p.event.typ.String())
 	}
 }
 
@@ -361,16 +359,7 @@ func (d *decoder) terror(n *Node, tag string, out reflect.Value) {
 			value = " `" + value + "`"
 		}
 	}
-	d.terrors = append(
-		d.terrors,
-		fmt.Sprintf(
-			"line %d: cannot unmarshal %s%s into %s",
-			n.Line,
-			shortTag(tag),
-			value,
-			out.Type(),
-		),
-	)
+	d.terrors = append(d.terrors, fmt.Sprintf("line %d: cannot unmarshal %s%s into %s", n.Line, shortTag(tag), value, out.Type()))
 }
 
 func (d *decoder) callUnmarshaler(n *Node, u Unmarshaler) (good bool) {
@@ -414,10 +403,7 @@ func (d *decoder) callObsoleteUnmarshaler(n *Node, u obsoleteUnmarshaler) (good 
 // its types unmarshalled appropriately.
 //
 // If n holds a null value, prepare returns before doing anything.
-func (d *decoder) prepare(
-	n *Node,
-	out reflect.Value,
-) (newout reflect.Value, unmarshaled, good bool) {
+func (d *decoder) prepare(n *Node, out reflect.Value) (newout reflect.Value, unmarshaled, good bool) {
 	if n.ShortTag() == nullTag {
 		return out, false, false
 	}
@@ -500,8 +486,7 @@ func (d *decoder) unmarshal(n *Node, out reflect.Value) (good bool) {
 	if d.aliasDepth > 0 {
 		d.aliasCount++
 	}
-	if d.aliasCount > 100 && d.decodeCount > 1000 &&
-		float64(d.aliasCount)/float64(d.decodeCount) > allowedAliasRatio(d.decodeCount) {
+	if d.aliasCount > 100 && d.decodeCount > 1000 && float64(d.aliasCount)/float64(d.decodeCount) > allowedAliasRatio(d.decodeCount) {
 		failf("document contains excessive aliasing")
 	}
 	if out.Type() == nodeType {
@@ -667,12 +652,7 @@ func (d *decoder) scalar(n *Node, out reflect.Value) bool {
 				}
 			}
 		}
-	case reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		switch resolved := resolved.(type) {
 		case int:
 			if resolved >= 0 && !out.OverflowUint(uint64(resolved)) {
@@ -793,15 +773,7 @@ func (d *decoder) mapping(n *Node, out reflect.Value) (good bool) {
 			for j := i + 2; j < l; j += 2 {
 				nj := n.Content[j]
 				if ni.Kind == nj.Kind && ni.Value == nj.Value {
-					d.terrors = append(
-						d.terrors,
-						fmt.Sprintf(
-							"line %d: mapping key %#v already defined at line %d",
-							nj.Line,
-							nj.Value,
-							ni.Line,
-						),
-					)
+					d.terrors = append(d.terrors, fmt.Sprintf("line %d: mapping key %#v already defined at line %d", nj.Line, nj.Value, ni.Line))
 				}
 			}
 		}
@@ -873,8 +845,7 @@ func (d *decoder) mapping(n *Node, out reflect.Value) (good bool) {
 				failf("invalid map key: %#v", k.Interface())
 			}
 			e := reflect.New(et).Elem()
-			if d.unmarshal(n.Content[i+1], e) ||
-				n.Content[i+1].ShortTag() == nullTag && (mapIsNew || !out.MapIndex(k).IsValid()) {
+			if d.unmarshal(n.Content[i+1], e) || n.Content[i+1].ShortTag() == nullTag && (mapIsNew || !out.MapIndex(k).IsValid()) {
 				out.SetMapIndex(k, e)
 			}
 		}
@@ -950,15 +921,7 @@ func (d *decoder) mappingStruct(n *Node, out reflect.Value) (good bool) {
 		if info, ok := sinfo.FieldsMap[sname]; ok {
 			if d.uniqueKeys {
 				if doneFields[info.Id] {
-					d.terrors = append(
-						d.terrors,
-						fmt.Sprintf(
-							"line %d: field %s already set in type %s",
-							ni.Line,
-							name.String(),
-							out.Type(),
-						),
-					)
+					d.terrors = append(d.terrors, fmt.Sprintf("line %d: field %s already set in type %s", ni.Line, name.String(), out.Type()))
 					continue
 				}
 				doneFields[info.Id] = true
@@ -1033,6 +996,5 @@ func (d *decoder) merge(parent *Node, merge *Node, out reflect.Value) {
 }
 
 func isMerge(n *Node) bool {
-	return n.Kind == ScalarNode && n.Value == "<<" &&
-		(n.Tag == "" || n.Tag == "!" || shortTag(n.Tag) == mergeTag)
+	return n.Kind == ScalarNode && n.Value == "<<" && (n.Tag == "" || n.Tag == "!" || shortTag(n.Tag) == mergeTag)
 }

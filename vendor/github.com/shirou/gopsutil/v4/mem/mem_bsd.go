@@ -44,35 +44,16 @@ func parseSwapctlOutput(output string) ([]*SwapDevice, error) {
 	header = strings.ReplaceAll(header, ":", "")
 	headerFields := strings.Fields(header)
 	if len(headerFields) < usedKiBCol {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: too few fields in header %q",
-			swapCommand,
-			header,
-		)
+		return nil, fmt.Errorf("couldn't parse %q: too few fields in header %q", swapCommand, header)
 	}
 	if headerFields[nameCol] != "device" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[nameCol],
-			"device",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[nameCol], "device")
 	}
 	if headerFields[totalKiBCol] != "1kb-blocks" && headerFields[totalKiBCol] != "1k-blocks" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[totalKiBCol],
-			"1kb-blocks",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[totalKiBCol], "1kb-blocks")
 	}
 	if headerFields[usedKiBCol] != "used" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapCommand,
-			headerFields[usedKiBCol],
-			"used",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapCommand, headerFields[usedKiBCol], "used")
 	}
 
 	var swapDevices []*SwapDevice

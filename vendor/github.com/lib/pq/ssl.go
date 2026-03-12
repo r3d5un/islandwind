@@ -48,10 +48,7 @@ func ssl(o values) (func(net.Conn) (net.Conn, error), error) {
 	case "disable":
 		return nil, nil
 	default:
-		return nil, fmterrorf(
-			`unsupported sslmode %q; only "require" (default), "verify-full", "verify-ca", and "disable" supported`,
-			mode,
-		)
+		return nil, fmterrorf(`unsupported sslmode %q; only "require" (default), "verify-full", "verify-ca", and "disable" supported`, mode)
 	}
 
 	// Set Server Name Indication (SNI), if enabled by connection parameters.

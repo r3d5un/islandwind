@@ -8,12 +8,7 @@ import (
 )
 
 // NodeUpdate updates a Node.
-func (cli *Client) NodeUpdate(
-	ctx context.Context,
-	nodeID string,
-	version swarm.Version,
-	node swarm.NodeSpec,
-) error {
+func (cli *Client) NodeUpdate(ctx context.Context, nodeID string, version swarm.Version, node swarm.NodeSpec) error {
 	nodeID, err := trimID("node", nodeID)
 	if err != nil {
 		return err

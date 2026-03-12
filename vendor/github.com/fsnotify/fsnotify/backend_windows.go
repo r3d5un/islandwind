@@ -214,8 +214,7 @@ func (w *readDirChangesW) newEvent(name string, mask uint32) Event {
 	if mask&sysFSMODIFY == sysFSMODIFY {
 		e.Op |= Write
 	}
-	if mask&sysFSMOVE == sysFSMOVE || mask&sysFSMOVESELF == sysFSMOVESELF ||
-		mask&sysFSMOVEDFROM == sysFSMOVEDFROM {
+	if mask&sysFSMOVE == sysFSMOVE || mask&sysFSMOVESELF == sysFSMOVESELF || mask&sysFSMOVEDFROM == sysFSMOVEDFROM {
 		e.Op |= Rename
 	}
 	return e
@@ -616,11 +615,7 @@ func (w *readDirChangesW) readEvents() {
 			}
 
 			if watch.rename != "" && raw.Action == windows.FILE_ACTION_RENAMED_NEW_NAME {
-				w.sendEvent(
-					fullname,
-					filepath.Join(watch.path, watch.rename),
-					watch.mask&w.toFSnotifyFlags(raw.Action),
-				)
+				w.sendEvent(fullname, filepath.Join(watch.path, watch.rename), watch.mask&w.toFSnotifyFlags(raw.Action))
 			} else {
 				w.sendEvent(fullname, "", watch.mask&w.toFSnotifyFlags(raw.Action))
 			}
@@ -638,11 +633,7 @@ func (w *readDirChangesW) readEvents() {
 			// Error!
 			if offset >= n {
 				//lint:ignore ST1005 Windows should be capitalized
-				w.sendError(
-					errors.New(
-						"Windows system assumed buffer larger than it is, events have likely been missed",
-					),
-				)
+				w.sendError(errors.New("Windows system assumed buffer larger than it is, events have likely been missed"))
 				break
 			}
 		}

@@ -170,10 +170,7 @@ func (encodePlanBoolCodecTextBoolValuer) Encode(value any, buf []byte) (newBuf [
 
 type encodePlanBoolCodecBinaryBoolValuer struct{}
 
-func (encodePlanBoolCodecBinaryBoolValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanBoolCodecBinaryBoolValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	b, err := value.(BoolValuer).BoolValue()
 	if err != nil {
 		return nil, err
@@ -227,12 +224,7 @@ func (BoolCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan
 	return nil
 }
 
-func (c BoolCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c BoolCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return c.DecodeValue(m, oid, format, src)
 }
 
@@ -346,10 +338,7 @@ func planTextToBool(src []byte) (bool, error) {
 	switch {
 	case strings.HasPrefix("true", s), strings.HasPrefix("yes", s), s == "on", s == "1":
 		return true, nil
-	case strings.HasPrefix("false", s),
-		strings.HasPrefix("no", s),
-		strings.HasPrefix("off", s),
-		s == "0":
+	case strings.HasPrefix("false", s), strings.HasPrefix("no", s), strings.HasPrefix("off", s), s == "0":
 		return false, nil
 	default:
 		return false, fmt.Errorf("unknown boolean string representation %q", src)

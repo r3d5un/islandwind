@@ -345,8 +345,7 @@ func (w *kqueue) addWatch(name string, flags uint32, listDir bool) (string, erro
 		}
 
 		// Don't watch sockets or named pipes.
-		if (fi.Mode()&os.ModeSocket == os.ModeSocket) ||
-			(fi.Mode()&os.ModeNamedPipe == os.ModeNamedPipe) {
+		if (fi.Mode()&os.ModeSocket == os.ModeSocket) || (fi.Mode()&os.ModeNamedPipe == os.ModeNamedPipe) {
 			return "", nil
 		}
 
@@ -629,8 +628,7 @@ func (w *kqueue) dirChange(dir string) error {
 		err = w.sendCreateIfNew(filepath.Join(dir, fi.Name()), fi)
 		if err != nil {
 			// Don't need to send an error if this file isn't readable.
-			if errors.Is(err, unix.EACCES) || errors.Is(err, unix.EPERM) ||
-				errors.Is(err, os.ErrNotExist) {
+			if errors.Is(err, unix.EACCES) || errors.Is(err, unix.EPERM) || errors.Is(err, os.ErrNotExist) {
 				return nil
 			}
 			return fmt.Errorf("fsnotify.dirChange: %w", err)

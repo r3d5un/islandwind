@@ -40,10 +40,7 @@ func ValidateIPAM(ipam *IPAM, enableIPv6 bool) error {
 	for _, cfg := range ipam.Config {
 		subnet, err := netip.ParsePrefix(cfg.Subnet)
 		if err != nil {
-			errs = append(
-				errs,
-				fmt.Errorf("invalid subnet %s: invalid CIDR block notation", cfg.Subnet),
-			)
+			errs = append(errs, fmt.Errorf("invalid subnet %s: invalid CIDR block notation", cfg.Subnet))
 			continue
 		}
 		subnetFamily := ip4
@@ -56,10 +53,7 @@ func ValidateIPAM(ipam *IPAM, enableIPv6 bool) error {
 		}
 
 		if subnet != subnet.Masked() {
-			errs = append(
-				errs,
-				fmt.Errorf("invalid subnet %s: it should be %s", subnet, subnet.Masked()),
-			)
+			errs = append(errs, fmt.Errorf("invalid subnet %s: it should be %s", subnet, subnet.Masked()))
 		}
 
 		if ipRangeErrs := validateIPRange(cfg.IPRange, subnet, subnetFamily); len(ipRangeErrs) > 0 {
@@ -98,37 +92,18 @@ func validateIPRange(ipRange string, subnet netip.Prefix, subnetFamily ipFamily)
 	}
 
 	if family != subnetFamily {
-		return []error{
-			fmt.Errorf("invalid ip-range %s: parent subnet is an %s block", ipRange, subnetFamily),
-		}
+		return []error{fmt.Errorf("invalid ip-range %s: parent subnet is an %s block", ipRange, subnetFamily)}
 	}
 
 	var errs []error
 	if prefix.Bits() < subnet.Bits() {
-		errs = append(
-			errs,
-			fmt.Errorf(
-				"invalid ip-range %s: CIDR block is bigger than its parent subnet %s",
-				ipRange,
-				subnet,
-			),
-		)
+		errs = append(errs, fmt.Errorf("invalid ip-range %s: CIDR block is bigger than its parent subnet %s", ipRange, subnet))
 	}
 	if prefix != prefix.Masked() {
-		errs = append(
-			errs,
-			fmt.Errorf("invalid ip-range %s: it should be %s", prefix, prefix.Masked()),
-		)
+		errs = append(errs, fmt.Errorf("invalid ip-range %s: it should be %s", prefix, prefix.Masked()))
 	}
 	if !subnet.Overlaps(prefix) {
-		errs = append(
-			errs,
-			fmt.Errorf(
-				"invalid ip-range %s: parent subnet %s doesn't contain ip-range",
-				ipRange,
-				subnet,
-			),
-		)
+		errs = append(errs, fmt.Errorf("invalid ip-range %s: parent subnet %s doesn't contain ip-range", ipRange, subnet))
 	}
 
 	return errs

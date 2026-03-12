@@ -25,8 +25,7 @@ package cpu
 // AVX512 is considered unsafe to use on Darwin for kernel versions prior to
 // 21.3.0, where a fix has been confirmed. See issue 49233 for full background.
 func darwinSupportsAVX512() bool {
-	return darwinSysctlEnabled([]byte("hw.optional.avx512f\x00")) &&
-		darwinKernelVersionCheck(21, 3, 0)
+	return darwinSysctlEnabled([]byte("hw.optional.avx512f\x00")) && darwinKernelVersionCheck(21, 3, 0)
 }
 
 // Ensure Darwin kernel version is at least major.minor.patch, avoiding dependencies
@@ -58,6 +57,5 @@ Loop:
 	if c != 2 {
 		return false
 	}
-	return mmp[0] > major ||
-		mmp[0] == major && (mmp[1] > minor || mmp[1] == minor && mmp[2] >= patch)
+	return mmp[0] > major || mmp[0] == major && (mmp[1] > minor || mmp[1] == minor && mmp[2] >= patch)
 }

@@ -163,10 +163,7 @@ func (UUIDCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodeP
 
 type encodePlanUUIDCodecBinaryUUIDValuer struct{}
 
-func (encodePlanUUIDCodecBinaryUUIDValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanUUIDCodecBinaryUUIDValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	uuid, err := value.(UUIDValuer).UUIDValue()
 	if err != nil {
 		return nil, err
@@ -268,12 +265,7 @@ func (scanPlanTextAnyToUUIDScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanUUID(UUID{Bytes: buf, Valid: true})
 }
 
-func (c UUIDCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c UUIDCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

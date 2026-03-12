@@ -45,12 +45,6 @@ func ValidateHealthStatus(s HealthStatus) error {
 	case NoHealthcheck, Starting, Healthy, Unhealthy:
 		return nil
 	default:
-		return errInvalidParameter{
-			error: fmt.Errorf(
-				"invalid value for health (%s): must be one of %s",
-				s,
-				strings.Join(validHealths, ", "),
-			),
-		}
+		return errInvalidParameter{error: fmt.Errorf("invalid value for health (%s): must be one of %s", s, strings.Join(validHealths, ", "))}
 	}
 }

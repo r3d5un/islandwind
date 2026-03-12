@@ -18,11 +18,7 @@ import (
 // ImageBuild sends a request to the daemon to build images.
 // The Body in the response implements an io.ReadCloser and it's up to the caller to
 // close it.
-func (cli *Client) ImageBuild(
-	ctx context.Context,
-	buildContext io.Reader,
-	options build.ImageBuildOptions,
-) (build.ImageBuildResponse, error) {
+func (cli *Client) ImageBuild(ctx context.Context, buildContext io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error) {
 	query, err := cli.imageBuildOptionsToQuery(ctx, options)
 	if err != nil {
 		return build.ImageBuildResponse{}, err
@@ -48,10 +44,7 @@ func (cli *Client) ImageBuild(
 	}, nil
 }
 
-func (cli *Client) imageBuildOptionsToQuery(
-	ctx context.Context,
-	options build.ImageBuildOptions,
-) (url.Values, error) {
+func (cli *Client) imageBuildOptionsToQuery(ctx context.Context, options build.ImageBuildOptions) (url.Values, error) {
 	query := url.Values{}
 	if len(options.Tags) > 0 {
 		query["t"] = options.Tags

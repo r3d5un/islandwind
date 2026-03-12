@@ -7,11 +7,7 @@ import (
 )
 
 // NetworkConnect connects a container to an existent network in the docker host.
-func (cli *Client) NetworkConnect(
-	ctx context.Context,
-	networkID, containerID string,
-	config *network.EndpointSettings,
-) error {
+func (cli *Client) NetworkConnect(ctx context.Context, networkID, containerID string, config *network.EndpointSettings) error {
 	networkID, err := trimID("network", networkID)
 	if err != nil {
 		return err

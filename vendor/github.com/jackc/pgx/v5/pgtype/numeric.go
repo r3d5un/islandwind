@@ -337,10 +337,7 @@ func (NumericCodec) PlanEncode(m *Map, oid uint32, format int16, value any) Enco
 
 type encodePlanNumericCodecBinaryNumericValuer struct{}
 
-func (encodePlanNumericCodecBinaryNumericValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecBinaryNumericValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(NumericValuer).NumericValue()
 	if err != nil {
 		return nil, err
@@ -351,10 +348,7 @@ func (encodePlanNumericCodecBinaryNumericValuer) Encode(
 
 type encodePlanNumericCodecBinaryFloat64Valuer struct{}
 
-func (encodePlanNumericCodecBinaryFloat64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecBinaryFloat64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Float64Valuer).Float64Value()
 	if err != nil {
 		return nil, err
@@ -381,10 +375,7 @@ func (encodePlanNumericCodecBinaryFloat64Valuer) Encode(
 
 type encodePlanNumericCodecBinaryInt64Valuer struct{}
 
-func (encodePlanNumericCodecBinaryInt64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecBinaryInt64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Int64Valuer).Int64Value()
 	if err != nil {
 		return nil, err
@@ -498,10 +489,7 @@ func encodeNumericBinary(n Numeric, buf []byte) (newBuf []byte, err error) {
 
 type encodePlanNumericCodecTextNumericValuer struct{}
 
-func (encodePlanNumericCodecTextNumericValuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecTextNumericValuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(NumericValuer).NumericValue()
 	if err != nil {
 		return nil, err
@@ -512,10 +500,7 @@ func (encodePlanNumericCodecTextNumericValuer) Encode(
 
 type encodePlanNumericCodecTextFloat64Valuer struct{}
 
-func (encodePlanNumericCodecTextFloat64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecTextFloat64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Float64Valuer).Float64Value()
 	if err != nil {
 		return nil, err
@@ -539,10 +524,7 @@ func (encodePlanNumericCodecTextFloat64Valuer) Encode(
 
 type encodePlanNumericCodecTextInt64Valuer struct{}
 
-func (encodePlanNumericCodecTextInt64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanNumericCodecTextInt64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	n, err := value.(Int64Valuer).Int64Value()
 	if err != nil {
 		return nil, err
@@ -812,12 +794,7 @@ func (scanPlanTextAnyToNumericScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanNumeric(Numeric{Int: num, Exp: exp, Valid: true})
 }
 
-func (c NumericCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c NumericCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

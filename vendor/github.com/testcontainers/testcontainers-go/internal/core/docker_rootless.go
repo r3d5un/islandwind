@@ -12,18 +12,12 @@ import (
 
 var (
 	ErrRootlessDockerNotFound               = errors.New("rootless Docker not found")
-	ErrRootlessDockerNotFoundHomeDesktopDir = errors.New(
-		"checked path: ~/.docker/desktop/docker.sock",
-	)
-	ErrRootlessDockerNotFoundHomeRunDir = errors.New("checked path: ~/.docker/run/docker.sock")
-	ErrRootlessDockerNotFoundRunDir     = errors.New(
-		"checked path: /run/user/${uid}/docker.sock",
-	)
-	ErrRootlessDockerNotFoundXDGRuntimeDir = errors.New("checked path: $XDG_RUNTIME_DIR")
-	ErrRootlessDockerNotSupportedWindows   = errors.New(
-		"rootless Docker is not supported on Windows",
-	)
-	ErrXDGRuntimeDirNotSet = errors.New("XDG_RUNTIME_DIR is not set")
+	ErrRootlessDockerNotFoundHomeDesktopDir = errors.New("checked path: ~/.docker/desktop/docker.sock")
+	ErrRootlessDockerNotFoundHomeRunDir     = errors.New("checked path: ~/.docker/run/docker.sock")
+	ErrRootlessDockerNotFoundRunDir         = errors.New("checked path: /run/user/${uid}/docker.sock")
+	ErrRootlessDockerNotFoundXDGRuntimeDir  = errors.New("checked path: $XDG_RUNTIME_DIR")
+	ErrRootlessDockerNotSupportedWindows    = errors.New("rootless Docker is not supported on Windows")
+	ErrXDGRuntimeDirNotSet                  = errors.New("XDG_RUNTIME_DIR is not set")
 )
 
 // baseRunDir is the base directory for the "/run/user/${uid}" directory.

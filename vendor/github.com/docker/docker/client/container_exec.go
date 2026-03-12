@@ -11,11 +11,7 @@ import (
 )
 
 // ContainerExecCreate creates a new exec configuration to run an exec process.
-func (cli *Client) ContainerExecCreate(
-	ctx context.Context,
-	containerID string,
-	options container.ExecOptions,
-) (container.ExecCreateResponse, error) {
+func (cli *Client) ContainerExecCreate(ctx context.Context, containerID string, options container.ExecOptions) (container.ExecCreateResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.ExecCreateResponse{}, err
@@ -49,11 +45,7 @@ func (cli *Client) ContainerExecCreate(
 }
 
 // ContainerExecStart starts an exec process already created in the docker host.
-func (cli *Client) ContainerExecStart(
-	ctx context.Context,
-	execID string,
-	config container.ExecStartOptions,
-) error {
+func (cli *Client) ContainerExecStart(ctx context.Context, execID string, config container.ExecStartOptions) error {
 	if versions.LessThan(cli.ClientVersion(), "1.42") {
 		config.ConsoleSize = nil
 	}
@@ -66,11 +58,7 @@ func (cli *Client) ContainerExecStart(
 // It returns a types.HijackedConnection with the hijacked connection
 // and the a reader to get output. It's up to the called to close
 // the hijacked connection by calling types.HijackedResponse.Close.
-func (cli *Client) ContainerExecAttach(
-	ctx context.Context,
-	execID string,
-	config container.ExecAttachOptions,
-) (types.HijackedResponse, error) {
+func (cli *Client) ContainerExecAttach(ctx context.Context, execID string, config container.ExecAttachOptions) (types.HijackedResponse, error) {
 	if versions.LessThan(cli.ClientVersion(), "1.42") {
 		config.ConsoleSize = nil
 	}
@@ -80,10 +68,7 @@ func (cli *Client) ContainerExecAttach(
 }
 
 // ContainerExecInspect returns information about a specific exec process on the docker host.
-func (cli *Client) ContainerExecInspect(
-	ctx context.Context,
-	execID string,
-) (container.ExecInspect, error) {
+func (cli *Client) ContainerExecInspect(ctx context.Context, execID string) (container.ExecInspect, error) {
 	var response container.ExecInspect
 	resp, err := cli.get(ctx, "/exec/"+execID+"/json", nil, nil)
 	if err != nil {

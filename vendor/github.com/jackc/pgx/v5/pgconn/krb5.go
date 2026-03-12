@@ -35,9 +35,7 @@ type GSS interface {
 
 func (c *PgConn) gssAuth() error {
 	if newGSS == nil {
-		return errors.New(
-			"kerberos error: no GSSAPI provider registered, see https://github.com/otan/gopgkrb5",
-		)
+		return errors.New("kerberos error: no GSSAPI provider registered, see https://github.com/otan/gopgkrb5")
 	}
 	cli, err := newGSS()
 	if err != nil {
@@ -98,8 +96,5 @@ func (c *PgConn) rxGSSContinue() (*pgproto3.AuthenticationGSSContinue, error) {
 		return nil, ErrorResponseToPgError(m)
 	}
 
-	return nil, fmt.Errorf(
-		"expected AuthenticationGSSContinue message but received unexpected message %T",
-		msg,
-	)
+	return nil, fmt.Errorf("expected AuthenticationGSSContinue message but received unexpected message %T", msg)
 }

@@ -43,12 +43,7 @@ func (tx *Tx) Rollback(ctx context.Context) error {
 	return err
 }
 
-func (tx *Tx) CopyFrom(
-	ctx context.Context,
-	tableName pgx.Identifier,
-	columnNames []string,
-	rowSrc pgx.CopyFromSource,
-) (int64, error) {
+func (tx *Tx) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
 	return tx.t.CopyFrom(ctx, tableName, columnNames, rowSrc)
 }
 

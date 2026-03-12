@@ -10,10 +10,7 @@ import (
 )
 
 // TaskInspectWithRaw returns the task information and its raw representation.
-func (cli *Client) TaskInspectWithRaw(
-	ctx context.Context,
-	taskID string,
-) (swarm.Task, []byte, error) {
+func (cli *Client) TaskInspectWithRaw(ctx context.Context, taskID string) (swarm.Task, []byte, error) {
 	taskID, err := trimID("task", taskID)
 	if err != nil {
 		return swarm.Task{}, nil, err

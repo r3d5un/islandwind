@@ -29,21 +29,13 @@ import (
 
 // Common error types
 var (
-	ErrNotSupported        = errors.New("pq: Unsupported command")
-	ErrInFailedTransaction = errors.New(
-		"pq: Could not complete operation in a failed transaction",
-	)
-	ErrSSLNotSupported        = errors.New("pq: SSL is not enabled on the server")
-	ErrSSLKeyUnknownOwnership = errors.New(
-		"pq: Could not get owner information for private key, may not be properly protected",
-	)
-	ErrSSLKeyHasWorldPermissions = errors.New(
-		"pq: Private key has world access. Permissions should be u=rw,g=r (0640) if owned by root, or u=rw (0600), or less",
-	)
+	ErrNotSupported              = errors.New("pq: Unsupported command")
+	ErrInFailedTransaction       = errors.New("pq: Could not complete operation in a failed transaction")
+	ErrSSLNotSupported           = errors.New("pq: SSL is not enabled on the server")
+	ErrSSLKeyUnknownOwnership    = errors.New("pq: Could not get owner information for private key, may not be properly protected")
+	ErrSSLKeyHasWorldPermissions = errors.New("pq: Private key has world access. Permissions should be u=rw,g=r (0640) if owned by root, or u=rw (0600), or less")
 
-	ErrCouldNotDetectUsername = errors.New(
-		"pq: Could not detect default username. Please provide one explicitly",
-	)
+	ErrCouldNotDetectUsername = errors.New("pq: Could not detect default username. Please provide one explicitly")
 
 	errUnexpectedReady = errors.New("unexpected ReadyForQuery")
 	errNoRowsAffected  = errors.New("no RowsAffected available after the empty statement")
@@ -316,10 +308,7 @@ func scanText(line string, o values) bool {
 	if len(split) != 5 {
 		return false
 	}
-	if (split[0] == "*" || split[0] == hostname || (split[0] == "localhost" && (hostname == "" || ntw == "unix"))) &&
-		(split[1] == "*" || split[1] == port) &&
-		(split[2] == "*" || split[2] == db) &&
-		(split[3] == "*" || split[3] == username) {
+	if (split[0] == "*" || split[0] == hostname || (split[0] == "localhost" && (hostname == "" || ntw == "unix"))) && (split[1] == "*" || split[1] == port) && (split[2] == "*" || split[2] == db) && (split[3] == "*" || split[3] == username) {
 		o["password"] = split[4]
 		return true
 	}
@@ -1247,9 +1236,7 @@ func (cn *conn) auth(r *readBuf, o values) {
 		}
 	case 7: // GSSAPI, startup
 		if newGss == nil {
-			errorf(
-				"kerberos error: no GSSAPI provider registered (import github.com/lib/pq/auth/kerberos if you need Kerberos support)",
-			)
+			errorf("kerberos error: no GSSAPI provider registered (import github.com/lib/pq/auth/kerberos if you need Kerberos support)")
 		}
 		cli, err := newGss()
 		if err != nil {
@@ -1628,12 +1615,7 @@ func (rs *rows) Next(dest []driver.Value) (err error) {
 					dest[i] = nil
 					continue
 				}
-				dest[i] = decode(
-					&conn.parameterStatus,
-					rs.rb.next(l),
-					rs.colTyps[i].OID,
-					rs.colFmts[i],
-				)
+				dest[i] = decode(&conn.parameterStatus, rs.rb.next(l), rs.colTyps[i].OID, rs.colFmts[i])
 			}
 			return
 		case 'T':

@@ -280,17 +280,13 @@ func (enc *Encoder) encode(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, e
 	}
 
 	hasTextMarshaler := v.Type().Implements(textMarshalerType)
-	if hasTextMarshaler ||
-		(v.CanAddr() && reflect.PointerTo(v.Type()).Implements(textMarshalerType)) {
+	if hasTextMarshaler || (v.CanAddr() && reflect.PointerTo(v.Type()).Implements(textMarshalerType)) {
 		if !hasTextMarshaler {
 			v = v.Addr()
 		}
 
 		if ctx.isRoot() {
-			return nil, fmt.Errorf(
-				"toml: type %s implementing the TextMarshaler interface cannot be a root element",
-				v.Type(),
-			)
+			return nil, fmt.Errorf("toml: type %s implementing the TextMarshaler interface cannot be a root element", v.Type())
 		}
 
 		text, err := v.Interface().(encoding.TextMarshaler).MarshalText()
@@ -363,11 +359,7 @@ func (enc *Encoder) encode(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, e
 	case reflect.Uint64, reflect.Uint32, reflect.Uint16, reflect.Uint8, reflect.Uint:
 		x := v.Uint()
 		if x > uint64(math.MaxInt64) {
-			return nil, fmt.Errorf(
-				"toml: not encoding uint (%d) greater than max int64 (%d)",
-				x,
-				int64(math.MaxInt64),
-			)
+			return nil, fmt.Errorf("toml: not encoding uint (%d) greater than max int64 (%d)", x, int64(math.MaxInt64))
 		}
 		b = strconv.AppendUint(b, x, 10)
 	case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int8, reflect.Int:
@@ -392,12 +384,7 @@ func shouldOmitEmpty(options valueOptions, v reflect.Value) bool {
 	return options.omitempty && isEmptyValue(v)
 }
 
-func (enc *Encoder) encodeKv(
-	b []byte,
-	ctx encoderCtx,
-	options valueOptions,
-	v reflect.Value,
-) ([]byte, error) {
+func (enc *Encoder) encodeKv(b []byte, ctx encoderCtx, options valueOptions, v reflect.Value) ([]byte, error) {
 	var err error
 
 	if !ctx.inline {
@@ -441,12 +428,7 @@ func isEmptyValue(v reflect.Value) bool {
 		return !v.Bool()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0
-	case reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return v.Uint() == 0
 	case reflect.Float32, reflect.Float64:
 		return v.Float() == 0
@@ -612,8 +594,7 @@ func (enc *Encoder) encodeKey(b []byte, k string) []byte {
 	}
 
 	for _, c := range k {
-		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' ||
-			c == '_' {
+		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_' {
 			continue
 		}
 
@@ -982,8 +963,7 @@ func willConvertToTable(ctx encoderCtx, v reflect.Value) bool {
 	if !v.IsValid() {
 		return false
 	}
-	if v.Type() == timeType || v.Type().Implements(textMarshalerType) ||
-		(v.Kind() != reflect.Ptr && v.CanAddr() && reflect.PointerTo(v.Type()).Implements(textMarshalerType)) {
+	if v.Type() == timeType || v.Type().Implements(textMarshalerType) || (v.Kind() != reflect.Ptr && v.CanAddr() && reflect.PointerTo(v.Type()).Implements(textMarshalerType)) {
 		return false
 	}
 
@@ -1050,11 +1030,7 @@ func (enc *Encoder) encodeSlice(b []byte, ctx encoderCtx, v reflect.Value) ([]by
 
 // caller should have checked that v is a slice that only contains values that
 // encode into tables.
-func (enc *Encoder) encodeSliceAsArrayTable(
-	b []byte,
-	ctx encoderCtx,
-	v reflect.Value,
-) ([]byte, error) {
+func (enc *Encoder) encodeSliceAsArrayTable(b []byte, ctx encoderCtx, v reflect.Value) ([]byte, error) {
 	ctx.shiftKey()
 
 	scratch := make([]byte, 0, 64)

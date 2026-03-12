@@ -181,12 +181,7 @@ func (d *Decoder) Decompress4X(dst, src []byte) ([]byte, error) {
 		}
 		if offset != endsAt {
 			d.bufs.Put(buf)
-			return nil, fmt.Errorf(
-				"corruption detected: short output block %d, end %d != %d",
-				i,
-				offset,
-				endsAt,
-			)
+			return nil, fmt.Errorf("corruption detected: short output block %d, end %d != %d", i, offset, endsAt)
 		}
 		decoded += offset - dstEvery*i
 		err = br.close()

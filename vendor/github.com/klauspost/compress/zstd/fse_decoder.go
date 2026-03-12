@@ -213,9 +213,7 @@ func (s *fseDecoder) mustReadFrom(r io.Reader) {
 type decSymbol uint64
 
 func newDecSymbol(nbits, addBits uint8, newState uint16, baseline uint32) decSymbol {
-	return decSymbol(
-		nbits,
-	) | (decSymbol(addBits) << 8) | (decSymbol(newState) << 16) | (decSymbol(baseline) << 32)
+	return decSymbol(nbits) | (decSymbol(addBits) << 8) | (decSymbol(newState) << 16) | (decSymbol(baseline) << 32)
 }
 
 func (d decSymbol) nbBits() uint8 {
@@ -279,12 +277,7 @@ func (s *fseDecoder) transform(t []baseOffset) error {
 	for i, v := range s.dt[:tableSize] {
 		add := v.addBits()
 		if int(add) >= len(t) {
-			return fmt.Errorf(
-				"invalid decoding table entry %d, symbol %d >= max (%d)",
-				i,
-				v.addBits(),
-				len(t),
-			)
+			return fmt.Errorf("invalid decoding table entry %d, symbol %d >= max (%d)", i, v.addBits(), len(t))
 		}
 		lu := t[add]
 		if lu.addBits > s.maxBits {

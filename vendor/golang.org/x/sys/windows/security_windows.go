@@ -757,13 +757,7 @@ func (t Token) GetUserProfileDirectory() (string, error) {
 func (token Token) IsElevated() bool {
 	var isElevated uint32
 	var outLen uint32
-	err := GetTokenInformation(
-		token,
-		TokenElevation,
-		(*byte)(unsafe.Pointer(&isElevated)),
-		uint32(unsafe.Sizeof(isElevated)),
-		&outLen,
-	)
+	err := GetTokenInformation(token, TokenElevation, (*byte)(unsafe.Pointer(&isElevated)), uint32(unsafe.Sizeof(isElevated)), &outLen)
 	if err != nil {
 		return false
 	}
@@ -774,13 +768,7 @@ func (token Token) IsElevated() bool {
 func (token Token) GetLinkedToken() (Token, error) {
 	var linkedToken Token
 	var outLen uint32
-	err := GetTokenInformation(
-		token,
-		TokenLinkedToken,
-		(*byte)(unsafe.Pointer(&linkedToken)),
-		uint32(unsafe.Sizeof(linkedToken)),
-		&outLen,
-	)
+	err := GetTokenInformation(token, TokenLinkedToken, (*byte)(unsafe.Pointer(&linkedToken)), uint32(unsafe.Sizeof(linkedToken)), &outLen)
 	if err != nil {
 		return Token(0), err
 	}
@@ -1200,10 +1188,7 @@ func (sd *SECURITY_DESCRIPTOR) Control() (control SECURITY_DESCRIPTOR_CONTROL, r
 }
 
 // SetControl sets the security descriptor control bits.
-func (sd *SECURITY_DESCRIPTOR) SetControl(
-	controlBitsOfInterest SECURITY_DESCRIPTOR_CONTROL,
-	controlBitsToSet SECURITY_DESCRIPTOR_CONTROL,
-) error {
+func (sd *SECURITY_DESCRIPTOR) SetControl(controlBitsOfInterest SECURITY_DESCRIPTOR_CONTROL, controlBitsToSet SECURITY_DESCRIPTOR_CONTROL) error {
 	return setSecurityDescriptorControl(sd, controlBitsOfInterest, controlBitsToSet)
 }
 
@@ -1403,9 +1388,7 @@ func (absoluteSD *SECURITY_DESCRIPTOR) ToSelfRelative() (selfRelativeSD *SECURIT
 		return nil, err
 	}
 	if selfRelativeSDSize > 0 {
-		selfRelativeSD = (*SECURITY_DESCRIPTOR)(
-			unsafe.Pointer(&make([]byte, selfRelativeSDSize)[0]),
-		)
+		selfRelativeSD = (*SECURITY_DESCRIPTOR)(unsafe.Pointer(&make([]byte, selfRelativeSDSize)[0]))
 	}
 	err = makeSelfRelativeSD(absoluteSD, selfRelativeSD, &selfRelativeSDSize)
 	return
@@ -1444,11 +1427,7 @@ func SecurityDescriptorFromString(sddl string) (sd *SECURITY_DESCRIPTOR, err err
 
 // GetSecurityInfo queries the security information for a given handle and returns the self-relative security
 // descriptor result on the Go heap.
-func GetSecurityInfo(
-	handle Handle,
-	objectType SE_OBJECT_TYPE,
-	securityInformation SECURITY_INFORMATION,
-) (sd *SECURITY_DESCRIPTOR, err error) {
+func GetSecurityInfo(handle Handle, objectType SE_OBJECT_TYPE, securityInformation SECURITY_INFORMATION) (sd *SECURITY_DESCRIPTOR, err error) {
 	var winHeapSD *SECURITY_DESCRIPTOR
 	err = getSecurityInfo(handle, objectType, securityInformation, nil, nil, nil, nil, &winHeapSD)
 	if err != nil {
@@ -1460,22 +1439,9 @@ func GetSecurityInfo(
 
 // GetNamedSecurityInfo queries the security information for a given named object and returns the self-relative security
 // descriptor result on the Go heap.
-func GetNamedSecurityInfo(
-	objectName string,
-	objectType SE_OBJECT_TYPE,
-	securityInformation SECURITY_INFORMATION,
-) (sd *SECURITY_DESCRIPTOR, err error) {
+func GetNamedSecurityInfo(objectName string, objectType SE_OBJECT_TYPE, securityInformation SECURITY_INFORMATION) (sd *SECURITY_DESCRIPTOR, err error) {
 	var winHeapSD *SECURITY_DESCRIPTOR
-	err = getNamedSecurityInfo(
-		objectName,
-		objectType,
-		securityInformation,
-		nil,
-		nil,
-		nil,
-		nil,
-		&winHeapSD,
-	)
+	err = getNamedSecurityInfo(objectName, objectType, securityInformation, nil, nil, nil, nil, &winHeapSD)
 	if err != nil {
 		return
 	}
@@ -1486,13 +1452,7 @@ func GetNamedSecurityInfo(
 // BuildSecurityDescriptor makes a new security descriptor using the input trustees, explicit access lists, and
 // prior security descriptor to be merged, any of which can be nil, returning the self-relative security descriptor
 // result on the Go heap.
-func BuildSecurityDescriptor(
-	owner *TRUSTEE,
-	group *TRUSTEE,
-	accessEntries []EXPLICIT_ACCESS,
-	auditEntries []EXPLICIT_ACCESS,
-	mergedSecurityDescriptor *SECURITY_DESCRIPTOR,
-) (sd *SECURITY_DESCRIPTOR, err error) {
+func BuildSecurityDescriptor(owner *TRUSTEE, group *TRUSTEE, accessEntries []EXPLICIT_ACCESS, auditEntries []EXPLICIT_ACCESS, mergedSecurityDescriptor *SECURITY_DESCRIPTOR) (sd *SECURITY_DESCRIPTOR, err error) {
 	var winHeapSD *SECURITY_DESCRIPTOR
 	var winHeapSDSize uint32
 	var firstAccessEntry *EXPLICIT_ACCESS
@@ -1503,17 +1463,7 @@ func BuildSecurityDescriptor(
 	if len(auditEntries) > 0 {
 		firstAuditEntry = &auditEntries[0]
 	}
-	err = buildSecurityDescriptor(
-		owner,
-		group,
-		uint32(len(accessEntries)),
-		firstAccessEntry,
-		uint32(len(auditEntries)),
-		firstAuditEntry,
-		mergedSecurityDescriptor,
-		&winHeapSDSize,
-		&winHeapSD,
-	)
+	err = buildSecurityDescriptor(owner, group, uint32(len(accessEntries)), firstAccessEntry, uint32(len(auditEntries)), firstAuditEntry, mergedSecurityDescriptor, &winHeapSDSize, &winHeapSD)
 	if err != nil {
 		return
 	}

@@ -417,11 +417,7 @@ func SwapMemoryWithContext(ctx context.Context) (*SwapMemoryStat, error) {
 // calculateAvailVmem is a fallback under kernel 3.14 where /proc/meminfo does not provide
 // "MemAvailable:" column. It reimplements an algorithm from the link below
 // https://github.com/giampaolo/psutil/pull/890
-func calculateAvailVmem(
-	ctx context.Context,
-	ret *VirtualMemoryStat,
-	retEx *ExVirtualMemory,
-) uint64 {
+func calculateAvailVmem(ctx context.Context, ret *VirtualMemoryStat, retEx *ExVirtualMemory) uint64 {
 	var watermarkLow uint64
 
 	fn := common.HostProcWithContext(ctx, "zoneinfo")
@@ -451,9 +447,7 @@ func calculateAvailVmem(
 	pageCache := retEx.ActiveFile + retEx.InactiveFile
 	pageCache -= uint64(math.Min(float64(pageCache/2), float64(watermarkLow)))
 	availMemory += pageCache
-	availMemory += ret.Sreclaimable - uint64(
-		math.Min(float64(ret.Sreclaimable/2.0), float64(watermarkLow)),
-	)
+	availMemory += ret.Sreclaimable - uint64(math.Min(float64(ret.Sreclaimable/2.0), float64(watermarkLow)))
 
 	if availMemory < 0 {
 		availMemory = 0
@@ -505,28 +499,13 @@ func parseSwapsFile(ctx context.Context, r io.Reader) ([]*SwapDevice, error) {
 		return nil, fmt.Errorf("couldn't parse %q: too few fields in header", swapsFilePath)
 	}
 	if headerFields[nameCol] != "Filename" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapsFilePath,
-			headerFields[nameCol],
-			"Filename",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapsFilePath, headerFields[nameCol], "Filename")
 	}
 	if headerFields[totalCol] != "Size" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapsFilePath,
-			headerFields[totalCol],
-			"Size",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapsFilePath, headerFields[totalCol], "Size")
 	}
 	if headerFields[usedCol] != "Used" {
-		return nil, fmt.Errorf(
-			"couldn't parse %q: expected %q to be %q",
-			swapsFilePath,
-			headerFields[usedCol],
-			"Used",
-		)
+		return nil, fmt.Errorf("couldn't parse %q: expected %q to be %q", swapsFilePath, headerFields[usedCol], "Used")
 	}
 
 	var swapDevices []*SwapDevice

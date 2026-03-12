@@ -99,22 +99,12 @@ func (f *FlagSet) GetStringToInt(name string) (map[string]int, error) {
 // StringToIntVar defines a string flag with specified name, default value, and usage string.
 // The argument p points to a map[string]int variable in which to store the values of the multiple flags.
 // The value of each argument will not try to be separated by comma
-func (f *FlagSet) StringToIntVar(
-	p *map[string]int,
-	name string,
-	value map[string]int,
-	usage string,
-) {
+func (f *FlagSet) StringToIntVar(p *map[string]int, name string, value map[string]int, usage string) {
 	f.VarP(newStringToIntValue(value, p), name, "", usage)
 }
 
 // StringToIntVarP is like StringToIntVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) StringToIntVarP(
-	p *map[string]int,
-	name, shorthand string,
-	value map[string]int,
-	usage string,
-) {
+func (f *FlagSet) StringToIntVarP(p *map[string]int, name, shorthand string, value map[string]int, usage string) {
 	f.VarP(newStringToIntValue(value, p), name, shorthand, usage)
 }
 
@@ -126,12 +116,7 @@ func StringToIntVar(p *map[string]int, name string, value map[string]int, usage 
 }
 
 // StringToIntVarP is like StringToIntVar, but accepts a shorthand letter that can be used after a single dash.
-func StringToIntVarP(
-	p *map[string]int,
-	name, shorthand string,
-	value map[string]int,
-	usage string,
-) {
+func StringToIntVarP(p *map[string]int, name, shorthand string, value map[string]int, usage string) {
 	CommandLine.VarP(newStringToIntValue(value, p), name, shorthand, usage)
 }
 
@@ -145,11 +130,7 @@ func (f *FlagSet) StringToInt(name string, value map[string]int, usage string) *
 }
 
 // StringToIntP is like StringToInt, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) StringToIntP(
-	name, shorthand string,
-	value map[string]int,
-	usage string,
-) *map[string]int {
+func (f *FlagSet) StringToIntP(name, shorthand string, value map[string]int, usage string) *map[string]int {
 	p := map[string]int{}
 	f.StringToIntVarP(&p, name, shorthand, value, usage)
 	return &p

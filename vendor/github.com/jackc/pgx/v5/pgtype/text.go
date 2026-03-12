@@ -167,12 +167,7 @@ func (TextCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan
 	return nil
 }
 
-func (c TextCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c TextCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return c.DecodeValue(m, oid, format, src)
 }
 

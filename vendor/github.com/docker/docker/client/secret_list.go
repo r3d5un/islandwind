@@ -10,10 +10,7 @@ import (
 )
 
 // SecretList returns the list of secrets.
-func (cli *Client) SecretList(
-	ctx context.Context,
-	options swarm.SecretListOptions,
-) ([]swarm.Secret, error) {
+func (cli *Client) SecretList(ctx context.Context, options swarm.SecretListOptions) ([]swarm.Secret, error) {
 	if err := cli.NewVersionError(ctx, "1.25", "secret list"); err != nil {
 		return nil, err
 	}

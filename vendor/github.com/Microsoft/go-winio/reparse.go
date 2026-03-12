@@ -65,11 +65,7 @@ func DecodeReparsePointData(tag uint32, b []byte) (*ReparsePoint, error) {
 	}
 	nameLength := binary.LittleEndian.Uint16(b[6:8])
 	name := make([]uint16, nameLength/2)
-	err := binary.Read(
-		bytes.NewReader(b[nameOffset:nameOffset+nameLength]),
-		binary.LittleEndian,
-		&name,
-	)
+	err := binary.Read(bytes.NewReader(b[nameOffset:nameOffset+nameLength]), binary.LittleEndian, &name)
 	if err != nil {
 		return nil, err
 	}

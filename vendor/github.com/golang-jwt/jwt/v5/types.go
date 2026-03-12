@@ -66,12 +66,7 @@ func (date NumericDate) MarshalJSON() (b []byte, err error) {
 	//    decimal part of the output
 	// 3. Concatenate them to produce the final result
 	seconds := strconv.FormatInt(truncatedDate.Unix(), 10)
-	nanosecondsOffset := strconv.FormatFloat(
-		float64(truncatedDate.Nanosecond())/float64(time.Second),
-		'f',
-		prec,
-		64,
-	)
+	nanosecondsOffset := strconv.FormatFloat(float64(truncatedDate.Nanosecond())/float64(time.Second), 'f', prec, 64)
 
 	output := append([]byte(seconds), []byte(nanosecondsOffset)[1:]...)
 

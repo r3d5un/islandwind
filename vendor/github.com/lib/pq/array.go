@@ -19,11 +19,10 @@ var typeSQLScanner = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 // slice of any dimension.
 //
 // For example:
+//  db.Query(`SELECT * FROM t WHERE id = ANY($1)`, pq.Array([]int{235, 401}))
 //
-//	db.Query(`SELECT * FROM t WHERE id = ANY($1)`, pq.Array([]int{235, 401}))
-//
-//	var x []sql.NullInt64
-//	db.QueryRow(`SELECT ARRAY[235, 401]`).Scan(pq.Array(&x))
+//  var x []sql.NullInt64
+//  db.QueryRow(`SELECT ARRAY[235, 401]`).Scan(pq.Array(&x))
 //
 // Scanning multi-dimensional arrays is not supported.  Arrays where the lower
 // bound is not one (such as `[0:0]={1}') are not supported.
@@ -348,9 +347,7 @@ func (a Float32Array) Value() (driver.Value, error) {
 // an array or slice of any dimension.
 type GenericArray struct{ A interface{} }
 
-func (GenericArray) evaluateDestination(
-	rt reflect.Type,
-) (reflect.Type, func([]byte, reflect.Value) error, string) {
+func (GenericArray) evaluateDestination(rt reflect.Type) (reflect.Type, func([]byte, reflect.Value) error, string) {
 	var assign func([]byte, reflect.Value) error
 	var del = ","
 
@@ -879,9 +876,7 @@ Close:
 	if err == nil {
 		for _, d := range dims {
 			if (len(elems) % d) != 0 {
-				err = fmt.Errorf(
-					"pq: multidimensional arrays must have elements with matching dimensions",
-				)
+				err = fmt.Errorf("pq: multidimensional arrays must have elements with matching dimensions")
 			}
 		}
 	}
@@ -894,11 +889,7 @@ func scanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
 		return nil, err
 	}
 	if len(dims) > 1 {
-		return nil, fmt.Errorf(
-			"pq: cannot convert ARRAY%s to %s",
-			strings.Replace(fmt.Sprint(dims), " ", "][", -1),
-			typ,
-		)
+		return nil, fmt.Errorf("pq: cannot convert ARRAY%s to %s", strings.Replace(fmt.Sprint(dims), " ", "][", -1), typ)
 	}
 	return elems, err
 }

@@ -105,12 +105,7 @@ func (f *FlagSet) IPNetSliceVar(p *[]net.IPNet, name string, value []net.IPNet, 
 }
 
 // IPNetSliceVarP is like IPNetSliceVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) IPNetSliceVarP(
-	p *[]net.IPNet,
-	name, shorthand string,
-	value []net.IPNet,
-	usage string,
-) {
+func (f *FlagSet) IPNetSliceVarP(p *[]net.IPNet, name, shorthand string, value []net.IPNet, usage string) {
 	f.VarP(newIPNetSliceValue(value, p), name, shorthand, usage)
 }
 
@@ -134,11 +129,7 @@ func (f *FlagSet) IPNetSlice(name string, value []net.IPNet, usage string) *[]ne
 }
 
 // IPNetSliceP is like IPNetSlice, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) IPNetSliceP(
-	name, shorthand string,
-	value []net.IPNet,
-	usage string,
-) *[]net.IPNet {
+func (f *FlagSet) IPNetSliceP(name, shorthand string, value []net.IPNet, usage string) *[]net.IPNet {
 	p := []net.IPNet{}
 	f.IPNetSliceVarP(&p, name, shorthand, value, usage)
 	return &p

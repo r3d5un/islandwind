@@ -10,10 +10,7 @@ import (
 )
 
 // PluginInspectWithRaw inspects an existing plugin
-func (cli *Client) PluginInspectWithRaw(
-	ctx context.Context,
-	name string,
-) (*types.Plugin, []byte, error) {
+func (cli *Client) PluginInspectWithRaw(ctx context.Context, name string) (*types.Plugin, []byte, error) {
 	name, err := trimID("plugin", name)
 	if err != nil {
 		return nil, nil, err

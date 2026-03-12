@@ -8,10 +8,7 @@ import (
 )
 
 // SecretCreate creates a new secret.
-func (cli *Client) SecretCreate(
-	ctx context.Context,
-	secret swarm.SecretSpec,
-) (swarm.SecretCreateResponse, error) {
+func (cli *Client) SecretCreate(ctx context.Context, secret swarm.SecretSpec) (swarm.SecretCreateResponse, error) {
 	if err := cli.NewVersionError(ctx, "1.25", "secret create"); err != nil {
 		return swarm.SecretCreateResponse{}, err
 	}

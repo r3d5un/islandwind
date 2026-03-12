@@ -54,9 +54,7 @@ const (
 
 var (
 	// createContainerFailDueToNameConflictRegex is a regular expression that matches the container is already in use error.
-	createContainerFailDueToNameConflictRegex = regexp.MustCompile(
-		"Conflict. The container name .* is already in use by container .*",
-	)
+	createContainerFailDueToNameConflictRegex = regexp.MustCompile("Conflict. The container name .* is already in use by container .*")
 
 	// minLogProductionTimeout is the minimum log production timeout.
 	minLogProductionTimeout = time.Duration(5 * time.Second)
@@ -146,11 +144,7 @@ func (c *DockerContainer) Endpoint(ctx context.Context, proto string) (string, e
 // PortEndpoint gets proto://host:port string for the given exposed port
 // It returns proto://host:port or proto://[IPv6host]:port string for the given exposed port.
 // It returns just host:port or [IPv6host]:port if proto is blank.
-func (c *DockerContainer) PortEndpoint(
-	ctx context.Context,
-	port nat.Port,
-	proto string,
-) (string, error) {
+func (c *DockerContainer) PortEndpoint(ctx context.Context, port nat.Port, proto string) (string, error) {
 	host, err := c.Host(ctx)
 	if err != nil {
 		return "", err
@@ -365,9 +359,7 @@ func (c *DockerContainer) Terminate(ctx context.Context, opts ...TerminateOption
 }
 
 // update container raw info
-func (c *DockerContainer) inspectRawContainer(
-	ctx context.Context,
-) (*container.InspectResponse, error) {
+func (c *DockerContainer) inspectRawContainer(ctx context.Context) (*container.InspectResponse, error) {
 	defer c.provider.Close()
 	inspect, err := c.provider.client.ContainerInspect(ctx, c.ID)
 	if err != nil {
@@ -561,11 +553,7 @@ func (c *DockerContainer) NetworkAliases(ctx context.Context) (map[string][]stri
 // Use [tcexec.Multiplexed] option to read the combined output without the multiplexing headers.
 // Alternatively, to separate the stdout and stderr from [io.Reader] and interpret these headers properly,
 // [github.com/docker/docker/pkg/stdcopy.StdCopy] from the Docker API should be used.
-func (c *DockerContainer) Exec(
-	ctx context.Context,
-	cmd []string,
-	options ...tcexec.ProcessOption,
-) (int, io.Reader, error) {
+func (c *DockerContainer) Exec(ctx context.Context, cmd []string, options ...tcexec.ProcessOption) (int, io.Reader, error) {
 	cli := c.provider.client
 
 	processOptions := tcexec.NewProcessOptions(cmd)
@@ -625,10 +613,7 @@ func (fc *FileFromContainer) Close() error {
 	return (*fc.underlying).Close()
 }
 
-func (c *DockerContainer) CopyFileFromContainer(
-	ctx context.Context,
-	filePath string,
-) (io.ReadCloser, error) {
+func (c *DockerContainer) CopyFileFromContainer(ctx context.Context, filePath string) (io.ReadCloser, error) {
 	r, _, err := c.provider.client.CopyFromContainer(ctx, c.ID, filePath)
 	if err != nil {
 		return nil, err
@@ -654,12 +639,7 @@ func (c *DockerContainer) CopyFileFromContainer(
 
 // CopyDirToContainer copies the contents of a directory to a parent path in the container. This parent path must exist in the container first
 // as we cannot create it
-func (c *DockerContainer) CopyDirToContainer(
-	ctx context.Context,
-	hostDirPath string,
-	containerParentPath string,
-	fileMode int64,
-) error {
+func (c *DockerContainer) CopyDirToContainer(ctx context.Context, hostDirPath string, containerParentPath string, fileMode int64) error {
 	dir, err := isDir(hostDirPath)
 	if err != nil {
 		return err
@@ -678,13 +658,7 @@ func (c *DockerContainer) CopyDirToContainer(
 	// create the directory under its parent
 	parent := filepath.Dir(containerParentPath)
 
-	err = c.provider.client.CopyToContainer(
-		ctx,
-		c.ID,
-		parent,
-		buff,
-		container.CopyToContainerOptions{},
-	)
+	err = c.provider.client.CopyToContainer(ctx, c.ID, parent, buff, container.CopyToContainerOptions{})
 	if err != nil {
 		return err
 	}
@@ -693,12 +667,7 @@ func (c *DockerContainer) CopyDirToContainer(
 	return nil
 }
 
-func (c *DockerContainer) CopyFileToContainer(
-	ctx context.Context,
-	hostFilePath string,
-	containerFilePath string,
-	fileMode int64,
-) error {
+func (c *DockerContainer) CopyFileToContainer(ctx context.Context, hostFilePath string, containerFilePath string, fileMode int64) error {
 	dir, err := isDir(hostFilePath)
 	if err != nil {
 		return err
@@ -734,37 +703,20 @@ func (c *DockerContainer) CopyFileToContainer(
 }
 
 // CopyToContainer copies fileContent data to a file in container
-func (c *DockerContainer) CopyToContainer(
-	ctx context.Context,
-	fileContent []byte,
-	containerFilePath string,
-	fileMode int64,
-) error {
+func (c *DockerContainer) CopyToContainer(ctx context.Context, fileContent []byte, containerFilePath string, fileMode int64) error {
 	return c.copyToContainer(ctx, func(tw io.Writer) error {
 		_, err := tw.Write(fileContent)
 		return err
 	}, int64(len(fileContent)), containerFilePath, fileMode)
 }
 
-func (c *DockerContainer) copyToContainer(
-	ctx context.Context,
-	fileContent func(tw io.Writer) error,
-	fileContentSize int64,
-	containerFilePath string,
-	fileMode int64,
-) error {
+func (c *DockerContainer) copyToContainer(ctx context.Context, fileContent func(tw io.Writer) error, fileContentSize int64, containerFilePath string, fileMode int64) error {
 	buffer, err := tarFile(containerFilePath, fileContent, fileContentSize, fileMode)
 	if err != nil {
 		return err
 	}
 
-	err = c.provider.client.CopyToContainer(
-		ctx,
-		c.ID,
-		"/",
-		buffer,
-		container.CopyToContainerOptions{},
-	)
+	err = c.provider.client.CopyToContainer(ctx, c.ID, "/", buffer, container.CopyToContainerOptions{})
 	if err != nil {
 		return err
 	}
@@ -819,10 +771,7 @@ func (c *DockerContainer) StartLogProducer(ctx context.Context, opts ...LogProdu
 //
 // Use functional option WithLogProductionTimeout() to override default timeout. If it's
 // lower than 5s and greater than 60s it will be set to 5s or 60s respectively.
-func (c *DockerContainer) startLogProduction(
-	ctx context.Context,
-	opts ...LogProductionOption,
-) error {
+func (c *DockerContainer) startLogProduction(ctx context.Context, opts ...LogProductionOption) error {
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -882,10 +831,7 @@ func (c *DockerContainer) logProducer(stdout, stderr io.Writer) {
 
 // copyLogsTimeout copies logs from the container to stdout and stderr with a timeout.
 // It returns true if the log production should be retried, false otherwise.
-func (c *DockerContainer) copyLogsTimeout(
-	stdout, stderr io.Writer,
-	options *container.LogsOptions,
-) bool {
+func (c *DockerContainer) copyLogsTimeout(stdout, stderr io.Writer, options *container.LogsOptions) bool {
 	timeoutCtx, cancel := context.WithTimeout(c.logProductionCtx, *c.logProductionTimeout)
 	defer cancel()
 
@@ -912,11 +858,7 @@ func (c *DockerContainer) copyLogsTimeout(
 }
 
 // copyLogs copies logs from the container to stdout and stderr.
-func (c *DockerContainer) copyLogs(
-	ctx context.Context,
-	stdout, stderr io.Writer,
-	options container.LogsOptions,
-) error {
+func (c *DockerContainer) copyLogs(ctx context.Context, stdout, stderr io.Writer, options container.LogsOptions) error {
 	rc, err := c.provider.client.ContainerLogs(ctx, c.GetContainerID(), options)
 	if err != nil {
 		return fmt.Errorf("container logs: %w", err)
@@ -986,11 +928,7 @@ func (c *DockerContainer) connectReaper(ctx context.Context) error {
 		return nil
 	}
 
-	reaper, err := spawner.reaper(
-		context.WithValue(ctx, core.DockerHostContextKey, c.provider.host),
-		core.SessionID(),
-		c.provider,
-	)
+	reaper, err := spawner.reaper(context.WithValue(ctx, core.DockerHostContextKey, c.provider.host), core.SessionID(), c.provider)
 	if err != nil {
 		return fmt.Errorf("reaper: %w", err)
 	}
@@ -1074,18 +1012,14 @@ func (p *DockerProvider) BuildImage(ctx context.Context, img ImageBuildInfo) (st
 			var err error
 			buildOptions, err = img.BuildOptions()
 			if err != nil {
-				return build.ImageBuildResponse{}, backoff.Permanent(
-					fmt.Errorf("build options: %w", err),
-				)
+				return build.ImageBuildResponse{}, backoff.Permanent(fmt.Errorf("build options: %w", err))
 			}
 			defer tryClose(buildOptions.Context) // release resources in any case
 
 			resp, err := p.client.ImageBuild(ctx, buildOptions.Context, buildOptions)
 			if err != nil {
 				if isPermanentClientError(err) {
-					return build.ImageBuildResponse{}, backoff.Permanent(
-						fmt.Errorf("build image: %w", err),
-					)
+					return build.ImageBuildResponse{}, backoff.Permanent(fmt.Errorf("build image: %w", err))
 				}
 				return build.ImageBuildResponse{}, err
 			}
@@ -1118,10 +1052,7 @@ func (p *DockerProvider) BuildImage(ctx context.Context, img ImageBuildInfo) (st
 }
 
 // CreateContainer fulfils a request for a container without starting it
-func (p *DockerProvider) CreateContainer(
-	ctx context.Context,
-	req ContainerRequest,
-) (con Container, err error) {
+func (p *DockerProvider) CreateContainer(ctx context.Context, req ContainerRequest) (con Container, err error) {
 	// defer the close of the Docker client connection the soonest
 	defer p.Close()
 
@@ -1158,10 +1089,7 @@ func (p *DockerProvider) CreateContainer(
 	}
 
 	// always append the hub substitutor after the user-defined ones
-	req.ImageSubstitutors = append(
-		req.ImageSubstitutors,
-		newPrependHubRegistry(p.config.HubImageNamePrefix),
-	)
+	req.ImageSubstitutors = append(req.ImageSubstitutors, newPrependHubRegistry(p.config.HubImageNamePrefix))
 
 	var platform *specs.Platform
 
@@ -1300,14 +1228,7 @@ func (p *DockerProvider) CreateContainer(
 		return nil, err
 	}
 
-	resp, err := p.client.ContainerCreate(
-		ctx,
-		dockerInput,
-		hostConfig,
-		networkingConfig,
-		platform,
-		req.Name,
-	)
+	resp, err := p.client.ContainerCreate(ctx, dockerInput, hostConfig, networkingConfig, platform, req.Name)
 	if err != nil {
 		return nil, fmt.Errorf("container create: %w", err)
 	}
@@ -1361,20 +1282,14 @@ func (p *DockerProvider) CreateContainer(
 	return ctr, nil
 }
 
-func (p *DockerProvider) findContainerByName(
-	ctx context.Context,
-	name string,
-) (*container.Summary, error) {
+func (p *DockerProvider) findContainerByName(ctx context.Context, name string) (*container.Summary, error) {
 	if name == "" {
 		return nil, nil
 	}
 
 	// Note that, 'name' filter will use regex to find the containers
 	filter := filters.NewArgs(filters.Arg("name", fmt.Sprintf("^%s$", name)))
-	containers, err := p.client.ContainerList(
-		ctx,
-		container.ListOptions{All: true, Filters: filter},
-	)
+	containers, err := p.client.ContainerList(ctx, container.ListOptions{All: true, Filters: filter})
 	if err != nil {
 		return nil, fmt.Errorf("container list: %w", err)
 	}
@@ -1386,10 +1301,7 @@ func (p *DockerProvider) findContainerByName(
 	return nil, nil
 }
 
-func (p *DockerProvider) waitContainerCreation(
-	ctx context.Context,
-	name string,
-) (*container.Summary, error) {
+func (p *DockerProvider) waitContainerCreation(ctx context.Context, name string) (*container.Summary, error) {
 	return backoff.RetryNotifyWithData(
 		func() (*container.Summary, error) {
 			c, err := p.findContainerByName(ctx, name)
@@ -1401,9 +1313,7 @@ func (p *DockerProvider) waitContainerCreation(
 			}
 
 			if c == nil {
-				return nil, errdefs.ErrNotFound.WithMessage(
-					fmt.Sprintf("container %s not found", name),
-				)
+				return nil, errdefs.ErrNotFound.WithMessage(fmt.Sprintf("container %s not found", name))
 			}
 			return c, nil
 		},
@@ -1412,19 +1322,12 @@ func (p *DockerProvider) waitContainerCreation(
 			if errdefs.IsNotFound(err) {
 				return
 			}
-			p.Logger.Printf(
-				"Waiting for container. Got an error: %v; Retrying in %d seconds",
-				err,
-				duration/time.Second,
-			)
+			p.Logger.Printf("Waiting for container. Got an error: %v; Retrying in %d seconds", err, duration/time.Second)
 		},
 	)
 }
 
-func (p *DockerProvider) ReuseOrCreateContainer(
-	ctx context.Context,
-	req ContainerRequest,
-) (con Container, err error) {
+func (p *DockerProvider) ReuseOrCreateContainer(ctx context.Context, req ContainerRequest) (con Container, err error) {
 	c, err := p.findContainerByName(ctx, req.Name)
 	if err != nil {
 		return nil, err
@@ -1447,11 +1350,7 @@ func (p *DockerProvider) ReuseOrCreateContainer(
 
 	var termSignal chan bool
 	if !p.config.RyukDisabled {
-		r, err := spawner.reaper(
-			context.WithValue(ctx, core.DockerHostContextKey, p.host),
-			sessionID,
-			p,
-		)
+		r, err := spawner.reaper(context.WithValue(ctx, core.DockerHostContextKey, p.host), sessionID, p)
 		if err != nil {
 			return nil, fmt.Errorf("reaper: %w", err)
 		}
@@ -1485,9 +1384,7 @@ func (p *DockerProvider) ReuseOrCreateContainer(
 		provider:          p,
 		terminationSignal: termSignal,
 		logger:            p.Logger,
-		lifecycleHooks: []ContainerLifecycleHooks{
-			combineContainerHooks(defaultHooks, req.LifecycleHooks),
-		},
+		lifecycleHooks:    []ContainerLifecycleHooks{combineContainerHooks(defaultHooks, req.LifecycleHooks)},
 	}
 
 	// Workaround for https://github.com/moby/moby/issues/50133.
@@ -1532,19 +1429,10 @@ func (p *DockerProvider) ReuseOrCreateContainer(
 
 // attemptToPullImage tries to pull the image while respecting the ctx cancellations.
 // Besides, if the image cannot be pulled due to ErrorNotFound then no need to retry but terminate immediately.
-func (p *DockerProvider) attemptToPullImage(
-	ctx context.Context,
-	tag string,
-	pullOpt image.PullOptions,
-) error {
+func (p *DockerProvider) attemptToPullImage(ctx context.Context, tag string, pullOpt image.PullOptions) error {
 	registry, imageAuth, err := DockerImageAuth(ctx, tag)
 	if err != nil {
-		p.Logger.Printf(
-			"No image auth found for %s. Setting empty credentials for the image: %s. This is expected for public images. Details: %s",
-			registry,
-			tag,
-			err,
-		)
+		p.Logger.Printf("No image auth found for %s. Setting empty credentials for the image: %s. This is expected for public images. Details: %s", registry, tag, err)
 	} else {
 		// see https://github.com/docker/docs/blob/e8e1204f914767128814dca0ea008644709c117f/engine/api/sdk/examples.md?plain=1#L649-L657
 		encodedJSON, err := json.Marshal(imageAuth)
@@ -1594,10 +1482,7 @@ func (p *DockerProvider) Health(ctx context.Context) error {
 }
 
 // RunContainer takes a RequestContainer as input and it runs a container via the docker sdk
-func (p *DockerProvider) RunContainer(
-	ctx context.Context,
-	req ContainerRequest,
-) (Container, error) {
+func (p *DockerProvider) RunContainer(ctx context.Context, req ContainerRequest) (Container, error) {
 	c, err := p.CreateContainer(ctx, req)
 	if err != nil {
 		return nil, err
@@ -1680,10 +1565,7 @@ func (p *DockerProvider) daemonHostLocked(ctx context.Context) (string, error) {
 
 // Deprecated: use network.New instead
 // CreateNetwork returns the object representing a new network identified by its name
-func (p *DockerProvider) CreateNetwork(
-	ctx context.Context,
-	req NetworkRequest,
-) (net Network, err error) {
+func (p *DockerProvider) CreateNetwork(ctx context.Context, req NetworkRequest) (net Network, err error) {
 	// defer the close of the Docker client connection the soonest
 	defer p.Close()
 
@@ -1708,11 +1590,7 @@ func (p *DockerProvider) CreateNetwork(
 
 	var termSignal chan bool
 	if !p.config.RyukDisabled {
-		r, err := spawner.reaper(
-			context.WithValue(ctx, core.DockerHostContextKey, p.host),
-			sessionID,
-			p,
-		)
+		r, err := spawner.reaper(context.WithValue(ctx, core.DockerHostContextKey, p.host), sessionID, p)
 		if err != nil {
 			return nil, fmt.Errorf("reaper: %w", err)
 		}
@@ -1750,10 +1628,7 @@ func (p *DockerProvider) CreateNetwork(
 }
 
 // GetNetwork returns the object representing the network identified by its name
-func (p *DockerProvider) GetNetwork(
-	ctx context.Context,
-	req NetworkRequest,
-) (network.Inspect, error) {
+func (p *DockerProvider) GetNetwork(ctx context.Context, req NetworkRequest) (network.Inspect, error) {
 	networkResource, err := p.client.NetworkInspect(ctx, req.Name, network.InspectOptions{
 		Verbose: true,
 	})
@@ -1849,10 +1724,7 @@ func (p *DockerProvider) ensureDefaultNetworkLocked(ctx context.Context) (string
 }
 
 // ContainerFromType builds a Docker container struct from the response of the Docker API
-func (p *DockerProvider) ContainerFromType(
-	ctx context.Context,
-	response container.Summary,
-) (ctr *DockerContainer, err error) {
+func (p *DockerProvider) ContainerFromType(ctx context.Context, response container.Summary) (ctr *DockerContainer, err error) {
 	exposedPorts := make([]string, len(response.Ports))
 	for i, port := range response.Ports {
 		exposedPorts[i] = fmt.Sprintf("%d/%s", port.PublicPort, port.Type)
@@ -1922,12 +1794,7 @@ func (p *DockerProvider) SaveImages(ctx context.Context, output string, images .
 }
 
 // SaveImagesWithOpts exports a list of images as an uncompressed tar, passing options to the provider
-func (p *DockerProvider) SaveImagesWithOpts(
-	ctx context.Context,
-	output string,
-	images []string,
-	opts ...SaveImageOption,
-) error {
+func (p *DockerProvider) SaveImagesWithOpts(ctx context.Context, output string, images []string, opts ...SaveImageOption) error {
 	saveOpts := saveImageOptions{}
 
 	for _, opt := range opts {
@@ -1963,10 +1830,7 @@ func (p *DockerProvider) SaveImagesWithOpts(
 
 func SaveDockerImageWithPlatforms(platforms ...specs.Platform) SaveImageOption {
 	return func(opts *saveImageOptions) error {
-		opts.dockerSaveOpts = append(
-			opts.dockerSaveOpts,
-			client.ImageSaveWithPlatforms(platforms...),
-		)
+		opts.dockerSaveOpts = append(opts.dockerSaveOpts, client.ImageSaveWithPlatforms(platforms...))
 
 		return nil
 	}

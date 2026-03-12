@@ -15,11 +15,7 @@ const (
 )
 
 // Implement the "QueryerContext" interface
-func (cn *conn) QueryContext(
-	ctx context.Context,
-	query string,
-	args []driver.NamedValue,
-) (driver.Rows, error) {
+func (cn *conn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
 	list := make([]driver.Value, len(args))
 	for i, nv := range args {
 		list[i] = nv.Value
@@ -37,11 +33,7 @@ func (cn *conn) QueryContext(
 }
 
 // Implement the "ExecerContext" interface
-func (cn *conn) ExecContext(
-	ctx context.Context,
-	query string,
-	args []driver.NamedValue,
-) (driver.Result, error) {
+func (cn *conn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
 	list := make([]driver.Value, len(args))
 	for i, nv := range args {
 		list[i] = nv.Value
@@ -128,10 +120,7 @@ func (cn *conn) watchCancel(ctx context.Context) func() {
 				// so it must not be used for the additional network
 				// request to cancel the query.
 				// Create a new context to pass into the dial.
-				ctxCancel, cancel := context.WithTimeout(
-					context.Background(),
-					watchCancelDialContextTimeout,
-				)
+				ctxCancel, cancel := context.WithTimeout(context.Background(), watchCancelDialContextTimeout)
 				defer cancel()
 
 				_ = cn.cancel(ctxCancel)
@@ -235,10 +224,7 @@ func (st *stmt) watchCancel(ctx context.Context) func() {
 				// so it must not be used for the additional network
 				// request to cancel the query.
 				// Create a new context to pass into the dial.
-				ctxCancel, cancel := context.WithTimeout(
-					context.Background(),
-					watchCancelDialContextTimeout,
-				)
+				ctxCancel, cancel := context.WithTimeout(context.Background(), watchCancelDialContextTimeout)
 				defer cancel()
 
 				_ = st.cancel(ctxCancel)

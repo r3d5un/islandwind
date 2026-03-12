@@ -122,10 +122,7 @@ func adjustMinVersion(options Options, config *tls.Config) error {
 			return fmt.Errorf("invalid minimum TLS version: %x", options.MinVersion)
 		}
 		if options.MinVersion < config.MinVersion {
-			return fmt.Errorf(
-				"requested minimum TLS version is too low. Should be at-least: %x",
-				config.MinVersion,
-			)
+			return fmt.Errorf("requested minimum TLS version is too low. Should be at-least: %x", config.MinVersion)
 		}
 		config.MinVersion = options.MinVersion
 	}
@@ -145,9 +142,7 @@ func adjustMinVersion(options Options, config *tls.Config) error {
 // > deprecating outright.
 //
 // Also see https://docs.docker.com/go/deprecated/
-var errEncryptedKeyDeprecated = errors.New(
-	"private key is encrypted; encrypted private keys are obsolete, and not supported",
-)
+var errEncryptedKeyDeprecated = errors.New("private key is encrypted; encrypted private keys are obsolete, and not supported")
 
 // getPrivateKey returns the private key in 'keyBytes', in PEM-encoded format.
 // It returns an error if the file could not be decoded or was protected by
@@ -159,9 +154,7 @@ func getPrivateKey(keyBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("no valid private key found")
 	}
 
-	if x509.IsEncryptedPEMBlock(
-		pemBlock,
-	) { //nolint:staticcheck // Ignore SA1019 (IsEncryptedPEMBlock is deprecated)
+	if x509.IsEncryptedPEMBlock(pemBlock) { //nolint:staticcheck // Ignore SA1019 (IsEncryptedPEMBlock is deprecated)
 		return nil, errEncryptedKeyDeprecated
 	}
 
@@ -231,19 +224,9 @@ func Server(options Options) (*tls.Config, error) {
 	tlsCert, err := tls.LoadX509KeyPair(options.CertFile, options.KeyFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf(
-				"could not load X509 key pair (cert: %q, key: %q): %v",
-				options.CertFile,
-				options.KeyFile,
-				err,
-			)
+			return nil, fmt.Errorf("could not load X509 key pair (cert: %q, key: %q): %v", options.CertFile, options.KeyFile, err)
 		}
-		return nil, fmt.Errorf(
-			"error reading X509 key pair - make sure the key is not encrypted (cert: %q, key: %q): %v",
-			options.CertFile,
-			options.KeyFile,
-			err,
-		)
+		return nil, fmt.Errorf("error reading X509 key pair - make sure the key is not encrypted (cert: %q, key: %q): %v", options.CertFile, options.KeyFile, err)
 	}
 	tlsConfig.Certificates = []tls.Certificate{tlsCert}
 	if options.ClientAuth >= tls.VerifyClientCertIfGiven && options.CAFile != "" {

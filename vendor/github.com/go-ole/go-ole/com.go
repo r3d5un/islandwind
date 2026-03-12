@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package ole
@@ -188,10 +187,7 @@ func CLSIDFromString(str string) (clsid *GUID, err error) {
 // StringFromCLSID returns GUID formated string from GUID object.
 func StringFromCLSID(clsid *GUID) (str string, err error) {
 	var p *uint16
-	hr, _, _ := procStringFromCLSID.Call(
-		uintptr(unsafe.Pointer(clsid)),
-		uintptr(unsafe.Pointer(&p)),
-	)
+	hr, _, _ := procStringFromCLSID.Call(uintptr(unsafe.Pointer(clsid)), uintptr(unsafe.Pointer(&p)))
 	if hr != 0 {
 		err = NewError(hr)
 	}
@@ -376,18 +372,8 @@ func GetUserDefaultLCID() (lcid uint32) {
 // GetMessage in message queue from runtime.
 //
 // This function appears to block. PeekMessage does not block.
-func GetMessage(
-	msg *Msg,
-	hwnd uint32,
-	MsgFilterMin uint32,
-	MsgFilterMax uint32,
-) (ret int32, err error) {
-	r0, _, err := procGetMessageW.Call(
-		uintptr(unsafe.Pointer(msg)),
-		uintptr(hwnd),
-		uintptr(MsgFilterMin),
-		uintptr(MsgFilterMax),
-	)
+func GetMessage(msg *Msg, hwnd uint32, MsgFilterMin uint32, MsgFilterMax uint32) (ret int32, err error) {
+	r0, _, err := procGetMessageW.Call(uintptr(unsafe.Pointer(msg)), uintptr(hwnd), uintptr(MsgFilterMin), uintptr(MsgFilterMax))
 	ret = int32(r0)
 	return
 }

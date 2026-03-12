@@ -113,8 +113,7 @@ func (narrowTransform) Span(src []byte, atEOF bool) (n int, err error) {
 			}
 			break
 		}
-		if k := elem(v).kind(); byte(v) == 0 ||
-			k != EastAsianFullwidth && k != EastAsianWide && k != EastAsianAmbiguous {
+		if k := elem(v).kind(); byte(v) == 0 || k != EastAsianFullwidth && k != EastAsianWide && k != EastAsianAmbiguous {
 		} else {
 			err = transform.ErrEndOfSpan
 			break
@@ -153,8 +152,7 @@ func (narrowTransform) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, e
 			}
 			size = 1 // gobble 1 byte
 		}
-		if k := elem(v).kind(); byte(v) == 0 ||
-			k != EastAsianFullwidth && k != EastAsianWide && k != EastAsianAmbiguous {
+		if k := elem(v).kind(); byte(v) == 0 || k != EastAsianFullwidth && k != EastAsianWide && k != EastAsianAmbiguous {
 			if size != copy(dst[nDst:], src[nSrc:nSrc+size]) {
 				return nDst, nSrc, transform.ErrShortDst
 			}

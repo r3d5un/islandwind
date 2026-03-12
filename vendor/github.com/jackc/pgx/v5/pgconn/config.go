@@ -260,15 +260,10 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	if connString != "" {
 		var err error
 		// connString may be a database URL or in PostgreSQL keyword/value format
-		if strings.HasPrefix(connString, "postgres://") ||
-			strings.HasPrefix(connString, "postgresql://") {
+		if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
 			connStringSettings, err = parseURLSettings(connString)
 			if err != nil {
-				return nil, &ParseConfigError{
-					ConnString: connString,
-					msg:        "failed to parse as URL",
-					err:        err,
-				}
+				return nil, &ParseConfigError{ConnString: connString, msg: "failed to parse as URL", err: err}
 			}
 		} else {
 			connStringSettings, err = parseKeywordValueSettings(connString)
@@ -282,11 +277,7 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	if service, present := settings["service"]; present {
 		serviceSettings, err := parseServiceSettings(settings["servicefile"], service)
 		if err != nil {
-			return nil, &ParseConfigError{
-				ConnString: connString,
-				msg:        "failed to read service",
-				err:        err,
-			}
+			return nil, &ParseConfigError{ConnString: connString, msg: "failed to read service", err: err}
 		}
 
 		settings = mergeSettings(defaultSettings, envSettings, serviceSettings, connStringSettings)
@@ -316,11 +307,7 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	if connectTimeoutSetting, present := settings["connect_timeout"]; present {
 		connectTimeout, err := parseConnectTimeoutSetting(connectTimeoutSetting)
 		if err != nil {
-			return nil, &ParseConfigError{
-				ConnString: connString,
-				msg:        "invalid connect_timeout",
-				err:        err,
-			}
+			return nil, &ParseConfigError{ConnString: connString, msg: "invalid connect_timeout", err: err}
 		}
 		config.ConnectTimeout = connectTimeout
 		config.DialFunc = makeConnectTimeoutDialFunc(connectTimeout)
@@ -422,12 +409,7 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 				host = "localhost"
 			}
 
-			config.Password = passfile.FindPassword(
-				host,
-				strconv.Itoa(int(config.Port)),
-				config.Database,
-				config.User,
-			)
+			config.Password = passfile.FindPassword(host, strconv.Itoa(int(config.Port)), config.Database, config.User)
 		}
 	}
 
@@ -445,10 +427,7 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	case "any":
 		// do nothing
 	default:
-		return nil, &ParseConfigError{
-			ConnString: connString,
-			msg:        fmt.Sprintf("unknown target_session_attrs value: %v", tsa),
-		}
+		return nil, &ParseConfigError{ConnString: connString, msg: fmt.Sprintf("unknown target_session_attrs value: %v", tsa)}
 	}
 
 	return config, nil
@@ -674,11 +653,7 @@ func parseServiceSettings(servicefilePath, serviceName string) (map[string]strin
 // configTLS uses libpq's TLS parameters to construct  []*tls.Config. It is
 // necessary to allow returning multiple TLS configs as sslmode "allow" and
 // "prefer" allow fallback.
-func configTLS(
-	settings map[string]string,
-	thisHost string,
-	parseConfigOptions ParseConfigOptions,
-) ([]*tls.Config, error) {
+func configTLS(settings map[string]string, thisHost string, parseConfigOptions ParseConfigOptions) ([]*tls.Config, error) {
 	host := thisHost
 	sslmode := settings["sslmode"]
 	sslrootcert := settings["sslrootcert"]

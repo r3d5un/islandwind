@@ -81,10 +81,7 @@ func SwapMemory() (*SwapMemoryStat, error) {
 
 func SwapMemoryWithContext(_ context.Context) (*SwapMemoryStat, error) {
 	// Use the performance counter to get the swap usage percentage
-	counter, err := common.NewWin32PerformanceCounter(
-		"swap_percentage",
-		`\Paging File(_Total)\% Usage`,
-	)
+	counter, err := common.NewWin32PerformanceCounter("swap_percentage", `\Paging File(_Total)\% Usage`)
 	if err != nil {
 		return nil, err
 	}
@@ -100,10 +97,7 @@ func SwapMemoryWithContext(_ context.Context) (*SwapMemoryStat, error) {
 	perfInfo.cb = uint32(unsafe.Sizeof(perfInfo))
 	// GetPerformanceInfo returns 0 for error, in which case we check err,
 	// see https://pkg.go.dev/golang.org/x/sys/windows#LazyProc.Call
-	mem, _, err := procGetPerformanceInfo.Call(
-		uintptr(unsafe.Pointer(&perfInfo)),
-		uintptr(perfInfo.cb),
-	)
+	mem, _, err := procGetPerformanceInfo.Call(uintptr(unsafe.Pointer(&perfInfo)), uintptr(perfInfo.cb))
 	if mem == 0 {
 		return nil, err
 	}
@@ -173,10 +167,7 @@ func SwapDevicesWithContext(_ context.Context) ([]*SwapDevice, error) {
 	var swapDevices []*SwapDevice
 	// EnumPageFilesW returns 0 for error, in which case we check err,
 	// see https://pkg.go.dev/golang.org/x/sys/windows#LazyProc.Call
-	result, _, err := procEnumPageFilesW.Call(
-		windows.NewCallback(pEnumPageFileCallbackW),
-		uintptr(unsafe.Pointer(&swapDevices)),
-	)
+	result, _, err := procEnumPageFilesW.Call(windows.NewCallback(pEnumPageFileCallbackW), uintptr(unsafe.Pointer(&swapDevices)))
 	if result == 0 {
 		return nil, err
 	}
@@ -185,11 +176,7 @@ func SwapDevicesWithContext(_ context.Context) ([]*SwapDevice, error) {
 }
 
 // system callback as defined in https://docs.microsoft.com/en-us/windows/win32/api/psapi/nc-psapi-penum_page_file_callbackw
-func pEnumPageFileCallbackW(
-	swapDevices *[]*SwapDevice,
-	enumPageFileInfo *enumPageFileInformation,
-	lpFilenamePtr *[syscall.MAX_LONG_PATH]uint16,
-) *bool {
+func pEnumPageFileCallbackW(swapDevices *[]*SwapDevice, enumPageFileInfo *enumPageFileInformation, lpFilenamePtr *[syscall.MAX_LONG_PATH]uint16) *bool {
 	*swapDevices = append(*swapDevices, &SwapDevice{
 		Name:      syscall.UTF16ToString((*lpFilenamePtr)[:]),
 		UsedBytes: enumPageFileInfo.totalInUse * pageSize,

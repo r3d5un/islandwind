@@ -10,10 +10,7 @@ import (
 )
 
 // PluginList returns the installed plugins
-func (cli *Client) PluginList(
-	ctx context.Context,
-	filter filters.Args,
-) (types.PluginsListResponse, error) {
+func (cli *Client) PluginList(ctx context.Context, filter filters.Args) (types.PluginsListResponse, error) {
 	var plugins types.PluginsListResponse
 	query := url.Values{}
 

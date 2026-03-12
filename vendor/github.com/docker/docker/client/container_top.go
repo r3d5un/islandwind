@@ -10,11 +10,7 @@ import (
 )
 
 // ContainerTop shows process information from within a container.
-func (cli *Client) ContainerTop(
-	ctx context.Context,
-	containerID string,
-	arguments []string,
-) (container.TopResponse, error) {
+func (cli *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (container.TopResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.TopResponse{}, err

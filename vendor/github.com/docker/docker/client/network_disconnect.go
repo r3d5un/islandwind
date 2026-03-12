@@ -7,11 +7,7 @@ import (
 )
 
 // NetworkDisconnect disconnects a container from an existent network in the docker host.
-func (cli *Client) NetworkDisconnect(
-	ctx context.Context,
-	networkID, containerID string,
-	force bool,
-) error {
+func (cli *Client) NetworkDisconnect(ctx context.Context, networkID, containerID string, force bool) error {
 	networkID, err := trimID("network", networkID)
 	if err != nil {
 		return err

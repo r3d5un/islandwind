@@ -1,4 +1,3 @@
-//go:build !windows
 // +build !windows
 
 package ole
@@ -59,23 +58,14 @@ func safeArrayCopyData(original *SafeArray, duplicate *SafeArray) error {
 // safeArrayCreate creates SafeArray.
 //
 // AKA: SafeArrayCreate in Windows API.
-func safeArrayCreate(
-	variantType VT,
-	dimensions uint32,
-	bounds *SafeArrayBound,
-) (*SafeArray, error) {
+func safeArrayCreate(variantType VT, dimensions uint32, bounds *SafeArrayBound) (*SafeArray, error) {
 	return nil, NewError(E_NOTIMPL)
 }
 
 // safeArrayCreateEx creates SafeArray.
 //
 // AKA: SafeArrayCreateEx in Windows API.
-func safeArrayCreateEx(
-	variantType VT,
-	dimensions uint32,
-	bounds *SafeArrayBound,
-	extra uintptr,
-) (*SafeArray, error) {
+func safeArrayCreateEx(variantType VT, dimensions uint32, bounds *SafeArrayBound, extra uintptr) (*SafeArray, error) {
 	return nil, NewError(E_NOTIMPL)
 }
 
@@ -89,12 +79,7 @@ func safeArrayCreateVector(variantType VT, lowerBound int32, length uint32) (*Sa
 // safeArrayCreateVectorEx creates SafeArray.
 //
 // AKA: SafeArrayCreateVectorEx in Windows API.
-func safeArrayCreateVectorEx(
-	variantType VT,
-	lowerBound int32,
-	length uint32,
-	extra uintptr,
-) (*SafeArray, error) {
+func safeArrayCreateVectorEx(variantType VT, lowerBound int32, length uint32, extra uintptr) (*SafeArray, error) {
 	return nil, NewError(E_NOTIMPL)
 }
 

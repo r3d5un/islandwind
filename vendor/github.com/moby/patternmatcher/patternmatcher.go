@@ -107,9 +107,7 @@ func (pm *PatternMatcher) Matches(file string) (bool, error) {
 		if !match && parentPath != "." {
 			// Check to see if the pattern matches one of our parent dirs.
 			if len(pattern.dirs) <= len(parentPathDirs) {
-				match, _ = pattern.match(
-					strings.Join(parentPathDirs[:len(pattern.dirs)], string(os.PathSeparator)),
-				)
+				match, _ = pattern.match(strings.Join(parentPathDirs[:len(pattern.dirs)], string(os.PathSeparator)))
 			}
 		}
 
@@ -149,9 +147,7 @@ func (pm *PatternMatcher) MatchesOrParentMatches(file string) (bool, error) {
 		if !match && parentPath != "." {
 			// Check to see if the pattern matches one of our parent dirs.
 			for i := range parentPathDirs {
-				match, _ = pattern.match(
-					strings.Join(parentPathDirs[:i+1], string(os.PathSeparator)),
-				)
+				match, _ = pattern.match(strings.Join(parentPathDirs[:i+1], string(os.PathSeparator)))
 				if match {
 					break
 				}
@@ -217,10 +213,7 @@ type MatchInfo struct {
 // The "file" argument should be a slash-delimited path.
 //
 // MatchesUsingParentResults is not safe to call concurrently.
-func (pm *PatternMatcher) MatchesUsingParentResults(
-	file string,
-	parentMatchInfo MatchInfo,
-) (bool, MatchInfo, error) {
+func (pm *PatternMatcher) MatchesUsingParentResults(file string, parentMatchInfo MatchInfo) (bool, MatchInfo, error) {
 	parentMatched := parentMatchInfo.parentMatched
 	if len(parentMatched) != 0 && len(parentMatched) != len(pm.patterns) {
 		return false, MatchInfo{}, errors.New("wrong number of values in parentMatched")
@@ -261,9 +254,7 @@ func (pm *PatternMatcher) MatchesUsingParentResults(
 					parentPathDirs := strings.Split(parentPath, string(os.PathSeparator))
 					// Check to see if the pattern matches one of our parent dirs.
 					for i := range parentPathDirs {
-						match, _ = pattern.match(
-							strings.Join(parentPathDirs[:i+1], string(os.PathSeparator)),
-						)
+						match, _ = pattern.match(strings.Join(parentPathDirs[:i+1], string(os.PathSeparator)))
 						if match {
 							break
 						}

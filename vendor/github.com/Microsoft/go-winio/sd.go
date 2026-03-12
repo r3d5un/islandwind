@@ -65,15 +65,7 @@ func LookupSidByName(name string) (sid string, err error) {
 	}
 	sidBuffer := make([]byte, sidSize)
 	refDomainBuffer := make([]uint16, refDomainSize)
-	err = lookupAccountName(
-		nil,
-		name,
-		&sidBuffer[0],
-		&sidSize,
-		&refDomainBuffer[0],
-		&refDomainSize,
-		&sidNameUse,
-	)
+	err = lookupAccountName(nil, name, &sidBuffer[0], &sidSize, &refDomainBuffer[0], &refDomainSize, &sidNameUse)
 	if err != nil {
 		return "", &AccountLookupError{name, err}
 	}
@@ -114,15 +106,7 @@ func LookupNameBySid(sid string) (name string, err error) {
 
 	nameBuffer := make([]uint16, nameSize)
 	refDomainBuffer := make([]uint16, refDomainSize)
-	err = lookupAccountSid(
-		nil,
-		sidPtr,
-		&nameBuffer[0],
-		&nameSize,
-		&refDomainBuffer[0],
-		&refDomainSize,
-		&sidNameUse,
-	)
+	err = lookupAccountSid(nil, sidPtr, &nameBuffer[0], &nameSize, &refDomainBuffer[0], &refDomainSize, &sidNameUse)
 	if err != nil {
 		return "", &AccountLookupError{sid, err}
 	}
@@ -142,12 +126,7 @@ func SddlToSecurityDescriptor(sddl string) ([]byte, error) {
 
 func SecurityDescriptorToSddl(sd []byte) (string, error) {
 	if l := int(unsafe.Sizeof(windows.SECURITY_DESCRIPTOR{})); len(sd) < l {
-		return "", fmt.Errorf(
-			"SecurityDescriptor (%d) smaller than expected (%d): %w",
-			len(sd),
-			l,
-			windows.ERROR_INCORRECT_SIZE,
-		)
+		return "", fmt.Errorf("SecurityDescriptor (%d) smaller than expected (%d): %w", len(sd), l, windows.ERROR_INCORRECT_SIZE)
 	}
 	s := (*windows.SECURITY_DESCRIPTOR)(unsafe.Pointer(&sd[0]))
 	return s.String(), nil

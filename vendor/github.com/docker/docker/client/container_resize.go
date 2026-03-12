@@ -9,11 +9,7 @@ import (
 )
 
 // ContainerResize changes the size of the tty for a container.
-func (cli *Client) ContainerResize(
-	ctx context.Context,
-	containerID string,
-	options container.ResizeOptions,
-) error {
+func (cli *Client) ContainerResize(ctx context.Context, containerID string, options container.ResizeOptions) error {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return err
@@ -22,11 +18,7 @@ func (cli *Client) ContainerResize(
 }
 
 // ContainerExecResize changes the size of the tty for an exec process running inside a container.
-func (cli *Client) ContainerExecResize(
-	ctx context.Context,
-	execID string,
-	options container.ResizeOptions,
-) error {
+func (cli *Client) ContainerExecResize(ctx context.Context, execID string, options container.ResizeOptions) error {
 	execID, err := trimID("exec", execID)
 	if err != nil {
 		return err

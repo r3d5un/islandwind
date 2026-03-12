@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package winterm
@@ -87,15 +86,11 @@ func newAnsiCommand(command []byte) *ansiCommand {
 	if lastCharIndex != 0 {
 		start := 1
 		// skip if double char escape sequence
-		if command[0] == ansiterm.ANSI_ESCAPE_PRIMARY &&
-			command[1] == ansiterm.ANSI_ESCAPE_SECONDARY {
+		if command[0] == ansiterm.ANSI_ESCAPE_PRIMARY && command[1] == ansiterm.ANSI_ESCAPE_SECONDARY {
 			start++
 		}
 		// convert this to GetNextParam method
-		ac.Parameters = strings.Split(
-			string(command[start:lastCharIndex]),
-			ansiterm.ANSI_PARAMETER_SEP,
-		)
+		ac.Parameters = strings.Split(string(command[start:lastCharIndex]), ansiterm.ANSI_PARAMETER_SEP)
 	}
 
 	return ac

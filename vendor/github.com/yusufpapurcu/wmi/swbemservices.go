@@ -139,11 +139,7 @@ func (s *SWbemServices) process(initError chan error) {
 // By default, the local machine and default namespace are used. These can be
 // changed using connectServerArgs. See
 // http://msdn.microsoft.com/en-us/library/aa393720.aspx for details.
-func (s *SWbemServices) Query(
-	query string,
-	dst interface{},
-	connectServerArgs ...interface{},
-) error {
+func (s *SWbemServices) Query(query string, dst interface{}, connectServerArgs ...interface{}) error {
 	s.lQueryorClose.Lock()
 	if s == nil || s.sWbemLocatorIDispatch == nil {
 		s.lQueryorClose.Unlock()

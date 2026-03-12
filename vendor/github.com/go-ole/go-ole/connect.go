@@ -170,11 +170,7 @@ func (d *Dispatch) GetIds(names ...string) (dispid []int32, err error) {
 //
 // There have been problems where if send cascading params..., it would error
 // out because the parameters would be empty.
-func (d *Dispatch) Invoke(
-	id int32,
-	dispatch int16,
-	params []interface{},
-) (result *VARIANT, err error) {
+func (d *Dispatch) Invoke(id int32, dispatch int16, params []interface{}) (result *VARIANT, err error) {
 	if len(params) < 1 {
 		result, err = d.Object.Invoke(id, dispatch)
 	} else {

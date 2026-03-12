@@ -114,12 +114,7 @@ func (scanPlanQcharCodecRune) Scan(src []byte, dst any) error {
 	return nil
 }
 
-func (c QCharCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c QCharCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

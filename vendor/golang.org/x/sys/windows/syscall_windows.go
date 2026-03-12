@@ -734,12 +734,7 @@ func Ftruncate(fd Handle, length int64) (err error) {
 	}
 	var info _FILE_END_OF_FILE_INFO
 	info.EndOfFile = length
-	return SetFileInformationByHandle(
-		fd,
-		FileEndOfFileInfo,
-		(*byte)(unsafe.Pointer(&info)),
-		uint32(unsafe.Sizeof(info)),
-	)
+	return SetFileInformationByHandle(fd, FileEndOfFileInfo, (*byte)(unsafe.Pointer(&info)), uint32(unsafe.Sizeof(info)))
 }
 
 func Gettimeofday(tv *Timeval) (err error) {
@@ -836,11 +831,7 @@ func LoadSetFileCompletionNotificationModes() error {
 	return procSetFileCompletionNotificationModes.Find()
 }
 
-func WaitForMultipleObjects(
-	handles []Handle,
-	waitAll bool,
-	waitMilliseconds uint32,
-) (event uint32, err error) {
+func WaitForMultipleObjects(handles []Handle, waitAll bool, waitMilliseconds uint32) (event uint32, err error) {
 	// Every other win32 array API takes arguments as "pointer, count", except for this function. So we
 	// can't declare it as a usual [] type, because mksyscall will use the opposite order. We therefore
 	// trivially stub this ourselves.
@@ -849,12 +840,7 @@ func WaitForMultipleObjects(
 	if len(handles) > 0 {
 		handlePtr = &handles[0]
 	}
-	return waitForMultipleObjects(
-		uint32(len(handles)),
-		uintptr(unsafe.Pointer(handlePtr)),
-		waitAll,
-		waitMilliseconds,
-	)
+	return waitForMultipleObjects(uint32(len(handles)), uintptr(unsafe.Pointer(handlePtr)), waitAll, waitMilliseconds)
 }
 
 // net api calls
@@ -1117,13 +1103,7 @@ func Socket(domain, typ, proto int) (fd Handle, err error) {
 
 func SetsockoptInt(fd Handle, level, opt int, value int) (err error) {
 	v := int32(value)
-	return Setsockopt(
-		fd,
-		int32(level),
-		int32(opt),
-		(*byte)(unsafe.Pointer(&v)),
-		int32(unsafe.Sizeof(v)),
-	)
+	return Setsockopt(fd, int32(level), int32(opt), (*byte)(unsafe.Pointer(&v)), int32(unsafe.Sizeof(v)))
 }
 
 func Bind(fd Handle, sa Sockaddr) (err error) {
@@ -1176,16 +1156,7 @@ func Shutdown(fd Handle, how int) (err error) {
 	return shutdown(fd, int32(how))
 }
 
-func WSASendto(
-	s Handle,
-	bufs *WSABuf,
-	bufcnt uint32,
-	sent *uint32,
-	flags uint32,
-	to Sockaddr,
-	overlapped *Overlapped,
-	croutine *byte,
-) (err error) {
+func WSASendto(s Handle, bufs *WSABuf, bufcnt uint32, sent *uint32, flags uint32, to Sockaddr, overlapped *Overlapped, croutine *byte) (err error) {
 	var rsa unsafe.Pointer
 	var l int32
 	if to != nil {
@@ -1194,17 +1165,7 @@ func WSASendto(
 			return err
 		}
 	}
-	return WSASendTo(
-		s,
-		bufs,
-		bufcnt,
-		sent,
-		flags,
-		(*RawSockaddrAny)(unsafe.Pointer(rsa)),
-		l,
-		overlapped,
-		croutine,
-	)
+	return WSASendTo(s, bufs, bufcnt, sent, flags, (*RawSockaddrAny)(unsafe.Pointer(rsa)), l, overlapped, croutine)
 }
 
 func LoadGetAddrInfo() error {
@@ -1237,28 +1198,8 @@ func LoadConnectEx() error {
 	return connectExFunc.err
 }
 
-func connectEx(
-	s Handle,
-	name unsafe.Pointer,
-	namelen int32,
-	sendBuf *byte,
-	sendDataLen uint32,
-	bytesSent *uint32,
-	overlapped *Overlapped,
-) (err error) {
-	r1, _, e1 := syscall.Syscall9(
-		connectExFunc.addr,
-		7,
-		uintptr(s),
-		uintptr(name),
-		uintptr(namelen),
-		uintptr(unsafe.Pointer(sendBuf)),
-		uintptr(sendDataLen),
-		uintptr(unsafe.Pointer(bytesSent)),
-		uintptr(unsafe.Pointer(overlapped)),
-		0,
-		0,
-	)
+func connectEx(s Handle, name unsafe.Pointer, namelen int32, sendBuf *byte, sendDataLen uint32, bytesSent *uint32, overlapped *Overlapped) (err error) {
+	r1, _, e1 := syscall.Syscall9(connectExFunc.addr, 7, uintptr(s), uintptr(name), uintptr(namelen), uintptr(unsafe.Pointer(sendBuf)), uintptr(sendDataLen), uintptr(unsafe.Pointer(bytesSent)), uintptr(unsafe.Pointer(overlapped)), 0, 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = error(e1)
@@ -1269,14 +1210,7 @@ func connectEx(
 	return
 }
 
-func ConnectEx(
-	fd Handle,
-	sa Sockaddr,
-	sendBuf *byte,
-	sendDataLen uint32,
-	bytesSent *uint32,
-	overlapped *Overlapped,
-) error {
+func ConnectEx(fd Handle, sa Sockaddr, sendBuf *byte, sendDataLen uint32, bytesSent *uint32, overlapped *Overlapped) error {
 	err := LoadConnectEx()
 	if err != nil {
 		return errorspkg.New("failed to find ConnectEx: " + err.Error())
@@ -1325,55 +1259,24 @@ func loadWSASendRecvMsg() error {
 	return sendRecvMsgFunc.err
 }
 
-func WSASendMsg(
-	fd Handle,
-	msg *WSAMsg,
-	flags uint32,
-	bytesSent *uint32,
-	overlapped *Overlapped,
-	croutine *byte,
-) error {
+func WSASendMsg(fd Handle, msg *WSAMsg, flags uint32, bytesSent *uint32, overlapped *Overlapped, croutine *byte) error {
 	err := loadWSASendRecvMsg()
 	if err != nil {
 		return err
 	}
-	r1, _, e1 := syscall.Syscall6(
-		sendRecvMsgFunc.sendAddr,
-		6,
-		uintptr(fd),
-		uintptr(unsafe.Pointer(msg)),
-		uintptr(flags),
-		uintptr(unsafe.Pointer(bytesSent)),
-		uintptr(unsafe.Pointer(overlapped)),
-		uintptr(unsafe.Pointer(croutine)),
-	)
+	r1, _, e1 := syscall.Syscall6(sendRecvMsgFunc.sendAddr, 6, uintptr(fd), uintptr(unsafe.Pointer(msg)), uintptr(flags), uintptr(unsafe.Pointer(bytesSent)), uintptr(unsafe.Pointer(overlapped)), uintptr(unsafe.Pointer(croutine)))
 	if r1 == socket_error {
 		err = errnoErr(e1)
 	}
 	return err
 }
 
-func WSARecvMsg(
-	fd Handle,
-	msg *WSAMsg,
-	bytesReceived *uint32,
-	overlapped *Overlapped,
-	croutine *byte,
-) error {
+func WSARecvMsg(fd Handle, msg *WSAMsg, bytesReceived *uint32, overlapped *Overlapped, croutine *byte) error {
 	err := loadWSASendRecvMsg()
 	if err != nil {
 		return err
 	}
-	r1, _, e1 := syscall.Syscall6(
-		sendRecvMsgFunc.recvAddr,
-		5,
-		uintptr(fd),
-		uintptr(unsafe.Pointer(msg)),
-		uintptr(unsafe.Pointer(bytesReceived)),
-		uintptr(unsafe.Pointer(overlapped)),
-		uintptr(unsafe.Pointer(croutine)),
-		0,
-	)
+	r1, _, e1 := syscall.Syscall6(sendRecvMsgFunc.recvAddr, 5, uintptr(fd), uintptr(unsafe.Pointer(msg)), uintptr(unsafe.Pointer(bytesReceived)), uintptr(unsafe.Pointer(overlapped)), uintptr(unsafe.Pointer(croutine)), 0)
 	if r1 == socket_error {
 		err = errnoErr(e1)
 	}
@@ -1449,13 +1352,7 @@ func Sendto(fd Handle, p []byte, flags int, to Sockaddr) (err error) {
 	return sendto(fd, p, int32(flags), ptr, l)
 }
 
-func SetsockoptTimeval(
-	fd Handle,
-	level, opt int,
-	tv *Timeval,
-) (err error) {
-	return syscall.EWINDOWS
-}
+func SetsockoptTimeval(fd Handle, level, opt int, tv *Timeval) (err error) { return syscall.EWINDOWS }
 
 // The Linger struct is wrong but we only noticed after Go 1.
 // sysLinger is the real system call structure.
@@ -1493,13 +1390,7 @@ func GetsockoptInt(fd Handle, level, opt int) (int, error) {
 
 func SetsockoptLinger(fd Handle, level, opt int, l *Linger) (err error) {
 	sys := sysLinger{Onoff: uint16(l.Onoff), Linger: uint16(l.Linger)}
-	return Setsockopt(
-		fd,
-		int32(level),
-		int32(opt),
-		(*byte)(unsafe.Pointer(&sys)),
-		int32(unsafe.Sizeof(sys)),
-	)
+	return Setsockopt(fd, int32(level), int32(opt), (*byte)(unsafe.Pointer(&sys)), int32(unsafe.Sizeof(sys)))
 }
 
 func SetsockoptInet4Addr(fd Handle, level, opt int, value [4]byte) (err error) {
@@ -1507,13 +1398,7 @@ func SetsockoptInet4Addr(fd Handle, level, opt int, value [4]byte) (err error) {
 }
 
 func SetsockoptIPMreq(fd Handle, level, opt int, mreq *IPMreq) (err error) {
-	return Setsockopt(
-		fd,
-		int32(level),
-		int32(opt),
-		(*byte)(unsafe.Pointer(mreq)),
-		int32(unsafe.Sizeof(*mreq)),
-	)
+	return Setsockopt(fd, int32(level), int32(opt), (*byte)(unsafe.Pointer(mreq)), int32(unsafe.Sizeof(*mreq)))
 }
 
 func SetsockoptIPv6Mreq(fd Handle, level, opt int, mreq *IPv6Mreq) (err error) {
@@ -1634,16 +1519,7 @@ func Readlink(path string, buf []byte) (n int, err error) {
 
 	rdbbuf := make([]byte, MAXIMUM_REPARSE_DATA_BUFFER_SIZE)
 	var bytesReturned uint32
-	err = DeviceIoControl(
-		fd,
-		FSCTL_GET_REPARSE_POINT,
-		nil,
-		0,
-		&rdbbuf[0],
-		uint32(len(rdbbuf)),
-		&bytesReturned,
-		nil,
-	)
+	err = DeviceIoControl(fd, FSCTL_GET_REPARSE_POINT, nil, 0, &rdbbuf[0], uint32(len(rdbbuf)), &bytesReturned, nil)
 	if err != nil {
 		return -1, err
 	}
@@ -1764,10 +1640,7 @@ func GetSystemPreferredUILanguages(flags uint32) ([]string, error) {
 	return getUILanguages(flags, getSystemPreferredUILanguages)
 }
 
-func getUILanguages(
-	flags uint32,
-	f func(flags uint32, numLanguages *uint32, buf *uint16, bufSize *uint32) error,
-) ([]string, error) {
+func getUILanguages(flags uint32, f func(flags uint32, numLanguages *uint32, buf *uint16, bufSize *uint32) error) ([]string, error) {
 	size := uint32(128)
 	for {
 		var numLanguages uint32
@@ -1780,8 +1653,7 @@ func getUILanguages(
 			return nil, err
 		}
 		buf = buf[:size]
-		if numLanguages == 0 ||
-			len(buf) == 0 { // GetProcessPreferredUILanguages may return numLanguages==0 with "\0\0"
+		if numLanguages == 0 || len(buf) == 0 { // GetProcessPreferredUILanguages may return numLanguages==0 with "\0\0"
 			return []string{}, nil
 		}
 		if buf[len(buf)-1] == 0 {
@@ -1816,14 +1688,7 @@ func langID(pri, sub uint16) uint32 { return uint32(sub)<<10 | uint32(pri) }
 
 func (s NTStatus) Error() string {
 	b := make([]uint16, 300)
-	n, err := FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_ARGUMENT_ARRAY,
-		modntdll.Handle(),
-		uint32(s),
-		langID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-		b,
-		nil,
-	)
+	n, err := FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_ARGUMENT_ARRAY, modntdll.Handle(), uint32(s), langID(LANG_ENGLISH, SUBLANG_ENGLISH_US), b, nil)
 	if err != nil {
 		return fmt.Sprintf("NTSTATUS 0x%08x", uint32(s))
 	}

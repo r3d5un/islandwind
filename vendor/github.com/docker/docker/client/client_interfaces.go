@@ -69,161 +69,64 @@ type HijackDialer interface {
 
 // ContainerAPIClient defines API client methods for the containers
 type ContainerAPIClient interface {
-	ContainerAttach(
-		ctx context.Context,
-		container string,
-		options container.AttachOptions,
-	) (types.HijackedResponse, error)
-	ContainerCommit(
-		ctx context.Context,
-		container string,
-		options container.CommitOptions,
-	) (container.CommitResponse, error)
-	ContainerCreate(
-		ctx context.Context,
-		config *container.Config,
-		hostConfig *container.HostConfig,
-		networkingConfig *network.NetworkingConfig,
-		platform *ocispec.Platform,
-		containerName string,
-	) (container.CreateResponse, error)
+	ContainerAttach(ctx context.Context, container string, options container.AttachOptions) (types.HijackedResponse, error)
+	ContainerCommit(ctx context.Context, container string, options container.CommitOptions) (container.CommitResponse, error)
+	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, platform *ocispec.Platform, containerName string) (container.CreateResponse, error)
 	ContainerDiff(ctx context.Context, container string) ([]container.FilesystemChange, error)
-	ContainerExecAttach(
-		ctx context.Context,
-		execID string,
-		options container.ExecAttachOptions,
-	) (types.HijackedResponse, error)
-	ContainerExecCreate(
-		ctx context.Context,
-		container string,
-		options container.ExecOptions,
-	) (container.ExecCreateResponse, error)
+	ContainerExecAttach(ctx context.Context, execID string, options container.ExecAttachOptions) (types.HijackedResponse, error)
+	ContainerExecCreate(ctx context.Context, container string, options container.ExecOptions) (container.ExecCreateResponse, error)
 	ContainerExecInspect(ctx context.Context, execID string) (container.ExecInspect, error)
 	ContainerExecResize(ctx context.Context, execID string, options container.ResizeOptions) error
 	ContainerExecStart(ctx context.Context, execID string, options container.ExecStartOptions) error
 	ContainerExport(ctx context.Context, container string) (io.ReadCloser, error)
 	ContainerInspect(ctx context.Context, container string) (container.InspectResponse, error)
-	ContainerInspectWithRaw(
-		ctx context.Context,
-		container string,
-		getSize bool,
-	) (container.InspectResponse, []byte, error)
+	ContainerInspectWithRaw(ctx context.Context, container string, getSize bool) (container.InspectResponse, []byte, error)
 	ContainerKill(ctx context.Context, container, signal string) error
 	ContainerList(ctx context.Context, options container.ListOptions) ([]container.Summary, error)
-	ContainerLogs(
-		ctx context.Context,
-		container string,
-		options container.LogsOptions,
-	) (io.ReadCloser, error)
+	ContainerLogs(ctx context.Context, container string, options container.LogsOptions) (io.ReadCloser, error)
 	ContainerPause(ctx context.Context, container string) error
 	ContainerRemove(ctx context.Context, container string, options container.RemoveOptions) error
 	ContainerRename(ctx context.Context, container, newContainerName string) error
 	ContainerResize(ctx context.Context, container string, options container.ResizeOptions) error
 	ContainerRestart(ctx context.Context, container string, options container.StopOptions) error
 	ContainerStatPath(ctx context.Context, container, path string) (container.PathStat, error)
-	ContainerStats(
-		ctx context.Context,
-		container string,
-		stream bool,
-	) (container.StatsResponseReader, error)
-	ContainerStatsOneShot(
-		ctx context.Context,
-		container string,
-	) (container.StatsResponseReader, error)
+	ContainerStats(ctx context.Context, container string, stream bool) (container.StatsResponseReader, error)
+	ContainerStatsOneShot(ctx context.Context, container string) (container.StatsResponseReader, error)
 	ContainerStart(ctx context.Context, container string, options container.StartOptions) error
 	ContainerStop(ctx context.Context, container string, options container.StopOptions) error
-	ContainerTop(
-		ctx context.Context,
-		container string,
-		arguments []string,
-	) (container.TopResponse, error)
+	ContainerTop(ctx context.Context, container string, arguments []string) (container.TopResponse, error)
 	ContainerUnpause(ctx context.Context, container string) error
-	ContainerUpdate(
-		ctx context.Context,
-		container string,
-		updateConfig container.UpdateConfig,
-	) (container.UpdateResponse, error)
-	ContainerWait(
-		ctx context.Context,
-		container string,
-		condition container.WaitCondition,
-	) (<-chan container.WaitResponse, <-chan error)
-	CopyFromContainer(
-		ctx context.Context,
-		container, srcPath string,
-	) (io.ReadCloser, container.PathStat, error)
-	CopyToContainer(
-		ctx context.Context,
-		container, path string,
-		content io.Reader,
-		options container.CopyToContainerOptions,
-	) error
+	ContainerUpdate(ctx context.Context, container string, updateConfig container.UpdateConfig) (container.UpdateResponse, error)
+	ContainerWait(ctx context.Context, container string, condition container.WaitCondition) (<-chan container.WaitResponse, <-chan error)
+	CopyFromContainer(ctx context.Context, container, srcPath string) (io.ReadCloser, container.PathStat, error)
+	CopyToContainer(ctx context.Context, container, path string, content io.Reader, options container.CopyToContainerOptions) error
 	ContainersPrune(ctx context.Context, pruneFilters filters.Args) (container.PruneReport, error)
 }
 
 // DistributionAPIClient defines API client methods for the registry
 type DistributionAPIClient interface {
-	DistributionInspect(
-		ctx context.Context,
-		image, encodedRegistryAuth string,
-	) (registry.DistributionInspect, error)
+	DistributionInspect(ctx context.Context, image, encodedRegistryAuth string) (registry.DistributionInspect, error)
 }
 
 // ImageAPIClient defines API client methods for the images
 type ImageAPIClient interface {
-	ImageBuild(
-		ctx context.Context,
-		context io.Reader,
-		options build.ImageBuildOptions,
-	) (build.ImageBuildResponse, error)
-	BuildCachePrune(
-		ctx context.Context,
-		opts build.CachePruneOptions,
-	) (*build.CachePruneReport, error)
+	ImageBuild(ctx context.Context, context io.Reader, options build.ImageBuildOptions) (build.ImageBuildResponse, error)
+	BuildCachePrune(ctx context.Context, opts build.CachePruneOptions) (*build.CachePruneReport, error)
 	BuildCancel(ctx context.Context, id string) error
-	ImageCreate(
-		ctx context.Context,
-		parentReference string,
-		options image.CreateOptions,
-	) (io.ReadCloser, error)
-	ImageImport(
-		ctx context.Context,
-		source image.ImportSource,
-		ref string,
-		options image.ImportOptions,
-	) (io.ReadCloser, error)
+	ImageCreate(ctx context.Context, parentReference string, options image.CreateOptions) (io.ReadCloser, error)
+	ImageImport(ctx context.Context, source image.ImportSource, ref string, options image.ImportOptions) (io.ReadCloser, error)
 
 	ImageList(ctx context.Context, options image.ListOptions) ([]image.Summary, error)
 	ImagePull(ctx context.Context, ref string, options image.PullOptions) (io.ReadCloser, error)
 	ImagePush(ctx context.Context, ref string, options image.PushOptions) (io.ReadCloser, error)
-	ImageRemove(
-		ctx context.Context,
-		image string,
-		options image.RemoveOptions,
-	) ([]image.DeleteResponse, error)
-	ImageSearch(
-		ctx context.Context,
-		term string,
-		options registry.SearchOptions,
-	) ([]registry.SearchResult, error)
+	ImageRemove(ctx context.Context, image string, options image.RemoveOptions) ([]image.DeleteResponse, error)
+	ImageSearch(ctx context.Context, term string, options registry.SearchOptions) ([]registry.SearchResult, error)
 	ImageTag(ctx context.Context, image, ref string) error
 	ImagesPrune(ctx context.Context, pruneFilter filters.Args) (image.PruneReport, error)
 
-	ImageInspect(
-		ctx context.Context,
-		image string,
-		_ ...ImageInspectOption,
-	) (image.InspectResponse, error)
-	ImageHistory(
-		ctx context.Context,
-		image string,
-		_ ...ImageHistoryOption,
-	) ([]image.HistoryResponseItem, error)
-	ImageLoad(
-		ctx context.Context,
-		input io.Reader,
-		_ ...ImageLoadOption,
-	) (image.LoadResponse, error)
+	ImageInspect(ctx context.Context, image string, _ ...ImageInspectOption) (image.InspectResponse, error)
+	ImageHistory(ctx context.Context, image string, _ ...ImageHistoryOption) ([]image.HistoryResponseItem, error)
+	ImageLoad(ctx context.Context, input io.Reader, _ ...ImageLoadOption) (image.LoadResponse, error)
 	ImageSave(ctx context.Context, images []string, _ ...ImageSaveOption) (io.ReadCloser, error)
 
 	ImageAPIClientDeprecated
@@ -239,27 +142,11 @@ type ImageAPIClientDeprecated interface {
 
 // NetworkAPIClient defines API client methods for the networks
 type NetworkAPIClient interface {
-	NetworkConnect(
-		ctx context.Context,
-		network, container string,
-		config *network.EndpointSettings,
-	) error
-	NetworkCreate(
-		ctx context.Context,
-		name string,
-		options network.CreateOptions,
-	) (network.CreateResponse, error)
+	NetworkConnect(ctx context.Context, network, container string, config *network.EndpointSettings) error
+	NetworkCreate(ctx context.Context, name string, options network.CreateOptions) (network.CreateResponse, error)
 	NetworkDisconnect(ctx context.Context, network, container string, force bool) error
-	NetworkInspect(
-		ctx context.Context,
-		network string,
-		options network.InspectOptions,
-	) (network.Inspect, error)
-	NetworkInspectWithRaw(
-		ctx context.Context,
-		network string,
-		options network.InspectOptions,
-	) (network.Inspect, []byte, error)
+	NetworkInspect(ctx context.Context, network string, options network.InspectOptions) (network.Inspect, error)
+	NetworkInspectWithRaw(ctx context.Context, network string, options network.InspectOptions) (network.Inspect, []byte, error)
 	NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error)
 	NetworkRemove(ctx context.Context, network string) error
 	NetworksPrune(ctx context.Context, pruneFilter filters.Args) (network.PruneReport, error)
@@ -279,57 +166,23 @@ type PluginAPIClient interface {
 	PluginRemove(ctx context.Context, name string, options types.PluginRemoveOptions) error
 	PluginEnable(ctx context.Context, name string, options types.PluginEnableOptions) error
 	PluginDisable(ctx context.Context, name string, options types.PluginDisableOptions) error
-	PluginInstall(
-		ctx context.Context,
-		name string,
-		options types.PluginInstallOptions,
-	) (io.ReadCloser, error)
-	PluginUpgrade(
-		ctx context.Context,
-		name string,
-		options types.PluginInstallOptions,
-	) (io.ReadCloser, error)
+	PluginInstall(ctx context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error)
+	PluginUpgrade(ctx context.Context, name string, options types.PluginInstallOptions) (io.ReadCloser, error)
 	PluginPush(ctx context.Context, name string, registryAuth string) (io.ReadCloser, error)
 	PluginSet(ctx context.Context, name string, args []string) error
 	PluginInspectWithRaw(ctx context.Context, name string) (*types.Plugin, []byte, error)
-	PluginCreate(
-		ctx context.Context,
-		createContext io.Reader,
-		options types.PluginCreateOptions,
-	) error
+	PluginCreate(ctx context.Context, createContext io.Reader, options types.PluginCreateOptions) error
 }
 
 // ServiceAPIClient defines API client methods for the services
 type ServiceAPIClient interface {
-	ServiceCreate(
-		ctx context.Context,
-		service swarm.ServiceSpec,
-		options swarm.ServiceCreateOptions,
-	) (swarm.ServiceCreateResponse, error)
-	ServiceInspectWithRaw(
-		ctx context.Context,
-		serviceID string,
-		options swarm.ServiceInspectOptions,
-	) (swarm.Service, []byte, error)
+	ServiceCreate(ctx context.Context, service swarm.ServiceSpec, options swarm.ServiceCreateOptions) (swarm.ServiceCreateResponse, error)
+	ServiceInspectWithRaw(ctx context.Context, serviceID string, options swarm.ServiceInspectOptions) (swarm.Service, []byte, error)
 	ServiceList(ctx context.Context, options swarm.ServiceListOptions) ([]swarm.Service, error)
 	ServiceRemove(ctx context.Context, serviceID string) error
-	ServiceUpdate(
-		ctx context.Context,
-		serviceID string,
-		version swarm.Version,
-		service swarm.ServiceSpec,
-		options swarm.ServiceUpdateOptions,
-	) (swarm.ServiceUpdateResponse, error)
-	ServiceLogs(
-		ctx context.Context,
-		serviceID string,
-		options container.LogsOptions,
-	) (io.ReadCloser, error)
-	TaskLogs(
-		ctx context.Context,
-		taskID string,
-		options container.LogsOptions,
-	) (io.ReadCloser, error)
+	ServiceUpdate(ctx context.Context, serviceID string, version swarm.Version, service swarm.ServiceSpec, options swarm.ServiceUpdateOptions) (swarm.ServiceUpdateResponse, error)
+	ServiceLogs(ctx context.Context, serviceID string, options container.LogsOptions) (io.ReadCloser, error)
+	TaskLogs(ctx context.Context, taskID string, options container.LogsOptions) (io.ReadCloser, error)
 	TaskInspectWithRaw(ctx context.Context, taskID string) (swarm.Task, []byte, error)
 	TaskList(ctx context.Context, options swarm.TaskListOptions) ([]swarm.Task, error)
 }
@@ -342,22 +195,14 @@ type SwarmAPIClient interface {
 	SwarmUnlock(ctx context.Context, req swarm.UnlockRequest) error
 	SwarmLeave(ctx context.Context, force bool) error
 	SwarmInspect(ctx context.Context) (swarm.Swarm, error)
-	SwarmUpdate(
-		ctx context.Context,
-		version swarm.Version,
-		swarm swarm.Spec,
-		flags swarm.UpdateFlags,
-	) error
+	SwarmUpdate(ctx context.Context, version swarm.Version, swarm swarm.Spec, flags swarm.UpdateFlags) error
 }
 
 // SystemAPIClient defines API client methods for the system
 type SystemAPIClient interface {
 	Events(ctx context.Context, options events.ListOptions) (<-chan events.Message, <-chan error)
 	Info(ctx context.Context) (system.Info, error)
-	RegistryLogin(
-		ctx context.Context,
-		auth registry.AuthConfig,
-	) (registry.AuthenticateOKBody, error)
+	RegistryLogin(ctx context.Context, auth registry.AuthConfig) (registry.AuthenticateOKBody, error)
 	DiskUsage(ctx context.Context, options types.DiskUsageOptions) (types.DiskUsage, error)
 	Ping(ctx context.Context) (types.Ping, error)
 }
@@ -370,12 +215,7 @@ type VolumeAPIClient interface {
 	VolumeList(ctx context.Context, options volume.ListOptions) (volume.ListResponse, error)
 	VolumeRemove(ctx context.Context, volumeID string, force bool) error
 	VolumesPrune(ctx context.Context, pruneFilter filters.Args) (volume.PruneReport, error)
-	VolumeUpdate(
-		ctx context.Context,
-		volumeID string,
-		version swarm.Version,
-		options volume.UpdateOptions,
-	) error
+	VolumeUpdate(ctx context.Context, volumeID string, version swarm.Version, options volume.UpdateOptions) error
 }
 
 // SecretAPIClient defines API client methods for secrets
@@ -384,12 +224,7 @@ type SecretAPIClient interface {
 	SecretCreate(ctx context.Context, secret swarm.SecretSpec) (swarm.SecretCreateResponse, error)
 	SecretRemove(ctx context.Context, id string) error
 	SecretInspectWithRaw(ctx context.Context, name string) (swarm.Secret, []byte, error)
-	SecretUpdate(
-		ctx context.Context,
-		id string,
-		version swarm.Version,
-		secret swarm.SecretSpec,
-	) error
+	SecretUpdate(ctx context.Context, id string, version swarm.Version, secret swarm.SecretSpec) error
 }
 
 // ConfigAPIClient defines API client methods for configs
@@ -398,10 +233,5 @@ type ConfigAPIClient interface {
 	ConfigCreate(ctx context.Context, config swarm.ConfigSpec) (swarm.ConfigCreateResponse, error)
 	ConfigRemove(ctx context.Context, id string) error
 	ConfigInspectWithRaw(ctx context.Context, name string) (swarm.Config, []byte, error)
-	ConfigUpdate(
-		ctx context.Context,
-		id string,
-		version swarm.Version,
-		config swarm.ConfigSpec,
-	) error
+	ConfigUpdate(ctx context.Context, id string, version swarm.Version, config swarm.ConfigSpec) error
 }

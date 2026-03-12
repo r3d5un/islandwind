@@ -37,11 +37,7 @@ var _ Tracer = noopTracer{}
 
 // Start carries forward a non-recording Span, if one is present in the context, otherwise it
 // creates a no-op Span.
-func (noopTracer) Start(
-	ctx context.Context,
-	_ string,
-	_ ...SpanStartOption,
-) (context.Context, Span) {
+func (noopTracer) Start(ctx context.Context, _ string, _ ...SpanStartOption) (context.Context, Span) {
 	span := SpanFromContext(ctx)
 	if _, ok := span.(nonRecordingSpan); !ok {
 		// span is likely already a noopSpan, but let's be sure

@@ -145,12 +145,7 @@ func CreateCounter(query windows.Handle, pname, cname string) (*CounterInfo, err
 // adapted from https://github.com/mackerelio/mackerel-agent/
 func GetCounterValue(counter windows.Handle) (float64, error) {
 	var value PDH_FMT_COUNTERVALUE_DOUBLE
-	r, _, err := PdhGetFormattedCounterValue.Call(
-		uintptr(counter),
-		PDH_FMT_DOUBLE,
-		uintptr(0),
-		uintptr(unsafe.Pointer(&value)),
-	)
+	r, _, err := PdhGetFormattedCounterValue.Call(uintptr(counter), PDH_FMT_DOUBLE, uintptr(0), uintptr(unsafe.Pointer(&value)))
 	if r != 0 && r != PDH_INVALID_DATA {
 		return 0.0, err
 	}
@@ -203,12 +198,7 @@ func ProcessorQueueLengthCounter() (*Win32PerformanceCounter, error) {
 }
 
 // WMIQueryWithContext - wraps wmi.Query with a timed-out context to avoid hanging
-func WMIQueryWithContext(
-	ctx context.Context,
-	query string,
-	dst any,
-	connectServerArgs ...any,
-) error {
+func WMIQueryWithContext(ctx context.Context, query string, dst any, connectServerArgs ...any) error {
 	if _, ok := ctx.Deadline(); !ok {
 		ctxTimeout, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
@@ -241,11 +231,9 @@ func ConvertDOSPath(p string) string {
 	for d := 'A'; d <= 'Z'; d++ {
 		szDeviceName := string(d) + ":"
 		szTarget := make([]uint16, 512)
-		ret, _, _ := procQueryDosDeviceW.Call(
-			uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(szDeviceName))),
+		ret, _, _ := procQueryDosDeviceW.Call(uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(szDeviceName))),
 			uintptr(unsafe.Pointer(&szTarget[0])),
-			uintptr(len(szTarget)),
-		)
+			uintptr(len(szTarget)))
 		if ret != 0 && windows.UTF16ToString(szTarget) == rawDrive {
 			return filepath.Join(szDeviceName, p[len(rawDrive):])
 		}
@@ -287,8 +275,7 @@ type SystemExtendedHandleInformation struct {
 func CallWithExpandingBuffer(fn func() NtStatus, buf *[]byte, resultLength *uint32) NtStatus {
 	for {
 		st := fn()
-		if st == STATUS_BUFFER_OVERFLOW || st == STATUS_BUFFER_TOO_SMALL ||
-			st == STATUS_INFO_LENGTH_MISMATCH {
+		if st == STATUS_BUFFER_OVERFLOW || st == STATUS_BUFFER_TOO_SMALL || st == STATUS_INFO_LENGTH_MISMATCH {
 			if int(*resultLength) <= cap(*buf) {
 				(*reflect.SliceHeader)(unsafe.Pointer(buf)).Len = int(*resultLength)
 			} else {

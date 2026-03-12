@@ -13,10 +13,7 @@ type unsafeNoneMagicConstant string
 
 func init() {
 	SigningMethodNone = &signingMethodNone{}
-	NoneSignatureTypeDisallowedError = newError(
-		"'none' signature type is not allowed",
-		ErrTokenUnverifiable,
-	)
+	NoneSignatureTypeDisallowedError = newError("'none' signature type is not allowed", ErrTokenUnverifiable)
 
 	RegisterSigningMethod(SigningMethodNone.Alg(), func() SigningMethod {
 		return SigningMethodNone

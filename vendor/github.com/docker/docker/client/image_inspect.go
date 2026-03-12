@@ -12,11 +12,7 @@ import (
 )
 
 // ImageInspect returns the image information.
-func (cli *Client) ImageInspect(
-	ctx context.Context,
-	imageID string,
-	inspectOpts ...ImageInspectOption,
-) (image.InspectResponse, error) {
+func (cli *Client) ImageInspect(ctx context.Context, imageID string, inspectOpts ...ImageInspectOption) (image.InspectResponse, error) {
 	if imageID == "" {
 		return image.InspectResponse{}, objectNotFoundError{object: "image", id: imageID}
 	}
@@ -24,10 +20,7 @@ func (cli *Client) ImageInspect(
 	var opts imageInspectOpts
 	for _, opt := range inspectOpts {
 		if err := opt.Apply(&opts); err != nil {
-			return image.InspectResponse{}, fmt.Errorf(
-				"error applying image inspect option: %w",
-				err,
-			)
+			return image.InspectResponse{}, fmt.Errorf("error applying image inspect option: %w", err)
 		}
 	}
 
@@ -73,10 +66,7 @@ func (cli *Client) ImageInspect(
 // ImageInspectWithRaw returns the image information and its raw representation.
 //
 // Deprecated: Use [Client.ImageInspect] instead. Raw response can be obtained using the [ImageInspectWithRawResponse] option.
-func (cli *Client) ImageInspectWithRaw(
-	ctx context.Context,
-	imageID string,
-) (image.InspectResponse, []byte, error) {
+func (cli *Client) ImageInspectWithRaw(ctx context.Context, imageID string) (image.InspectResponse, []byte, error) {
 	var buf bytes.Buffer
 	resp, err := cli.ImageInspect(ctx, imageID, ImageInspectWithRawResponse(&buf))
 	if err != nil {

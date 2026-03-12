@@ -79,24 +79,12 @@ func (f *FlagSet) GetTime(name string) (time.Time, error) {
 
 // TimeVar defines a time.Time flag with specified name, default value, and usage string.
 // The argument p points to a time.Time variable in which to store the value of the flag.
-func (f *FlagSet) TimeVar(
-	p *time.Time,
-	name string,
-	value time.Time,
-	formats []string,
-	usage string,
-) {
+func (f *FlagSet) TimeVar(p *time.Time, name string, value time.Time, formats []string, usage string) {
 	f.TimeVarP(p, name, "", value, formats, usage)
 }
 
 // TimeVarP is like TimeVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) TimeVarP(
-	p *time.Time,
-	name, shorthand string,
-	value time.Time,
-	formats []string,
-	usage string,
-) {
+func (f *FlagSet) TimeVarP(p *time.Time, name, shorthand string, value time.Time, formats []string, usage string) {
 	f.VarP(newTimeValue(value, p, formats), name, shorthand, usage)
 }
 
@@ -107,13 +95,7 @@ func TimeVar(p *time.Time, name string, value time.Time, formats []string, usage
 }
 
 // TimeVarP is like TimeVar, but accepts a shorthand letter that can be used after a single dash.
-func TimeVarP(
-	p *time.Time,
-	name, shorthand string,
-	value time.Time,
-	formats []string,
-	usage string,
-) {
+func TimeVarP(p *time.Time, name, shorthand string, value time.Time, formats []string, usage string) {
 	CommandLine.VarP(newTimeValue(value, p, formats), name, shorthand, usage)
 }
 
@@ -124,12 +106,7 @@ func (f *FlagSet) Time(name string, value time.Time, formats []string, usage str
 }
 
 // TimeP is like Time, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) TimeP(
-	name, shorthand string,
-	value time.Time,
-	formats []string,
-	usage string,
-) *time.Time {
+func (f *FlagSet) TimeP(name, shorthand string, value time.Time, formats []string, usage string) *time.Time {
 	p := new(time.Time)
 	f.TimeVarP(p, name, shorthand, value, formats, usage)
 	return p

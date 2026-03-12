@@ -146,7 +146,7 @@ const msgExtInfo = 7
 
 type extInfoMsg struct {
 	NumExtensions uint32 `sshtype:"7"`
-	Payload       []byte `            ssh:"rest"`
+	Payload       []byte `ssh:"rest"`
 }
 
 // See RFC 4252, section 5.
@@ -156,7 +156,7 @@ type userAuthRequestMsg struct {
 	User    string `sshtype:"50"`
 	Service string
 	Method  string
-	Payload []byte `             ssh:"rest"`
+	Payload []byte `ssh:"rest"`
 }
 
 // Used for debug printouts of packets.
@@ -192,7 +192,7 @@ type userAuthInfoRequestMsg struct {
 	Instruction string
 	Language    string
 	NumPrompts  uint32
-	Prompts     []byte `             ssh:"rest"`
+	Prompts     []byte `ssh:"rest"`
 }
 
 // See RFC 4254, section 5.1.
@@ -203,7 +203,7 @@ type channelOpenMsg struct {
 	PeersID          uint32
 	PeersWindow      uint32
 	MaxPacketSize    uint32
-	TypeSpecificData []byte `             ssh:"rest"`
+	TypeSpecificData []byte `ssh:"rest"`
 }
 
 const msgChannelExtendedData = 95
@@ -213,7 +213,7 @@ const msgChannelData = 94
 type channelDataMsg struct {
 	PeersID uint32 `sshtype:"94"`
 	Length  uint32
-	Rest    []byte `             ssh:"rest"`
+	Rest    []byte `ssh:"rest"`
 }
 
 // See RFC 4254, section 5.1.
@@ -224,7 +224,7 @@ type channelOpenConfirmMsg struct {
 	MyID             uint32
 	MyWindow         uint32
 	MaxPacketSize    uint32
-	TypeSpecificData []byte `             ssh:"rest"`
+	TypeSpecificData []byte `ssh:"rest"`
 }
 
 // See RFC 4254, section 5.1.
@@ -243,7 +243,7 @@ type channelRequestMsg struct {
 	PeersID             uint32 `sshtype:"98"`
 	Request             string
 	WantReply           bool
-	RequestSpecificData []byte `             ssh:"rest"`
+	RequestSpecificData []byte `ssh:"rest"`
 }
 
 // See RFC 4254, section 5.4.
@@ -280,7 +280,7 @@ const msgGlobalRequest = 80
 type globalRequestMsg struct {
 	Type      string `sshtype:"80"`
 	WantReply bool
-	Data      []byte `             ssh:"rest"`
+	Data      []byte `ssh:"rest"`
 }
 
 // See RFC 4254, section 4
@@ -382,12 +382,7 @@ func fieldError(t reflect.Type, field int, problem string) error {
 	if problem != "" {
 		problem = ": " + problem
 	}
-	return fmt.Errorf(
-		"ssh: unmarshal error for field %s of type %s%s",
-		t.Field(field).Name,
-		t.Name(),
-		problem,
-	)
+	return fmt.Errorf("ssh: unmarshal error for field %s of type %s%s", t.Field(field).Name, t.Name(), problem)
 }
 
 var errShortRead = errors.New("ssh: short read")
@@ -421,11 +416,7 @@ func Unmarshal(data []byte, out interface{}) error {
 			}
 		}
 		if !goodType {
-			return fmt.Errorf(
-				"ssh: unexpected message type %d (expected one of %v)",
-				data[0],
-				expectedTypes,
-			)
+			return fmt.Errorf("ssh: unexpected message type %d (expected one of %v)", data[0], expectedTypes)
 		}
 		data = data[1:]
 	}

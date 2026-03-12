@@ -249,16 +249,12 @@ func readdirnames(dirname string) (names []nameIno, err error) {
 func parseDirent(buf []byte, names []nameIno) (consumed int, newnames []nameIno) {
 	origlen := len(buf)
 	for len(buf) > 0 {
-		dirent := (*unix.Dirent)(
-			unsafe.Pointer(&buf[0]),
-		) // #nosec G103 -- Ignore "G103: Use of unsafe calls should be audited"
+		dirent := (*unix.Dirent)(unsafe.Pointer(&buf[0])) // #nosec G103 -- Ignore "G103: Use of unsafe calls should be audited"
 		buf = buf[dirent.Reclen:]
 		if dirent.Ino == 0 { // File absent in directory.
 			continue
 		}
-		b := (*[10000]byte)(
-			unsafe.Pointer(&dirent.Name[0]),
-		) // #nosec G103 -- Ignore "G103: Use of unsafe calls should be audited"
+		b := (*[10000]byte)(unsafe.Pointer(&dirent.Name[0])) // #nosec G103 -- Ignore "G103: Use of unsafe calls should be audited"
 		name := string(b[0:clen(b[:])])
 		if name == "." || name == ".." { // Useless names
 			continue

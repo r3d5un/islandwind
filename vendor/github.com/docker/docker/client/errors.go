@@ -42,9 +42,7 @@ func ErrorConnectionFailed(host string) error {
 func connectionFailed(host string) error {
 	var err error
 	if host == "" {
-		err = errors.New(
-			"Cannot connect to the Docker daemon. Is the docker daemon running on this host?",
-		)
+		err = errors.New("Cannot connect to the Docker daemon. Is the docker daemon running on this host?")
 	} else {
 		err = fmt.Errorf("Cannot connect to the Docker daemon at %s. Is the docker daemon running?", host)
 	}
@@ -85,12 +83,7 @@ func (cli *Client) NewVersionError(ctx context.Context, APIrequired, feature str
 		return err
 	}
 	if cli.version != "" && versions.LessThan(cli.version, APIrequired) {
-		return fmt.Errorf(
-			"%q requires API version %s, but the Docker daemon API version is %s",
-			feature,
-			APIrequired,
-			cli.version,
-		)
+		return fmt.Errorf("%q requires API version %s, but the Docker daemon API version is %s", feature, APIrequired, cli.version)
 	}
 	return nil
 }

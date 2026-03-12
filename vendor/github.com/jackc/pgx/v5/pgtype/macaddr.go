@@ -39,10 +39,7 @@ func (MacaddrCodec) PlanEncode(m *Map, oid uint32, format int16, value any) Enco
 
 type encodePlanMacaddrCodecBinaryHardwareAddr struct{}
 
-func (encodePlanMacaddrCodecBinaryHardwareAddr) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanMacaddrCodecBinaryHardwareAddr) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	addr := value.(net.HardwareAddr)
 	if addr == nil {
 		return nil, nil
@@ -72,10 +69,7 @@ func (encodePlanMacAddrCodecTextValuer) Encode(value any, buf []byte) (newBuf []
 
 type encodePlanMacaddrCodecTextHardwareAddr struct{}
 
-func (encodePlanMacaddrCodecTextHardwareAddr) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanMacaddrCodecTextHardwareAddr) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	addr := value.(net.HardwareAddr)
 	if addr == nil {
 		return nil, nil
@@ -150,12 +144,7 @@ func (scanPlanTextMacaddrToHardwareAddr) Scan(src []byte, dst any) error {
 	return nil
 }
 
-func (c MacaddrCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c MacaddrCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

@@ -133,12 +133,7 @@ func (p *Process) GidsWithContext(_ context.Context) ([]uint32, error) {
 	}
 
 	gids := make([]uint32, 0, 3)
-	gids = append(
-		gids,
-		uint32(k.Eproc.Pcred.P_rgid),
-		uint32(k.Eproc.Pcred.P_rgid),
-		uint32(k.Eproc.Pcred.P_svgid),
-	)
+	gids = append(gids, uint32(k.Eproc.Pcred.P_rgid), uint32(k.Eproc.Pcred.P_rgid), uint32(k.Eproc.Pcred.P_svgid))
 
 	return gids, nil
 }
@@ -211,10 +206,7 @@ func (p *Process) ConnectionsWithContext(ctx context.Context) ([]net.ConnectionS
 	return net.ConnectionsPidWithContext(ctx, "all", p.Pid)
 }
 
-func (p *Process) ConnectionsMaxWithContext(
-	ctx context.Context,
-	maxConn int,
-) ([]net.ConnectionStat, error) {
+func (p *Process) ConnectionsMaxWithContext(ctx context.Context, maxConn int) ([]net.ConnectionStat, error) {
 	return net.ConnectionsPidMaxWithContext(ctx, "all", p.Pid, maxConn)
 }
 
@@ -247,12 +239,7 @@ func (p *Process) getKProc() (*unix.KinfoProc, error) {
 // Return value deletes Header line(you must not input wrong arg).
 // And split by Space. Caller have responsibility to manage.
 // If passed arg pid is 0, get information from all process.
-func callPsWithContext(
-	ctx context.Context,
-	arg string,
-	pid int32,
-	threadOption, nameOption bool,
-) ([][]string, error) {
+func callPsWithContext(ctx context.Context, arg string, pid int32, threadOption, nameOption bool) ([][]string, error) {
 	var cmd []string
 	switch {
 	case pid == 0: // will get from all processes.
@@ -351,13 +338,7 @@ func (p *Process) CwdWithContext(_ context.Context) (string, error) {
 
 	var vpi vnodePathInfo
 	const vpiSize = int32(unsafe.Sizeof(vpi))
-	ret := funcs.lib.ProcPidInfo(
-		p.Pid,
-		common.PROC_PIDVNODEPATHINFO,
-		0,
-		uintptr(unsafe.Pointer(&vpi)),
-		vpiSize,
-	)
+	ret := funcs.lib.ProcPidInfo(p.Pid, common.PROC_PIDVNODEPATHINFO, 0, uintptr(unsafe.Pointer(&vpi)), vpiSize)
 	errno, _ := funcs.lib.Dlsym("errno")
 	err = *(**unix.Errno)(unsafe.Pointer(&errno))
 	if errors.Is(err, unix.EPERM) {
@@ -449,13 +430,7 @@ func (p *Process) NumThreadsWithContext(_ context.Context) (int32, error) {
 	defer funcs.Close()
 
 	var ti ProcTaskInfo
-	funcs.lib.ProcPidInfo(
-		p.Pid,
-		common.PROC_PIDTASKINFO,
-		0,
-		uintptr(unsafe.Pointer(&ti)),
-		int32(unsafe.Sizeof(ti)),
-	)
+	funcs.lib.ProcPidInfo(p.Pid, common.PROC_PIDTASKINFO, 0, uintptr(unsafe.Pointer(&ti)), int32(unsafe.Sizeof(ti)))
 
 	return int32(ti.Threadnum), nil
 }
@@ -468,13 +443,7 @@ func (p *Process) TimesWithContext(_ context.Context) (*cpu.TimesStat, error) {
 	defer funcs.Close()
 
 	var ti ProcTaskInfo
-	funcs.lib.ProcPidInfo(
-		p.Pid,
-		common.PROC_PIDTASKINFO,
-		0,
-		uintptr(unsafe.Pointer(&ti)),
-		int32(unsafe.Sizeof(ti)),
-	)
+	funcs.lib.ProcPidInfo(p.Pid, common.PROC_PIDTASKINFO, 0, uintptr(unsafe.Pointer(&ti)), int32(unsafe.Sizeof(ti)))
 
 	timescaleToNanoSeconds := funcs.getTimeScaleToNanoSeconds()
 	ret := &cpu.TimesStat{
@@ -493,13 +462,7 @@ func (p *Process) MemoryInfoWithContext(_ context.Context) (*MemoryInfoStat, err
 	defer funcs.Close()
 
 	var ti ProcTaskInfo
-	funcs.lib.ProcPidInfo(
-		p.Pid,
-		common.PROC_PIDTASKINFO,
-		0,
-		uintptr(unsafe.Pointer(&ti)),
-		int32(unsafe.Sizeof(ti)),
-	)
+	funcs.lib.ProcPidInfo(p.Pid, common.PROC_PIDTASKINFO, 0, uintptr(unsafe.Pointer(&ti)), int32(unsafe.Sizeof(ti)))
 
 	ret := &MemoryInfoStat{
 		RSS:  uint64(ti.Resident_size),

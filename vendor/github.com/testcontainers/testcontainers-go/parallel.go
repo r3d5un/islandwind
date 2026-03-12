@@ -56,11 +56,7 @@ func parallelContainersRunner(
 }
 
 // ParallelContainers creates a generic containers with parameters and run it in parallel mode
-func ParallelContainers(
-	ctx context.Context,
-	reqs ParallelContainerRequest,
-	opt ParallelContainersOptions,
-) ([]Container, error) {
+func ParallelContainers(ctx context.Context, reqs ParallelContainerRequest, opt ParallelContainersOptions) ([]Container, error) {
 	if opt.WorkersCount == 0 {
 		opt.WorkersCount = defaultWorkersCount
 	}

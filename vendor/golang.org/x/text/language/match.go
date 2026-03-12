@@ -298,15 +298,7 @@ func makeHaveTag(tag language.Tag, index int) (haveTag, language.Language) {
 		max, _ = max.Maximize()
 		max.RemakeString()
 	}
-	return haveTag{
-		tag,
-		index,
-		Exact,
-		max.RegionID,
-		max.ScriptID,
-		altScript(max.LangID, max.ScriptID),
-		0,
-	}, max.LangID
+	return haveTag{tag, index, Exact, max.RegionID, max.ScriptID, altScript(max.LangID, max.ScriptID), 0}, max.LangID
 }
 
 // altScript returns an alternative script that may match the given script with
@@ -558,13 +550,7 @@ type bestMatch struct {
 // still prefer a second language over a dialect of the preferred language by
 // explicitly specifying dialects, e.g. "en, nl, en-GB". In this case pin should
 // be false.
-func (m *bestMatch) update(
-	have *haveTag,
-	tag language.Tag,
-	maxScript language.Script,
-	maxRegion language.Region,
-	pin bool,
-) {
+func (m *bestMatch) update(have *haveTag, tag language.Tag, maxScript language.Script, maxRegion language.Region, pin bool) {
 	// Bail if the maximum attainable confidence is below that of the current best match.
 	c := have.conf
 	if c < m.conf {
@@ -576,12 +562,7 @@ func (m *bestMatch) update(
 	}
 	// Pin the region group if we are comparing tags for the same language.
 	if tag.LangID == m.want.LangID && m.sameRegionGroup {
-		_, sameGroup := regionGroupDist(
-			m.pinnedRegion,
-			have.maxRegion,
-			have.maxScript,
-			m.want.LangID,
-		)
+		_, sameGroup := regionGroupDist(m.pinnedRegion, have.maxRegion, have.maxScript, m.want.LangID)
 		if !sameGroup {
 			return
 		}
@@ -680,8 +661,7 @@ func (m *bestMatch) update(
 
 func isParadigmLocale(lang language.Language, r language.Region) bool {
 	for _, e := range paradigmLocales {
-		if language.Language(e[0]) == lang &&
-			(r == language.Region(e[1]) || r == language.Region(e[2])) {
+		if language.Language(e[0]) == lang && (r == language.Region(e[1]) || r == language.Region(e[2])) {
 			return true
 		}
 	}
@@ -690,18 +670,13 @@ func isParadigmLocale(lang language.Language, r language.Region) bool {
 
 // regionGroupDist computes the distance between two regions based on their
 // CLDR grouping.
-func regionGroupDist(
-	a, b language.Region,
-	script language.Script,
-	lang language.Language,
-) (dist uint8, same bool) {
+func regionGroupDist(a, b language.Region, script language.Script, lang language.Language) (dist uint8, same bool) {
 	const defaultDistance = 4
 
 	aGroup := uint(regionToGroups[a]) << 1
 	bGroup := uint(regionToGroups[b]) << 1
 	for _, ri := range matchRegion {
-		if language.Language(ri.lang) == lang &&
-			(ri.script == 0 || language.Script(ri.script) == script) {
+		if language.Language(ri.lang) == lang && (ri.script == 0 || language.Script(ri.script) == script) {
 			group := uint(1 << (ri.group &^ 0x80))
 			if 0x80&ri.group == 0 {
 				if aGroup&bGroup&group != 0 { // Both regions are in the group.
@@ -721,8 +696,7 @@ func regionGroupDist(
 func equalsRest(a, b language.Tag) bool {
 	// TODO: don't include extensions in this comparison. To do this efficiently,
 	// though, we should handle private tags separately.
-	return a.ScriptID == b.ScriptID && a.RegionID == b.RegionID &&
-		a.VariantOrPrivateUseTags() == b.VariantOrPrivateUseTags()
+	return a.ScriptID == b.ScriptID && a.RegionID == b.RegionID && a.VariantOrPrivateUseTags() == b.VariantOrPrivateUseTags()
 }
 
 // isExactEquivalent returns true if canonicalizing the language will not alter

@@ -44,11 +44,7 @@ func IOCountersWithContext(ctx context.Context, pernic bool) ([]IOCountersStat, 
 	return IOCountersByFileWithContext(ctx, pernic, filename)
 }
 
-func IOCountersByFileWithContext(
-	_ context.Context,
-	pernic bool,
-	filename string,
-) ([]IOCountersStat, error) {
+func IOCountersByFileWithContext(_ context.Context, pernic bool, filename string) ([]IOCountersStat, error) {
 	lines, err := common.ReadLines(filename)
 	if err != nil {
 		return nil, err
@@ -146,10 +142,7 @@ var netProtocols = []string{
 	"udplite",
 }
 
-func ProtoCountersWithContext(
-	ctx context.Context,
-	protocols []string,
-) ([]ProtoCountersStat, error) {
+func ProtoCountersWithContext(ctx context.Context, protocols []string) ([]ProtoCountersStat, error) {
 	if len(protocols) == 0 {
 		protocols = netProtocols
 	}
@@ -187,9 +180,7 @@ func ProtoCountersWithContext(
 		i++
 		statValues := strings.Split(lines[i][r+2:], " ")
 		if len(statNames) != len(statValues) {
-			return nil, errors.New(
-				filename + " is not formatted correctly, expected same number of columns.",
-			)
+			return nil, errors.New(filename + " is not formatted correctly, expected same number of columns.")
 		}
 		stat := ProtoCountersStat{
 			Protocol: proto,
@@ -363,11 +354,7 @@ func ConnectionsWithContext(ctx context.Context, kind string) ([]ConnectionStat,
 	return ConnectionsPidWithContext(ctx, kind, 0)
 }
 
-func ConnectionsMaxWithContext(
-	ctx context.Context,
-	kind string,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsMaxWithContext(ctx context.Context, kind string, maxConn int) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithContext(ctx, kind, 0, maxConn)
 }
 
@@ -375,55 +362,27 @@ func ConnectionsWithoutUidsWithContext(ctx context.Context, kind string) ([]Conn
 	return ConnectionsMaxWithoutUidsWithContext(ctx, kind, 0)
 }
 
-func ConnectionsMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsMaxWithoutUidsWithContext(ctx context.Context, kind string, maxConn int) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, 0, maxConn)
 }
 
-func ConnectionsPidWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-) ([]ConnectionStat, error) {
+func ConnectionsPidWithContext(ctx context.Context, kind string, pid int32) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithContext(ctx, kind, pid, 0)
 }
 
-func ConnectionsPidWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-) ([]ConnectionStat, error) {
+func ConnectionsPidWithoutUidsWithContext(ctx context.Context, kind string, pid int32) ([]ConnectionStat, error) {
 	return ConnectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, 0)
 }
 
-func ConnectionsPidMaxWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithContext(ctx context.Context, kind string, pid int32, maxConn int) ([]ConnectionStat, error) {
 	return connectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, maxConn, false)
 }
 
-func ConnectionsPidMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-	maxConn int,
-) ([]ConnectionStat, error) {
+func ConnectionsPidMaxWithoutUidsWithContext(ctx context.Context, kind string, pid int32, maxConn int) ([]ConnectionStat, error) {
 	return connectionsPidMaxWithoutUidsWithContext(ctx, kind, pid, maxConn, true)
 }
 
-func connectionsPidMaxWithoutUidsWithContext(
-	ctx context.Context,
-	kind string,
-	pid int32,
-	maxConn int,
-	skipUids bool,
-) ([]ConnectionStat, error) {
+func connectionsPidMaxWithoutUidsWithContext(ctx context.Context, kind string, pid int32, maxConn int, skipUids bool) ([]ConnectionStat, error) {
 	tmap, ok := netConnectionKindMap[kind]
 	if !ok {
 		return nil, fmt.Errorf("invalid kind, %s", kind)
@@ -446,14 +405,7 @@ func connectionsPidMaxWithoutUidsWithContext(
 	return statsFromInodesWithContext(ctx, root, pid, tmap, inodes, skipUids)
 }
 
-func statsFromInodesWithContext(
-	ctx context.Context,
-	root string,
-	pid int32,
-	tmap []netConnectionKindType,
-	inodes map[string][]inodeMap,
-	skipUids bool,
-) ([]ConnectionStat, error) {
+func statsFromInodesWithContext(ctx context.Context, root string, pid int32, tmap []netConnectionKindType, inodes map[string][]inodeMap, skipUids bool) ([]ConnectionStat, error) {
 	dupCheckMap := make(map[string]struct{})
 	var ret []ConnectionStat
 
@@ -480,15 +432,7 @@ func statsFromInodesWithContext(
 			// Build TCP key to id the connection uniquely
 			// socket type, src ip, src port, dst ip, dst port and state should be enough
 			// to prevent duplications.
-			connKey = fmt.Sprintf(
-				"%d-%s:%d-%s:%d-%s",
-				c.sockType,
-				c.laddr.IP,
-				c.laddr.Port,
-				c.raddr.IP,
-				c.raddr.Port,
-				c.status,
-			)
+			connKey = fmt.Sprintf("%d-%s:%d-%s:%d-%s", c.sockType, c.laddr.IP, c.laddr.Port, c.raddr.IP, c.raddr.Port, c.status)
 			if _, ok := dupCheckMap[connKey]; ok {
 				continue
 			}
@@ -640,11 +584,7 @@ func (p *process) fillFromStatus(ctx context.Context) error {
 	return nil
 }
 
-func getProcInodesAllWithContext(
-	ctx context.Context,
-	root string,
-	maxConn int,
-) (map[string][]inodeMap, error) {
+func getProcInodesAllWithContext(ctx context.Context, root string, maxConn int) (map[string][]inodeMap, error) {
 	pids, err := PidsWithContext(ctx)
 	if err != nil {
 		return nil, err
@@ -728,12 +668,7 @@ func parseIPv6HexString(src []byte) (net.IP, error) {
 	return net.IP(buf), nil
 }
 
-func processInet(
-	file string,
-	kind netConnectionKindType,
-	inodes map[string][]inodeMap,
-	filterPid int32,
-) ([]connTmp, error) {
+func processInet(file string, kind netConnectionKindType, inodes map[string][]inodeMap, filterPid int32) ([]connTmp, error) {
 	if strings.HasSuffix(file, "6") && !common.PathExists(file) {
 		// IPv6 not supported, return empty.
 		return []connTmp{}, nil
@@ -799,12 +734,7 @@ func processInet(
 	return ret, nil
 }
 
-func processUnix(
-	file string,
-	kind netConnectionKindType,
-	inodes map[string][]inodeMap,
-	filterPid int32,
-) ([]connTmp, error) {
+func processUnix(file string, kind netConnectionKindType, inodes map[string][]inodeMap, filterPid int32) ([]connTmp, error) {
 	// Read the contents of the /proc file with a single read sys call.
 	// This minimizes duplicates in the returned connections
 	// For more info:

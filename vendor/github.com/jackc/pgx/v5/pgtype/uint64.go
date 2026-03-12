@@ -122,10 +122,7 @@ func (encodePlanUint64CodecBinaryUint64) Encode(value any, buf []byte) (newBuf [
 
 type encodePlanUint64CodecBinaryUint64Valuer struct{}
 
-func (encodePlanUint64CodecBinaryUint64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanUint64CodecBinaryUint64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	v, err := value.(Uint64Valuer).Uint64Value()
 	if err != nil {
 		return nil, err
@@ -140,10 +137,7 @@ func (encodePlanUint64CodecBinaryUint64Valuer) Encode(
 
 type encodePlanUint64CodecBinaryInt64Valuer struct{}
 
-func (encodePlanUint64CodecBinaryInt64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanUint64CodecBinaryInt64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	v, err := value.(Int64Valuer).Int64Value()
 	if err != nil {
 		return nil, err
@@ -169,10 +163,7 @@ func (encodePlanUint64CodecTextUint64) Encode(value any, buf []byte) (newBuf []b
 
 type encodePlanUint64CodecTextUint64Valuer struct{}
 
-func (encodePlanUint64CodecTextUint64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanUint64CodecTextUint64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	v, err := value.(Uint64Valuer).Uint64Value()
 	if err != nil {
 		return nil, err
@@ -187,10 +178,7 @@ func (encodePlanUint64CodecTextUint64Valuer) Encode(
 
 type encodePlanUint64CodecTextInt64Valuer struct{}
 
-func (encodePlanUint64CodecTextInt64Valuer) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanUint64CodecTextInt64Valuer) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	v, err := value.(Int64Valuer).Int64Value()
 	if err != nil {
 		return nil, err
@@ -230,12 +218,7 @@ func (Uint64Codec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPl
 	return nil
 }
 
-func (c Uint64Codec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c Uint64Codec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

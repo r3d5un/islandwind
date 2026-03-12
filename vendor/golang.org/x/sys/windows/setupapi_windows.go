@@ -169,13 +169,7 @@ type DevInfoListDetailData struct {
 func (*DevInfoListDetailData) unsafeSizeOf() uint32 {
 	if unsafe.Sizeof(uintptr(0)) == 4 {
 		// Windows declares this with pshpack1.h
-		return uint32(
-			unsafe.Offsetof(
-				DevInfoListDetailData{}.remoteMachineName,
-			) + unsafe.Sizeof(
-				DevInfoListDetailData{}.remoteMachineName,
-			),
-		)
+		return uint32(unsafe.Offsetof(DevInfoListDetailData{}.remoteMachineName) + unsafe.Sizeof(DevInfoListDetailData{}.remoteMachineName))
 	}
 	return uint32(unsafe.Sizeof(DevInfoListDetailData{}))
 }
@@ -518,13 +512,7 @@ type DrvInfoDetailData struct {
 func (*DrvInfoDetailData) unsafeSizeOf() uint32 {
 	if unsafe.Sizeof(uintptr(0)) == 4 {
 		// Windows declares this with pshpack1.h
-		return uint32(
-			unsafe.Offsetof(
-				DrvInfoDetailData{}.hardwareID,
-			) + unsafe.Sizeof(
-				DrvInfoDetailData{}.hardwareID,
-			),
-		)
+		return uint32(unsafe.Offsetof(DrvInfoDetailData{}.hardwareID) + unsafe.Sizeof(DrvInfoDetailData{}.hardwareID))
 	}
 	return uint32(unsafe.Sizeof(DrvInfoDetailData{}))
 }
@@ -890,11 +878,7 @@ const (
 //sys	setupDiCreateDeviceInfoListEx(classGUID *GUID, hwndParent uintptr, machineName *uint16, reserved uintptr) (handle DevInfo, err error) [failretval==DevInfo(InvalidHandle)] = setupapi.SetupDiCreateDeviceInfoListExW
 
 // SetupDiCreateDeviceInfoListEx function creates an empty device information set on a remote or a local computer and optionally associates the set with a device setup class.
-func SetupDiCreateDeviceInfoListEx(
-	classGUID *GUID,
-	hwndParent uintptr,
-	machineName string,
-) (deviceInfoSet DevInfo, err error) {
+func SetupDiCreateDeviceInfoListEx(classGUID *GUID, hwndParent uintptr, machineName string) (deviceInfoSet DevInfo, err error) {
 	var machineNameUTF16 *uint16
 	if machineName != "" {
 		machineNameUTF16, err = UTF16PtrFromString(machineName)
@@ -908,9 +892,7 @@ func SetupDiCreateDeviceInfoListEx(
 //sys	setupDiGetDeviceInfoListDetail(deviceInfoSet DevInfo, deviceInfoSetDetailData *DevInfoListDetailData) (err error) = setupapi.SetupDiGetDeviceInfoListDetailW
 
 // SetupDiGetDeviceInfoListDetail function retrieves information associated with a device information set including the class GUID, remote computer handle, and remote computer name.
-func SetupDiGetDeviceInfoListDetail(
-	deviceInfoSet DevInfo,
-) (deviceInfoSetDetailData *DevInfoListDetailData, err error) {
+func SetupDiGetDeviceInfoListDetail(deviceInfoSet DevInfo) (deviceInfoSetDetailData *DevInfoListDetailData, err error) {
 	data := &DevInfoListDetailData{}
 	data.size = data.unsafeSizeOf()
 
@@ -925,14 +907,7 @@ func (deviceInfoSet DevInfo) DeviceInfoListDetail() (*DevInfoListDetailData, err
 //sys	setupDiCreateDeviceInfo(deviceInfoSet DevInfo, DeviceName *uint16, classGUID *GUID, DeviceDescription *uint16, hwndParent uintptr, CreationFlags DICD, deviceInfoData *DevInfoData) (err error) = setupapi.SetupDiCreateDeviceInfoW
 
 // SetupDiCreateDeviceInfo function creates a new device information element and adds it as a new member to the specified device information set.
-func SetupDiCreateDeviceInfo(
-	deviceInfoSet DevInfo,
-	deviceName string,
-	classGUID *GUID,
-	deviceDescription string,
-	hwndParent uintptr,
-	creationFlags DICD,
-) (deviceInfoData *DevInfoData, err error) {
+func SetupDiCreateDeviceInfo(deviceInfoSet DevInfo, deviceName string, classGUID *GUID, deviceDescription string, hwndParent uintptr, creationFlags DICD) (deviceInfoData *DevInfoData, err error) {
 	deviceNameUTF16, err := UTF16PtrFromString(deviceName)
 	if err != nil {
 		return
@@ -949,33 +924,12 @@ func SetupDiCreateDeviceInfo(
 	data := &DevInfoData{}
 	data.size = uint32(unsafe.Sizeof(*data))
 
-	return data, setupDiCreateDeviceInfo(
-		deviceInfoSet,
-		deviceNameUTF16,
-		classGUID,
-		deviceDescriptionUTF16,
-		hwndParent,
-		creationFlags,
-		data,
-	)
+	return data, setupDiCreateDeviceInfo(deviceInfoSet, deviceNameUTF16, classGUID, deviceDescriptionUTF16, hwndParent, creationFlags, data)
 }
 
 // CreateDeviceInfo method creates a new device information element and adds it as a new member to the specified device information set.
-func (deviceInfoSet DevInfo) CreateDeviceInfo(
-	deviceName string,
-	classGUID *GUID,
-	deviceDescription string,
-	hwndParent uintptr,
-	creationFlags DICD,
-) (*DevInfoData, error) {
-	return SetupDiCreateDeviceInfo(
-		deviceInfoSet,
-		deviceName,
-		classGUID,
-		deviceDescription,
-		hwndParent,
-		creationFlags,
-	)
+func (deviceInfoSet DevInfo) CreateDeviceInfo(deviceName string, classGUID *GUID, deviceDescription string, hwndParent uintptr, creationFlags DICD) (*DevInfoData, error) {
+	return SetupDiCreateDeviceInfo(deviceInfoSet, deviceName, classGUID, deviceDescription, hwndParent, creationFlags)
 }
 
 //sys	setupDiEnumDeviceInfo(deviceInfoSet DevInfo, memberIndex uint32, deviceInfoData *DevInfoData) (err error) = setupapi.SetupDiEnumDeviceInfo
@@ -1004,10 +958,7 @@ func (deviceInfoSet DevInfo) Close() error {
 //sys	SetupDiBuildDriverInfoList(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverType SPDIT) (err error) = setupapi.SetupDiBuildDriverInfoList
 
 // BuildDriverInfoList method builds a list of drivers that is associated with a specific device or with the global class driver list for a device information set.
-func (deviceInfoSet DevInfo) BuildDriverInfoList(
-	deviceInfoData *DevInfoData,
-	driverType SPDIT,
-) error {
+func (deviceInfoSet DevInfo) BuildDriverInfoList(deviceInfoData *DevInfoData, driverType SPDIT) error {
 	return SetupDiBuildDriverInfoList(deviceInfoSet, deviceInfoData, driverType)
 }
 
@@ -1021,40 +972,22 @@ func (deviceInfoSet DevInfo) CancelDriverInfoSearch() error {
 //sys	setupDiEnumDriverInfo(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverType SPDIT, memberIndex uint32, driverInfoData *DrvInfoData) (err error) = setupapi.SetupDiEnumDriverInfoW
 
 // SetupDiEnumDriverInfo function enumerates the members of a driver list.
-func SetupDiEnumDriverInfo(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-	driverType SPDIT,
-	memberIndex int,
-) (*DrvInfoData, error) {
+func SetupDiEnumDriverInfo(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverType SPDIT, memberIndex int) (*DrvInfoData, error) {
 	data := &DrvInfoData{}
 	data.size = uint32(unsafe.Sizeof(*data))
 
-	return data, setupDiEnumDriverInfo(
-		deviceInfoSet,
-		deviceInfoData,
-		driverType,
-		uint32(memberIndex),
-		data,
-	)
+	return data, setupDiEnumDriverInfo(deviceInfoSet, deviceInfoData, driverType, uint32(memberIndex), data)
 }
 
 // EnumDriverInfo method enumerates the members of a driver list.
-func (deviceInfoSet DevInfo) EnumDriverInfo(
-	deviceInfoData *DevInfoData,
-	driverType SPDIT,
-	memberIndex int,
-) (*DrvInfoData, error) {
+func (deviceInfoSet DevInfo) EnumDriverInfo(deviceInfoData *DevInfoData, driverType SPDIT, memberIndex int) (*DrvInfoData, error) {
 	return SetupDiEnumDriverInfo(deviceInfoSet, deviceInfoData, driverType, memberIndex)
 }
 
 //sys	setupDiGetSelectedDriver(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverInfoData *DrvInfoData) (err error) = setupapi.SetupDiGetSelectedDriverW
 
 // SetupDiGetSelectedDriver function retrieves the selected driver for a device information set or a particular device information element.
-func SetupDiGetSelectedDriver(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-) (*DrvInfoData, error) {
+func SetupDiGetSelectedDriver(deviceInfoSet DevInfo, deviceInfoData *DevInfoData) (*DrvInfoData, error) {
 	data := &DrvInfoData{}
 	data.size = uint32(unsafe.Sizeof(*data))
 
@@ -1069,34 +1002,20 @@ func (deviceInfoSet DevInfo) SelectedDriver(deviceInfoData *DevInfoData) (*DrvIn
 //sys	SetupDiSetSelectedDriver(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverInfoData *DrvInfoData) (err error) = setupapi.SetupDiSetSelectedDriverW
 
 // SetSelectedDriver method sets, or resets, the selected driver for a device information element or the selected class driver for a device information set.
-func (deviceInfoSet DevInfo) SetSelectedDriver(
-	deviceInfoData *DevInfoData,
-	driverInfoData *DrvInfoData,
-) error {
+func (deviceInfoSet DevInfo) SetSelectedDriver(deviceInfoData *DevInfoData, driverInfoData *DrvInfoData) error {
 	return SetupDiSetSelectedDriver(deviceInfoSet, deviceInfoData, driverInfoData)
 }
 
 //sys	setupDiGetDriverInfoDetail(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverInfoData *DrvInfoData, driverInfoDetailData *DrvInfoDetailData, driverInfoDetailDataSize uint32, requiredSize *uint32) (err error) = setupapi.SetupDiGetDriverInfoDetailW
 
 // SetupDiGetDriverInfoDetail function retrieves driver information detail for a device information set or a particular device information element in the device information set.
-func SetupDiGetDriverInfoDetail(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-	driverInfoData *DrvInfoData,
-) (*DrvInfoDetailData, error) {
+func SetupDiGetDriverInfoDetail(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverInfoData *DrvInfoData) (*DrvInfoDetailData, error) {
 	reqSize := uint32(2048)
 	for {
 		buf := make([]byte, reqSize)
 		data := (*DrvInfoDetailData)(unsafe.Pointer(&buf[0]))
 		data.size = data.unsafeSizeOf()
-		err := setupDiGetDriverInfoDetail(
-			deviceInfoSet,
-			deviceInfoData,
-			driverInfoData,
-			data,
-			uint32(len(buf)),
-			&reqSize,
-		)
+		err := setupDiGetDriverInfoDetail(deviceInfoSet, deviceInfoData, driverInfoData, data, uint32(len(buf)), &reqSize)
 		if err == ERROR_INSUFFICIENT_BUFFER {
 			continue
 		}
@@ -1109,34 +1028,21 @@ func SetupDiGetDriverInfoDetail(
 }
 
 // DriverInfoDetail method retrieves driver information detail for a device information set or a particular device information element in the device information set.
-func (deviceInfoSet DevInfo) DriverInfoDetail(
-	deviceInfoData *DevInfoData,
-	driverInfoData *DrvInfoData,
-) (*DrvInfoDetailData, error) {
+func (deviceInfoSet DevInfo) DriverInfoDetail(deviceInfoData *DevInfoData, driverInfoData *DrvInfoData) (*DrvInfoDetailData, error) {
 	return SetupDiGetDriverInfoDetail(deviceInfoSet, deviceInfoData, driverInfoData)
 }
 
 //sys	SetupDiDestroyDriverInfoList(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, driverType SPDIT) (err error) = setupapi.SetupDiDestroyDriverInfoList
 
 // DestroyDriverInfoList method deletes a driver list.
-func (deviceInfoSet DevInfo) DestroyDriverInfoList(
-	deviceInfoData *DevInfoData,
-	driverType SPDIT,
-) error {
+func (deviceInfoSet DevInfo) DestroyDriverInfoList(deviceInfoData *DevInfoData, driverType SPDIT) error {
 	return SetupDiDestroyDriverInfoList(deviceInfoSet, deviceInfoData, driverType)
 }
 
 //sys	setupDiGetClassDevsEx(classGUID *GUID, Enumerator *uint16, hwndParent uintptr, Flags DIGCF, deviceInfoSet DevInfo, machineName *uint16, reserved uintptr) (handle DevInfo, err error) [failretval==DevInfo(InvalidHandle)] = setupapi.SetupDiGetClassDevsExW
 
 // SetupDiGetClassDevsEx function returns a handle to a device information set that contains requested device information elements for a local or a remote computer.
-func SetupDiGetClassDevsEx(
-	classGUID *GUID,
-	enumerator string,
-	hwndParent uintptr,
-	flags DIGCF,
-	deviceInfoSet DevInfo,
-	machineName string,
-) (handle DevInfo, err error) {
+func SetupDiGetClassDevsEx(classGUID *GUID, enumerator string, hwndParent uintptr, flags DIGCF, deviceInfoSet DevInfo, machineName string) (handle DevInfo, err error) {
 	var enumeratorUTF16 *uint16
 	if enumerator != "" {
 		enumeratorUTF16, err = UTF16PtrFromString(enumerator)
@@ -1151,25 +1057,14 @@ func SetupDiGetClassDevsEx(
 			return
 		}
 	}
-	return setupDiGetClassDevsEx(
-		classGUID,
-		enumeratorUTF16,
-		hwndParent,
-		flags,
-		deviceInfoSet,
-		machineNameUTF16,
-		0,
-	)
+	return setupDiGetClassDevsEx(classGUID, enumeratorUTF16, hwndParent, flags, deviceInfoSet, machineNameUTF16, 0)
 }
 
 // SetupDiCallClassInstaller function calls the appropriate class installer, and any registered co-installers, with the specified installation request (DIF code).
 //sys	SetupDiCallClassInstaller(installFunction DI_FUNCTION, deviceInfoSet DevInfo, deviceInfoData *DevInfoData) (err error) = setupapi.SetupDiCallClassInstaller
 
 // CallClassInstaller member calls the appropriate class installer, and any registered co-installers, with the specified installation request (DIF code).
-func (deviceInfoSet DevInfo) CallClassInstaller(
-	installFunction DI_FUNCTION,
-	deviceInfoData *DevInfoData,
-) error {
+func (deviceInfoSet DevInfo) CallClassInstaller(installFunction DI_FUNCTION, deviceInfoData *DevInfoData) error {
 	return SetupDiCallClassInstaller(installFunction, deviceInfoSet, deviceInfoData)
 }
 
@@ -1177,45 +1072,19 @@ func (deviceInfoSet DevInfo) CallClassInstaller(
 //sys	SetupDiOpenDevRegKey(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, Scope DICS_FLAG, HwProfile uint32, KeyType DIREG, samDesired uint32) (key Handle, err error) [failretval==InvalidHandle] = setupapi.SetupDiOpenDevRegKey
 
 // OpenDevRegKey method opens a registry key for device-specific configuration information.
-func (deviceInfoSet DevInfo) OpenDevRegKey(
-	DeviceInfoData *DevInfoData,
-	Scope DICS_FLAG,
-	HwProfile uint32,
-	KeyType DIREG,
-	samDesired uint32,
-) (Handle, error) {
-	return SetupDiOpenDevRegKey(
-		deviceInfoSet,
-		DeviceInfoData,
-		Scope,
-		HwProfile,
-		KeyType,
-		samDesired,
-	)
+func (deviceInfoSet DevInfo) OpenDevRegKey(DeviceInfoData *DevInfoData, Scope DICS_FLAG, HwProfile uint32, KeyType DIREG, samDesired uint32) (Handle, error) {
+	return SetupDiOpenDevRegKey(deviceInfoSet, DeviceInfoData, Scope, HwProfile, KeyType, samDesired)
 }
 
 //sys	setupDiGetDeviceProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, propertyKey *DEVPROPKEY, propertyType *DEVPROPTYPE, propertyBuffer *byte, propertyBufferSize uint32, requiredSize *uint32, flags uint32) (err error) = setupapi.SetupDiGetDevicePropertyW
 
 // SetupDiGetDeviceProperty function retrieves a specified device instance property.
-func SetupDiGetDeviceProperty(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-	propertyKey *DEVPROPKEY,
-) (value interface{}, err error) {
+func SetupDiGetDeviceProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, propertyKey *DEVPROPKEY) (value interface{}, err error) {
 	reqSize := uint32(256)
 	for {
 		var dataType DEVPROPTYPE
 		buf := make([]byte, reqSize)
-		err = setupDiGetDeviceProperty(
-			deviceInfoSet,
-			deviceInfoData,
-			propertyKey,
-			&dataType,
-			&buf[0],
-			uint32(len(buf)),
-			&reqSize,
-			0,
-		)
+		err = setupDiGetDeviceProperty(deviceInfoSet, deviceInfoData, propertyKey, &dataType, &buf[0], uint32(len(buf)), &reqSize, 0)
 		if err == ERROR_INSUFFICIENT_BUFFER {
 			continue
 		}
@@ -1235,24 +1104,12 @@ func SetupDiGetDeviceProperty(
 //sys	setupDiGetDeviceRegistryProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, property SPDRP, propertyRegDataType *uint32, propertyBuffer *byte, propertyBufferSize uint32, requiredSize *uint32) (err error) = setupapi.SetupDiGetDeviceRegistryPropertyW
 
 // SetupDiGetDeviceRegistryProperty function retrieves a specified Plug and Play device property.
-func SetupDiGetDeviceRegistryProperty(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-	property SPDRP,
-) (value interface{}, err error) {
+func SetupDiGetDeviceRegistryProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, property SPDRP) (value interface{}, err error) {
 	reqSize := uint32(256)
 	for {
 		var dataType uint32
 		buf := make([]byte, reqSize)
-		err = setupDiGetDeviceRegistryProperty(
-			deviceInfoSet,
-			deviceInfoData,
-			property,
-			&dataType,
-			&buf[0],
-			uint32(len(buf)),
-			&reqSize,
-		)
+		err = setupDiGetDeviceRegistryProperty(deviceInfoSet, deviceInfoData, property, &dataType, &buf[0], uint32(len(buf)), &reqSize)
 		if err == ERROR_INSUFFICIENT_BUFFER {
 			continue
 		}
@@ -1344,61 +1201,29 @@ func wcslen(str []uint16) int {
 }
 
 // DeviceRegistryProperty method retrieves a specified Plug and Play device property.
-func (deviceInfoSet DevInfo) DeviceRegistryProperty(
-	deviceInfoData *DevInfoData,
-	property SPDRP,
-) (interface{}, error) {
+func (deviceInfoSet DevInfo) DeviceRegistryProperty(deviceInfoData *DevInfoData, property SPDRP) (interface{}, error) {
 	return SetupDiGetDeviceRegistryProperty(deviceInfoSet, deviceInfoData, property)
 }
 
 //sys	setupDiSetDeviceRegistryProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, property SPDRP, propertyBuffer *byte, propertyBufferSize uint32) (err error) = setupapi.SetupDiSetDeviceRegistryPropertyW
 
 // SetupDiSetDeviceRegistryProperty function sets a Plug and Play device property for a device.
-func SetupDiSetDeviceRegistryProperty(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-	property SPDRP,
-	propertyBuffers []byte,
-) error {
-	return setupDiSetDeviceRegistryProperty(
-		deviceInfoSet,
-		deviceInfoData,
-		property,
-		&propertyBuffers[0],
-		uint32(len(propertyBuffers)),
-	)
+func SetupDiSetDeviceRegistryProperty(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, property SPDRP, propertyBuffers []byte) error {
+	return setupDiSetDeviceRegistryProperty(deviceInfoSet, deviceInfoData, property, &propertyBuffers[0], uint32(len(propertyBuffers)))
 }
 
 // SetDeviceRegistryProperty function sets a Plug and Play device property for a device.
-func (deviceInfoSet DevInfo) SetDeviceRegistryProperty(
-	deviceInfoData *DevInfoData,
-	property SPDRP,
-	propertyBuffers []byte,
-) error {
-	return SetupDiSetDeviceRegistryProperty(
-		deviceInfoSet,
-		deviceInfoData,
-		property,
-		propertyBuffers,
-	)
+func (deviceInfoSet DevInfo) SetDeviceRegistryProperty(deviceInfoData *DevInfoData, property SPDRP, propertyBuffers []byte) error {
+	return SetupDiSetDeviceRegistryProperty(deviceInfoSet, deviceInfoData, property, propertyBuffers)
 }
 
 // SetDeviceRegistryPropertyString method sets a Plug and Play device property string for a device.
-func (deviceInfoSet DevInfo) SetDeviceRegistryPropertyString(
-	deviceInfoData *DevInfoData,
-	property SPDRP,
-	str string,
-) error {
+func (deviceInfoSet DevInfo) SetDeviceRegistryPropertyString(deviceInfoData *DevInfoData, property SPDRP, str string) error {
 	str16, err := UTF16FromString(str)
 	if err != nil {
 		return err
 	}
-	err = SetupDiSetDeviceRegistryProperty(
-		deviceInfoSet,
-		deviceInfoData,
-		property,
-		utf16ToBuf(append(str16, 0)),
-	)
+	err = SetupDiSetDeviceRegistryProperty(deviceInfoSet, deviceInfoData, property, utf16ToBuf(append(str16, 0)))
 	runtime.KeepAlive(str16)
 	return err
 }
@@ -1406,10 +1231,7 @@ func (deviceInfoSet DevInfo) SetDeviceRegistryPropertyString(
 //sys	setupDiGetDeviceInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, deviceInstallParams *DevInstallParams) (err error) = setupapi.SetupDiGetDeviceInstallParamsW
 
 // SetupDiGetDeviceInstallParams function retrieves device installation parameters for a device information set or a particular device information element.
-func SetupDiGetDeviceInstallParams(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-) (*DevInstallParams, error) {
+func SetupDiGetDeviceInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfoData) (*DevInstallParams, error) {
 	params := &DevInstallParams{}
 	params.size = uint32(unsafe.Sizeof(*params))
 
@@ -1417,29 +1239,18 @@ func SetupDiGetDeviceInstallParams(
 }
 
 // DeviceInstallParams method retrieves device installation parameters for a device information set or a particular device information element.
-func (deviceInfoSet DevInfo) DeviceInstallParams(
-	deviceInfoData *DevInfoData,
-) (*DevInstallParams, error) {
+func (deviceInfoSet DevInfo) DeviceInstallParams(deviceInfoData *DevInfoData) (*DevInstallParams, error) {
 	return SetupDiGetDeviceInstallParams(deviceInfoSet, deviceInfoData)
 }
 
 //sys	setupDiGetDeviceInstanceId(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, instanceId *uint16, instanceIdSize uint32, instanceIdRequiredSize *uint32) (err error) = setupapi.SetupDiGetDeviceInstanceIdW
 
 // SetupDiGetDeviceInstanceId function retrieves the instance ID of the device.
-func SetupDiGetDeviceInstanceId(
-	deviceInfoSet DevInfo,
-	deviceInfoData *DevInfoData,
-) (string, error) {
+func SetupDiGetDeviceInstanceId(deviceInfoSet DevInfo, deviceInfoData *DevInfoData) (string, error) {
 	reqSize := uint32(1024)
 	for {
 		buf := make([]uint16, reqSize)
-		err := setupDiGetDeviceInstanceId(
-			deviceInfoSet,
-			deviceInfoData,
-			&buf[0],
-			uint32(len(buf)),
-			&reqSize,
-		)
+		err := setupDiGetDeviceInstanceId(deviceInfoSet, deviceInfoData, &buf[0], uint32(len(buf)), &reqSize)
 		if err == ERROR_INSUFFICIENT_BUFFER {
 			continue
 		}
@@ -1459,28 +1270,14 @@ func (deviceInfoSet DevInfo) DeviceInstanceID(deviceInfoData *DevInfoData) (stri
 //sys	SetupDiGetClassInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, classInstallParams *ClassInstallHeader, classInstallParamsSize uint32, requiredSize *uint32) (err error) = setupapi.SetupDiGetClassInstallParamsW
 
 // ClassInstallParams method retrieves class installation parameters for a device information set or a particular device information element.
-func (deviceInfoSet DevInfo) ClassInstallParams(
-	deviceInfoData *DevInfoData,
-	classInstallParams *ClassInstallHeader,
-	classInstallParamsSize uint32,
-	requiredSize *uint32,
-) error {
-	return SetupDiGetClassInstallParams(
-		deviceInfoSet,
-		deviceInfoData,
-		classInstallParams,
-		classInstallParamsSize,
-		requiredSize,
-	)
+func (deviceInfoSet DevInfo) ClassInstallParams(deviceInfoData *DevInfoData, classInstallParams *ClassInstallHeader, classInstallParamsSize uint32, requiredSize *uint32) error {
+	return SetupDiGetClassInstallParams(deviceInfoSet, deviceInfoData, classInstallParams, classInstallParamsSize, requiredSize)
 }
 
 //sys	SetupDiSetDeviceInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, deviceInstallParams *DevInstallParams) (err error) = setupapi.SetupDiSetDeviceInstallParamsW
 
 // SetDeviceInstallParams member sets device installation parameters for a device information set or a particular device information element.
-func (deviceInfoSet DevInfo) SetDeviceInstallParams(
-	deviceInfoData *DevInfoData,
-	deviceInstallParams *DevInstallParams,
-) error {
+func (deviceInfoSet DevInfo) SetDeviceInstallParams(deviceInfoData *DevInfoData, deviceInstallParams *DevInstallParams) error {
 	return SetupDiSetDeviceInstallParams(deviceInfoSet, deviceInfoData, deviceInstallParams)
 }
 
@@ -1488,17 +1285,8 @@ func (deviceInfoSet DevInfo) SetDeviceInstallParams(
 //sys	SetupDiSetClassInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfoData, classInstallParams *ClassInstallHeader, classInstallParamsSize uint32) (err error) = setupapi.SetupDiSetClassInstallParamsW
 
 // SetClassInstallParams method sets or clears class install parameters for a device information set or a particular device information element.
-func (deviceInfoSet DevInfo) SetClassInstallParams(
-	deviceInfoData *DevInfoData,
-	classInstallParams *ClassInstallHeader,
-	classInstallParamsSize uint32,
-) error {
-	return SetupDiSetClassInstallParams(
-		deviceInfoSet,
-		deviceInfoData,
-		classInstallParams,
-		classInstallParamsSize,
-	)
+func (deviceInfoSet DevInfo) SetClassInstallParams(deviceInfoData *DevInfoData, classInstallParams *ClassInstallHeader, classInstallParamsSize uint32) error {
+	return SetupDiSetClassInstallParams(deviceInfoSet, deviceInfoData, classInstallParams, classInstallParamsSize)
 }
 
 //sys	setupDiClassNameFromGuidEx(classGUID *GUID, className *uint16, classNameSize uint32, requiredSize *uint32, machineName *uint16, reserved uintptr) (err error) = setupapi.SetupDiClassNameFromGuidExW
@@ -1515,14 +1303,7 @@ func SetupDiClassNameFromGuidEx(classGUID *GUID, machineName string) (className 
 		}
 	}
 
-	err = setupDiClassNameFromGuidEx(
-		classGUID,
-		&classNameUTF16[0],
-		MAX_CLASS_NAME_LEN,
-		nil,
-		machineNameUTF16,
-		0,
-	)
+	err = setupDiClassNameFromGuidEx(classGUID, &classNameUTF16[0], MAX_CLASS_NAME_LEN, nil, machineNameUTF16, 0)
 	if err != nil {
 		return
 	}
@@ -1551,14 +1332,7 @@ func SetupDiClassGuidsFromNameEx(className string, machineName string) ([]GUID, 
 	reqSize := uint32(4)
 	for {
 		buf := make([]GUID, reqSize)
-		err = setupDiClassGuidsFromNameEx(
-			classNameUTF16,
-			&buf[0],
-			uint32(len(buf)),
-			&reqSize,
-			machineNameUTF16,
-			0,
-		)
+		err = setupDiClassGuidsFromNameEx(classNameUTF16, &buf[0], uint32(len(buf)), &reqSize, machineNameUTF16, 0)
 		if err == ERROR_INSUFFICIENT_BUFFER {
 			continue
 		}
@@ -1608,11 +1382,7 @@ func SetupUninstallOEMInf(infFileName string, flags SUOI) error {
 //sys cm_Get_Device_Interface_List_Size(len *uint32, interfaceClass *GUID, deviceID *uint16, flags uint32) (ret CONFIGRET) = CfgMgr32.CM_Get_Device_Interface_List_SizeW
 //sys cm_Get_Device_Interface_List(interfaceClass *GUID, deviceID *uint16, buffer *uint16, bufferLen uint32, flags uint32) (ret CONFIGRET) = CfgMgr32.CM_Get_Device_Interface_ListW
 
-func CM_Get_Device_Interface_List(
-	deviceID string,
-	interfaceClass *GUID,
-	flags uint32,
-) ([]string, error) {
+func CM_Get_Device_Interface_List(deviceID string, interfaceClass *GUID, flags uint32) ([]string, error) {
 	deviceID16, err := UTF16PtrFromString(deviceID)
 	if err != nil {
 		return nil, err
@@ -1646,12 +1416,7 @@ func CM_Get_Device_Interface_List(
 
 //sys cm_Get_DevNode_Status(status *uint32, problemNumber *uint32, devInst DEVINST, flags uint32) (ret CONFIGRET) = CfgMgr32.CM_Get_DevNode_Status
 
-func CM_Get_DevNode_Status(
-	status *uint32,
-	problemNumber *uint32,
-	devInst DEVINST,
-	flags uint32,
-) error {
+func CM_Get_DevNode_Status(status *uint32, problemNumber *uint32, devInst DEVINST, flags uint32) error {
 	ret := cm_Get_DevNode_Status(status, problemNumber, devInst, flags)
 	if ret == CR_SUCCESS {
 		return nil

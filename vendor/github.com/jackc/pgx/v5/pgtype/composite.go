@@ -74,10 +74,7 @@ type encodePlanCompositeCodecCompositeIndexGetterToBinary struct {
 	m  *Map
 }
 
-func (plan *encodePlanCompositeCodecCompositeIndexGetterToBinary) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *encodePlanCompositeCodecCompositeIndexGetterToBinary) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	getter := value.(CompositeIndexGetter)
 
 	if getter.IsNull() {
@@ -97,10 +94,7 @@ type encodePlanCompositeCodecCompositeIndexGetterToText struct {
 	m  *Map
 }
 
-func (plan *encodePlanCompositeCodecCompositeIndexGetterToText) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *encodePlanCompositeCodecCompositeIndexGetterToText) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	getter := value.(CompositeIndexGetter)
 
 	if getter.IsNull() {
@@ -151,11 +145,7 @@ func (plan *scanPlanBinaryCompositeToCompositeIndexScanner) Scan(src []byte, tar
 			if fieldTarget != nil {
 				fieldPlan := plan.m.PlanScan(field.Type.OID, BinaryFormatCode, fieldTarget)
 				if fieldPlan == nil {
-					return fmt.Errorf(
-						"unable to encode %v into OID %d in binary format",
-						field,
-						field.Type.OID,
-					)
+					return fmt.Errorf("unable to encode %v into OID %d in binary format", field, field.Type.OID)
 				}
 
 				err := fieldPlan.Scan(scanner.Bytes(), fieldTarget)
@@ -194,11 +184,7 @@ func (plan *scanPlanTextCompositeToCompositeIndexScanner) Scan(src []byte, targe
 			if fieldTarget != nil {
 				fieldPlan := plan.m.PlanScan(field.Type.OID, TextFormatCode, fieldTarget)
 				if fieldPlan == nil {
-					return fmt.Errorf(
-						"unable to encode %v into OID %d in text format",
-						field,
-						field.Type.OID,
-					)
+					return fmt.Errorf("unable to encode %v into OID %d in text format", field, field.Type.OID)
 				}
 
 				err := fieldPlan.Scan(scanner.Bytes(), fieldTarget)
@@ -218,12 +204,7 @@ func (plan *scanPlanTextCompositeToCompositeIndexScanner) Scan(src []byte, targe
 	return nil
 }
 
-func (c *CompositeCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *CompositeCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}
@@ -253,11 +234,7 @@ func (c *CompositeCodec) DecodeValue(m *Map, oid uint32, format int16, src []byt
 			var v any
 			fieldPlan := m.PlanScan(c.Fields[i].Type.OID, TextFormatCode, &v)
 			if fieldPlan == nil {
-				return nil, fmt.Errorf(
-					"unable to scan OID %d in text format into %v",
-					c.Fields[i].Type.OID,
-					v,
-				)
+				return nil, fmt.Errorf("unable to scan OID %d in text format into %v", c.Fields[i].Type.OID, v)
 			}
 
 			err := fieldPlan.Scan(scanner.Bytes(), &v)
@@ -280,11 +257,7 @@ func (c *CompositeCodec) DecodeValue(m *Map, oid uint32, format int16, src []byt
 			var v any
 			fieldPlan := m.PlanScan(scanner.OID(), BinaryFormatCode, &v)
 			if fieldPlan == nil {
-				return nil, fmt.Errorf(
-					"unable to scan OID %d in binary format into %v",
-					scanner.OID(),
-					v,
-				)
+				return nil, fmt.Errorf("unable to scan OID %d in binary format into %v", scanner.OID(), v)
 			}
 
 			err := fieldPlan.Scan(scanner.Bytes(), &v)

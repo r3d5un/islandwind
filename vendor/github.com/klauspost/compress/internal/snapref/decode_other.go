@@ -20,52 +20,28 @@ func decode(dst, src []byte) int {
 				s++
 			case x == 60:
 				s += 2
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					return decodeErrCodeCorrupt
 				}
 				x = uint32(src[s-1])
 			case x == 61:
 				s += 3
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					return decodeErrCodeCorrupt
 				}
 				x = uint32(src[s-2]) | uint32(src[s-1])<<8
 			case x == 62:
 				s += 4
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					return decodeErrCodeCorrupt
 				}
 				x = uint32(src[s-3]) | uint32(src[s-2])<<8 | uint32(src[s-1])<<16
 			case x == 63:
 				s += 5
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					return decodeErrCodeCorrupt
 				}
-				x = uint32(
-					src[s-4],
-				) | uint32(
-					src[s-3],
-				)<<8 | uint32(
-					src[s-2],
-				)<<16 | uint32(
-					src[s-1],
-				)<<24
+				x = uint32(src[s-4]) | uint32(src[s-3])<<8 | uint32(src[s-2])<<16 | uint32(src[s-1])<<24
 			}
 			length = int(x) + 1
 			if length <= 0 {
@@ -81,11 +57,7 @@ func decode(dst, src []byte) int {
 
 		case tagCopy1:
 			s += 2
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				return decodeErrCodeCorrupt
 			}
 			length = 4 + int(src[s-2])>>2&0x7
@@ -93,11 +65,7 @@ func decode(dst, src []byte) int {
 
 		case tagCopy2:
 			s += 3
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				return decodeErrCodeCorrupt
 			}
 			length = 1 + int(src[s-3])>>2
@@ -105,25 +73,11 @@ func decode(dst, src []byte) int {
 
 		case tagCopy4:
 			s += 5
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				return decodeErrCodeCorrupt
 			}
 			length = 1 + int(src[s-5])>>2
-			offset = int(
-				uint32(
-					src[s-4],
-				) | uint32(
-					src[s-3],
-				)<<8 | uint32(
-					src[s-2],
-				)<<16 | uint32(
-					src[s-1],
-				)<<24,
-			)
+			offset = int(uint32(src[s-4]) | uint32(src[s-3])<<8 | uint32(src[s-2])<<16 | uint32(src[s-1])<<24)
 		}
 
 		if offset <= 0 || d < offset || length > len(dst)-d {

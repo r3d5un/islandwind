@@ -10,10 +10,7 @@ import (
 )
 
 // NetworkList returns the list of networks configured in the docker host.
-func (cli *Client) NetworkList(
-	ctx context.Context,
-	options network.ListOptions,
-) ([]network.Summary, error) {
+func (cli *Client) NetworkList(ctx context.Context, options network.ListOptions) ([]network.Summary, error) {
 	query := url.Values{}
 	if options.Filters.Len() > 0 {
 		//nolint:staticcheck // ignore SA1019 for old code

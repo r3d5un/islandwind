@@ -124,12 +124,7 @@ func (f *FlagSet) Float64SliceVar(p *[]float64, name string, value []float64, us
 }
 
 // Float64SliceVarP is like Float64SliceVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) Float64SliceVarP(
-	p *[]float64,
-	name, shorthand string,
-	value []float64,
-	usage string,
-) {
+func (f *FlagSet) Float64SliceVarP(p *[]float64, name, shorthand string, value []float64, usage string) {
 	f.VarP(newFloat64SliceValue(value, p), name, shorthand, usage)
 }
 

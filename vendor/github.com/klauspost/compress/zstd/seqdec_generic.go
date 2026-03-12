@@ -115,11 +115,7 @@ func (s *sequenceDecs) decode(seqs []seqVals) error {
 		}
 		litRemain -= ll
 		if litRemain < 0 {
-			return fmt.Errorf(
-				"unexpected literal count, want %d bytes, but only %d is available",
-				ll,
-				litRemain+ll,
-			)
+			return fmt.Errorf("unexpected literal count, want %d bytes, but only %d is available", ll, litRemain+ll)
 		}
 		seqs[i] = seqVals{
 			ll: ll,
@@ -172,12 +168,7 @@ func (s *sequenceDecs) executeSimple(seqs []seqVals, hist []byte) error {
 	}
 
 	if debugDecoder {
-		printf(
-			"Execute %d seqs with literals: %d into %d bytes\n",
-			len(seqs),
-			len(s.literals),
-			s.seqSize,
-		)
+		printf("Execute %d seqs with literals: %d into %d bytes\n", len(seqs), len(s.literals), s.seqSize)
 	}
 
 	var t = len(s.out)
@@ -191,11 +182,7 @@ func (s *sequenceDecs) executeSimple(seqs []seqVals, hist []byte) error {
 
 		// Malformed input
 		if seq.mo > t+len(hist) || seq.mo > s.windowSize {
-			return fmt.Errorf(
-				"match offset (%d) bigger than current history (%d)",
-				seq.mo,
-				t+len(hist),
-			)
+			return fmt.Errorf("match offset (%d) bigger than current history (%d)", seq.mo, t+len(hist))
 		}
 
 		// Copy from history.

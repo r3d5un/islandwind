@@ -105,10 +105,7 @@ func GetTimestamp(value string, reference time.Time) (string, error) {
 //	since := time.Unix(seconds, nanoseconds)
 //
 // returns seconds as defaultSeconds if value == ""
-func ParseTimestamps(
-	value string,
-	defaultSeconds int64,
-) (seconds int64, nanoseconds int64, _ error) {
+func ParseTimestamps(value string, defaultSeconds int64) (seconds int64, nanoseconds int64, _ error) {
 	if value == "" {
 		return defaultSeconds, 0, nil
 	}

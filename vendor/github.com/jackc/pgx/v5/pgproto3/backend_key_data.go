@@ -19,11 +19,7 @@ func (*BackendKeyData) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *BackendKeyData) Decode(src []byte) error {
 	if len(src) != 8 {
-		return &invalidMessageLenErr{
-			messageType: "BackendKeyData",
-			expectedLen: 8,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "BackendKeyData", expectedLen: 8, actualLen: len(src)}
 	}
 
 	dst.ProcessID = binary.BigEndian.Uint32(src[:4])

@@ -253,16 +253,7 @@ func (l *HvsockListener) Accept() (_ net.Conn, err error) {
 	var addrbuf [addrlen * 2]byte
 
 	var bytes uint32
-	err = windows.AcceptEx(
-		l.sock.handle,
-		sock.handle,
-		&addrbuf[0],
-		0, /* rxdatalen */
-		addrlen,
-		addrlen,
-		&bytes,
-		&c.o,
-	)
+	err = windows.AcceptEx(l.sock.handle, sock.handle, &addrbuf[0], 0 /* rxdatalen */, addrlen, addrlen, &bytes, &c.o)
 	if _, err = l.sock.asyncIO(c, nil, bytes, err); err != nil {
 		return nil, l.opErr("accept", os.NewSyscallError("acceptex", err))
 	}

@@ -21,12 +21,7 @@ import (
 type NamedArgs map[string]any
 
 // RewriteQuery implements the QueryRewriter interface.
-func (na NamedArgs) RewriteQuery(
-	ctx context.Context,
-	conn *Conn,
-	sql string,
-	args []any,
-) (newSQL string, newArgs []any, err error) {
+func (na NamedArgs) RewriteQuery(ctx context.Context, conn *Conn, sql string, args []any) (newSQL string, newArgs []any, err error) {
 	return rewriteQuery(na, sql, false)
 }
 
@@ -35,12 +30,7 @@ func (na NamedArgs) RewriteQuery(
 type StrictNamedArgs map[string]any
 
 // RewriteQuery implements the QueryRewriter interface.
-func (sna StrictNamedArgs) RewriteQuery(
-	ctx context.Context,
-	conn *Conn,
-	sql string,
-	args []any,
-) (newSQL string, newArgs []any, err error) {
+func (sna StrictNamedArgs) RewriteQuery(ctx context.Context, conn *Conn, sql string, args []any) (newSQL string, newArgs []any, err error) {
 	return rewriteQuery(sna, sql, true)
 }
 
@@ -59,11 +49,7 @@ type sqlLexer struct {
 
 type stateFn func(*sqlLexer) stateFn
 
-func rewriteQuery(
-	na map[string]any,
-	sql string,
-	isStrict bool,
-) (newSQL string, newArgs []any, err error) {
+func rewriteQuery(na map[string]any, sql string, isStrict bool) (newSQL string, newArgs []any, err error) {
 	l := &sqlLexer{
 		src:           sql,
 		stateFn:       rawState,
@@ -90,20 +76,14 @@ func rewriteQuery(
 		var found bool
 		newArgs[ordinal-1], found = na[string(name)]
 		if isStrict && !found {
-			return "", nil, fmt.Errorf(
-				"argument %s found in sql query but not present in StrictNamedArgs",
-				name,
-			)
+			return "", nil, fmt.Errorf("argument %s found in sql query but not present in StrictNamedArgs", name)
 		}
 	}
 
 	if isStrict {
 		for name := range na {
 			if _, found := l.nameToOrdinal[namedArg(name)]; !found {
-				return "", nil, fmt.Errorf(
-					"argument %s of StrictNamedArgs not found in sql query",
-					name,
-				)
+				return "", nil, fmt.Errorf("argument %s of StrictNamedArgs not found in sql query", name)
 			}
 		}
 	}

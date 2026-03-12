@@ -11,10 +11,7 @@ import (
 )
 
 // ContainerInspect returns the container information.
-func (cli *Client) ContainerInspect(
-	ctx context.Context,
-	containerID string,
-) (container.InspectResponse, error) {
+func (cli *Client) ContainerInspect(ctx context.Context, containerID string) (container.InspectResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.InspectResponse{}, err
@@ -32,11 +29,7 @@ func (cli *Client) ContainerInspect(
 }
 
 // ContainerInspectWithRaw returns the container information and its raw representation.
-func (cli *Client) ContainerInspectWithRaw(
-	ctx context.Context,
-	containerID string,
-	getSize bool,
-) (container.InspectResponse, []byte, error) {
+func (cli *Client) ContainerInspectWithRaw(ctx context.Context, containerID string, getSize bool) (container.InspectResponse, []byte, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.InspectResponse{}, nil, err

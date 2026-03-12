@@ -19,19 +19,15 @@ type dockerHostContext string
 var DockerHostContextKey = dockerHostContext("docker_host")
 
 var (
-	ErrDockerHostNotSet           = errors.New("DOCKER_HOST is not set")
-	ErrDockerSocketOverrideNotSet = errors.New(
-		"TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE is not set",
-	)
+	ErrDockerHostNotSet               = errors.New("DOCKER_HOST is not set")
+	ErrDockerSocketOverrideNotSet     = errors.New("TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE is not set")
 	ErrDockerSocketNotSetInContext    = errors.New("socket not set in context")
 	ErrDockerSocketNotSetInProperties = errors.New("socket not set in ~/.testcontainers.properties")
 	ErrNoUnixSchema                   = errors.New("URL schema is not unix")
 	ErrSocketNotFound                 = errors.New("socket not found")
 	ErrSocketNotFoundInPath           = errors.New("docker socket not found in " + DockerSocketPath)
 	// ErrTestcontainersHostNotSetInProperties this error is specific to Testcontainers
-	ErrTestcontainersHostNotSetInProperties = errors.New(
-		"tc.host not set in ~/.testcontainers.properties",
-	)
+	ErrTestcontainersHostNotSetInProperties = errors.New("tc.host not set in ~/.testcontainers.properties")
 )
 
 var (
@@ -63,11 +59,7 @@ func DefaultGatewayIP() (string, error) {
 // dockerHostCheck Use a vanilla Docker client to check if the Docker host is reachable.
 // It will avoid recursive calls to this function.
 var dockerHostCheck = func(ctx context.Context, host string) error {
-	cli, err := client.NewClientWithOpts(
-		client.FromEnv,
-		client.WithHost(host),
-		client.WithAPIVersionNegotiation(),
-	)
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithHost(host), client.WithAPIVersionNegotiation())
 	if err != nil {
 		return fmt.Errorf("new client: %w", err)
 	}

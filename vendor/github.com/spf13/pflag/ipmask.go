@@ -80,12 +80,7 @@ func (f *FlagSet) IPMaskVar(p *net.IPMask, name string, value net.IPMask, usage 
 }
 
 // IPMaskVarP is like IPMaskVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) IPMaskVarP(
-	p *net.IPMask,
-	name, shorthand string,
-	value net.IPMask,
-	usage string,
-) {
+func (f *FlagSet) IPMaskVarP(p *net.IPMask, name, shorthand string, value net.IPMask, usage string) {
 	f.VarP(newIPMaskValue(value, p), name, shorthand, usage)
 }
 

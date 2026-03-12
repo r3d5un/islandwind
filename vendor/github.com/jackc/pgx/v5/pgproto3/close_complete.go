@@ -13,11 +13,7 @@ func (*CloseComplete) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *CloseComplete) Decode(src []byte) error {
 	if len(src) != 0 {
-		return &invalidMessageLenErr{
-			messageType: "CloseComplete",
-			expectedLen: 0,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "CloseComplete", expectedLen: 0, actualLen: len(src)}
 	}
 
 	return nil

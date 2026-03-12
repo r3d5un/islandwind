@@ -14,18 +14,8 @@ import "net/http"
 // [WithHTTPClient] and [WithHTTPHeaders] options. We recommend enabling API
 // version negotiation by passing the [WithAPIVersionNegotiation] option instead
 // of WithVersion.
-func NewClient(
-	host string,
-	version string,
-	client *http.Client,
-	httpHeaders map[string]string,
-) (*Client, error) {
-	return NewClientWithOpts(
-		WithHost(host),
-		WithVersion(version),
-		WithHTTPClient(client),
-		WithHTTPHeaders(httpHeaders),
-	)
+func NewClient(host string, version string, client *http.Client, httpHeaders map[string]string) (*Client, error) {
+	return NewClientWithOpts(WithHost(host), WithVersion(version), WithHTTPClient(client), WithHTTPHeaders(httpHeaders))
 }
 
 // NewEnvClient initializes a new API client based on environment variables.

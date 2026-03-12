@@ -123,10 +123,7 @@ func getCPUVariant() (string, error) {
 
 			variant, err = getCPUVariantFromArch(arch)
 			if err != nil {
-				return "", fmt.Errorf(
-					"failure getting CPU variant from machine architecture: %v",
-					err,
-				)
+				return "", fmt.Errorf("failure getting CPU variant from machine architecture: %v", err)
 			}
 		} else {
 			return "", fmt.Errorf("failure getting CPU variant: %v", err)

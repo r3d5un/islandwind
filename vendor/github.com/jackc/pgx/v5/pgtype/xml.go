@@ -68,10 +68,7 @@ func (c *XMLCodec) PlanEncode(m *Map, oid uint32, format int16, value any) Encod
 
 type encodePlanXMLCodecEitherFormatString struct{}
 
-func (encodePlanXMLCodecEitherFormatString) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanXMLCodecEitherFormatString) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	xmlString := value.(string)
 	buf = append(buf, xmlString...)
 	return buf, nil
@@ -79,10 +76,7 @@ func (encodePlanXMLCodecEitherFormatString) Encode(
 
 type encodePlanXMLCodecEitherFormatByteSlice struct{}
 
-func (encodePlanXMLCodecEitherFormatByteSlice) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (encodePlanXMLCodecEitherFormatByteSlice) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	xmlBytes := value.([]byte)
 	if xmlBytes == nil {
 		return nil, nil
@@ -96,10 +90,7 @@ type encodePlanXMLCodecEitherFormatMarshal struct {
 	marshal func(v any) ([]byte, error)
 }
 
-func (e *encodePlanXMLCodecEitherFormatMarshal) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (e *encodePlanXMLCodecEitherFormatMarshal) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	xmlBytes, err := e.marshal(value)
 	if err != nil {
 		return nil, err
@@ -186,12 +177,7 @@ func (s *scanPlanXMLToXMLUnmarshal) Scan(src []byte, dst any) error {
 	return s.unmarshal(src, dst)
 }
 
-func (c *XMLCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *XMLCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

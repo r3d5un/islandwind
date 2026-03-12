@@ -11,20 +11,12 @@ import (
 // ImageTag tags an image in the docker host
 func (cli *Client) ImageTag(ctx context.Context, source, target string) error {
 	if _, err := reference.ParseAnyReference(source); err != nil {
-		return errors.Wrapf(
-			err,
-			"Error parsing reference: %q is not a valid repository/tag",
-			source,
-		)
+		return errors.Wrapf(err, "Error parsing reference: %q is not a valid repository/tag", source)
 	}
 
 	ref, err := reference.ParseNormalizedNamed(target)
 	if err != nil {
-		return errors.Wrapf(
-			err,
-			"Error parsing reference: %q is not a valid repository/tag",
-			target,
-		)
+		return errors.Wrapf(err, "Error parsing reference: %q is not a valid repository/tag", target)
 	}
 
 	if _, isCanonical := ref.(reference.Canonical); isCanonical {

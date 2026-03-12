@@ -196,12 +196,7 @@ func (w *fen) readEvents() {
 	}
 }
 
-func (w *fen) handleDirectory(
-	path string,
-	stat os.FileInfo,
-	follow bool,
-	handler func(string, os.FileInfo, bool) error,
-) error {
+func (w *fen) handleDirectory(path string, stat os.FileInfo, follow bool, handler func(string, os.FileInfo, bool) error) error {
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return err

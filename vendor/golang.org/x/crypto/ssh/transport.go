@@ -126,8 +126,7 @@ func (t *transport) readPacket() (p []byte, err error) {
 			break
 		}
 		// in strict mode we pass through DEBUG and IGNORE packets only during the initial KEX
-		if len(p) == 0 || (t.strictMode && !t.initialKEXDone) ||
-			(p[0] != msgIgnore && p[0] != msgDebug) {
+		if len(p) == 0 || (t.strictMode && !t.initialKEXDone) || (p[0] != msgIgnore && p[0] != msgDebug) {
 			break
 		}
 	}
@@ -187,12 +186,7 @@ func (t *transport) writePacket(packet []byte) error {
 	return t.writer.writePacket(t.bufWriter, t.rand, packet, t.strictMode)
 }
 
-func (s *connectionState) writePacket(
-	w *bufio.Writer,
-	rand io.Reader,
-	packet []byte,
-	strictMode bool,
-) error {
+func (s *connectionState) writePacket(w *bufio.Writer, rand io.Reader, packet []byte, strictMode bool) error {
 	changeKeys := len(packet) > 0 && packet[0] == msgNewKeys
 
 	err := s.packetCipher.writeCipherPacket(s.seqNum, w, rand, packet)

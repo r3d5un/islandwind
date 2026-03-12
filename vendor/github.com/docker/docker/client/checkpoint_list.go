@@ -9,11 +9,7 @@ import (
 )
 
 // CheckpointList returns the checkpoints of the given container in the docker host
-func (cli *Client) CheckpointList(
-	ctx context.Context,
-	container string,
-	options checkpoint.ListOptions,
-) ([]checkpoint.Summary, error) {
+func (cli *Client) CheckpointList(ctx context.Context, container string, options checkpoint.ListOptions) ([]checkpoint.Summary, error) {
 	var checkpoints []checkpoint.Summary
 
 	query := url.Values{}

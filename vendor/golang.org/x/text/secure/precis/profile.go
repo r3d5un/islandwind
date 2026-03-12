@@ -140,10 +140,7 @@ func (b *buffers) apply(t transform.SpanningTransformer) (err error) {
 // Pre-allocate transformers when possible. In some cases this avoids allocation.
 var (
 	foldWidthT transform.SpanningTransformer = width.Fold
-	lowerCaseT transform.SpanningTransformer = cases.Lower(
-		language.Und,
-		cases.HandleFinalSigma(false),
-	)
+	lowerCaseT transform.SpanningTransformer = cases.Lower(language.Und, cases.HandleFinalSigma(false))
 )
 
 // TODO: make this a method on profile.

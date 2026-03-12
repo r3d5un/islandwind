@@ -18,11 +18,7 @@ type ExtendedQueryBuilder struct {
 
 // Build sets ParamValues, ParamFormats, and ResultFormats for use with *PgConn.ExecParams or *PgConn.ExecPrepared. If
 // sd is nil then QueryExecModeExec behavior will be used.
-func (eqb *ExtendedQueryBuilder) Build(
-	m *pgtype.Map,
-	sd *pgconn.StatementDescription,
-	args []any,
-) error {
+func (eqb *ExtendedQueryBuilder) Build(m *pgtype.Map, sd *pgconn.StatementDescription, args []any) error {
 	eqb.reset()
 
 	if sd == nil {
@@ -57,12 +53,7 @@ func (eqb *ExtendedQueryBuilder) Build(
 
 // appendParam appends a parameter to the query. format may be -1 to automatically choose the format. If arg is nil it
 // must be an untyped nil.
-func (eqb *ExtendedQueryBuilder) appendParam(
-	m *pgtype.Map,
-	oid uint32,
-	format int16,
-	arg any,
-) error {
+func (eqb *ExtendedQueryBuilder) appendParam(m *pgtype.Map, oid uint32, format int16, arg any) error {
 	if format == -1 {
 		preferredFormat := eqb.chooseParameterFormatCode(m, oid, arg)
 		preferredErr := eqb.appendParam(m, oid, preferredFormat, arg)
@@ -124,12 +115,7 @@ func (eqb *ExtendedQueryBuilder) reset() {
 	}
 }
 
-func (eqb *ExtendedQueryBuilder) encodeExtendedParamValue(
-	m *pgtype.Map,
-	oid uint32,
-	formatCode int16,
-	arg any,
-) ([]byte, error) {
+func (eqb *ExtendedQueryBuilder) encodeExtendedParamValue(m *pgtype.Map, oid uint32, formatCode int16, arg any) ([]byte, error) {
 	if eqb.paramValueBytes == nil {
 		eqb.paramValueBytes = make([]byte, 0, 128)
 	}
@@ -150,11 +136,7 @@ func (eqb *ExtendedQueryBuilder) encodeExtendedParamValue(
 // chooseParameterFormatCode determines the correct format code for an
 // argument to a prepared statement. It defaults to TextFormatCode if no
 // determination can be made.
-func (eqb *ExtendedQueryBuilder) chooseParameterFormatCode(
-	m *pgtype.Map,
-	oid uint32,
-	arg any,
-) int16 {
+func (eqb *ExtendedQueryBuilder) chooseParameterFormatCode(m *pgtype.Map, oid uint32, arg any) int16 {
 	switch arg.(type) {
 	case string, *string:
 		return TextFormatCode

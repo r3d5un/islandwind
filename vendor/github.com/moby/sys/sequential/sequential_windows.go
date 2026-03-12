@@ -106,15 +106,7 @@ func openSequential(path string, mode int) (fd windows.Handle, err error) {
 	}
 	// Use FILE_FLAG_SEQUENTIAL_SCAN rather than FILE_ATTRIBUTE_NORMAL as implemented in golang.
 	// https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea#FILE_FLAG_SEQUENTIAL_SCAN
-	h, e := windows.CreateFile(
-		pathp,
-		access,
-		sharemode,
-		sa,
-		createmode,
-		windows.FILE_FLAG_SEQUENTIAL_SCAN,
-		0,
-	)
+	h, e := windows.CreateFile(pathp, access, sharemode, sa, createmode, windows.FILE_FLAG_SEQUENTIAL_SCAN, 0)
 	return h, e
 }
 

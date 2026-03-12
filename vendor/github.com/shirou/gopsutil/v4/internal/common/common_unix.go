@@ -11,12 +11,7 @@ import (
 	"strings"
 )
 
-func CallLsofWithContext(
-	ctx context.Context,
-	invoke Invoker,
-	pid int32,
-	args ...string,
-) ([]string, error) {
+func CallLsofWithContext(ctx context.Context, invoke Invoker, pid int32, args ...string) ([]string, error) {
 	var cmd []string
 	if pid == 0 { // will get from all processes.
 		cmd = []string{"-a", "-n", "-P"}

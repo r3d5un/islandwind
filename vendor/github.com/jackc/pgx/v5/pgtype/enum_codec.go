@@ -52,12 +52,7 @@ func (c *EnumCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanP
 	return nil
 }
 
-func (c *EnumCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *EnumCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return c.DecodeValue(m, oid, format, src)
 }
 

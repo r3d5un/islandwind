@@ -10,10 +10,7 @@ import (
 )
 
 // NodeInspectWithRaw returns the node information.
-func (cli *Client) NodeInspectWithRaw(
-	ctx context.Context,
-	nodeID string,
-) (swarm.Node, []byte, error) {
+func (cli *Client) NodeInspectWithRaw(ctx context.Context, nodeID string) (swarm.Node, []byte, error) {
 	nodeID, err := trimID("node", nodeID)
 	if err != nil {
 		return swarm.Node{}, nil, err

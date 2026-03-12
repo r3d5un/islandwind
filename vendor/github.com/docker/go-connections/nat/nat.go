@@ -209,11 +209,7 @@ func ParsePortSpec(rawPort string) ([]PortMapping, error) {
 			// In this case, use the host port range as the dynamic
 			// host port range to allocate into.
 			if endPort != startPort {
-				return nil, fmt.Errorf(
-					"invalid ranges specified for container and host Ports: %s and %s",
-					containerPort,
-					hostPort,
-				)
+				return nil, fmt.Errorf("invalid ranges specified for container and host Ports: %s and %s", containerPort, hostPort)
 			}
 		}
 	}

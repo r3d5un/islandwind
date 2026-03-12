@@ -84,8 +84,7 @@ func (e *fastBase) ensureHist(n int) {
 		return
 	}
 	l := e.maxMatchOff
-	if (e.lowMem && e.maxMatchOff > maxCompressedBlockSize) ||
-		e.maxMatchOff <= maxCompressedBlockSize {
+	if (e.lowMem && e.maxMatchOff > maxCompressedBlockSize) || e.maxMatchOff <= maxCompressedBlockSize {
 		l += maxCompressedBlockSize
 	} else {
 		l += e.maxMatchOff
@@ -123,13 +122,7 @@ func (e *fastBase) matchlen(s, t int32, src []byte) int32 {
 			panic(err)
 		}
 		if len(src)-int(s) > maxCompressedBlockSize {
-			panic(
-				fmt.Sprintf(
-					"len(src)-s (%d) > maxCompressedBlockSize (%d)",
-					len(src)-int(s),
-					maxCompressedBlockSize,
-				),
-			)
+			panic(fmt.Sprintf("len(src)-s (%d) > maxCompressedBlockSize (%d)", len(src)-int(s), maxCompressedBlockSize))
 		}
 	}
 	return int32(matchLen(src[s:], src[t:]))

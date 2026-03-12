@@ -94,12 +94,7 @@ func (e EXCEPINFO) String() string {
 	}
 	return fmt.Sprintf(
 		"wCode: %#x, bstrSource: %v, bstrDescription: %v, bstrHelpFile: %v, dwHelpContext: %#x, scode: %#x",
-		e.wCode,
-		e.source,
-		e.description,
-		e.helpFile,
-		e.dwHelpContext,
-		e.scode,
+		e.wCode, e.source, e.description, e.helpFile, e.dwHelpContext, e.scode,
 	)
 }
 

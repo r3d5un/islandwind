@@ -66,11 +66,7 @@ type ConnectError struct {
 }
 
 func (e *ConnectError) Error() string {
-	prefix := fmt.Sprintf(
-		"failed to connect to `user=%s database=%s`:",
-		e.Config.User,
-		e.Config.Database,
-	)
+	prefix := fmt.Sprintf("failed to connect to `user=%s database=%s`:", e.Config.User, e.Config.Database)
 	details := e.err.Error()
 	if strings.Contains(details, "\n") {
 		return prefix + "\n\t" + strings.ReplaceAll(details, "\n", "\n\t")
@@ -218,8 +214,7 @@ func newContextAlreadyDoneError(ctx context.Context) (err error) {
 }
 
 func redactPW(connString string) string {
-	if strings.HasPrefix(connString, "postgres://") ||
-		strings.HasPrefix(connString, "postgresql://") {
+	if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
 		if u, err := url.Parse(connString); err == nil {
 			return redactURL(u)
 		}

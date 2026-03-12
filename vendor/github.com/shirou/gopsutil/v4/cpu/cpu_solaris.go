@@ -40,12 +40,7 @@ func Times(percpu bool) ([]TimesStat, error) {
 var kstatSplit = regexp.MustCompile(`[:\s]+`)
 
 func TimesWithContext(ctx context.Context, percpu bool) ([]TimesStat, error) {
-	kstatSysOut, err := invoke.CommandWithContext(
-		ctx,
-		"kstat",
-		"-p",
-		"cpu_stat:*:*:/^idle$|^user$|^kernel$|^iowait$|^swap$/",
-	)
+	kstatSysOut, err := invoke.CommandWithContext(ctx, "kstat", "-p", "cpu_stat:*:*:/^idle$|^user$|^kernel$|^iowait$|^swap$/")
 	if err != nil {
 		return nil, fmt.Errorf("cannot execute kstat: %w", err)
 	}
@@ -170,9 +165,7 @@ func parseISAInfo(cmdOutput string) ([]string, error) {
 	return flags, nil
 }
 
-var psrInfoMatch = regexp.MustCompile(
-	`The physical processor has (?:([\d]+) virtual processors? \(([\d-]+)\)|([\d]+) cores and ([\d]+) virtual processors[^\n]+)\n(?:\s+ The core has.+\n)*\s+.+ \((\w+) ([\S]+) family (.+) model (.+) step (.+) clock (.+) MHz\)\n[\s]*(.*)`,
-)
+var psrInfoMatch = regexp.MustCompile(`The physical processor has (?:([\d]+) virtual processors? \(([\d-]+)\)|([\d]+) cores and ([\d]+) virtual processors[^\n]+)\n(?:\s+ The core has.+\n)*\s+.+ \((\w+) ([\S]+) family (.+) model (.+) step (.+) clock (.+) MHz\)\n[\s]*(.*)`)
 
 const (
 	psrNumCoresOffset   = 1
@@ -198,11 +191,7 @@ func parseProcessorInfo(cmdOutput string) ([]InfoStat, error) {
 		if physicalCPU[psrStepOffset] != "" {
 			stepParsed, err := strconv.ParseInt(physicalCPU[psrStepOffset], 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"cannot parse value %q for step as 32-bit integer: %w",
-					physicalCPU[9],
-					err,
-				)
+				return nil, fmt.Errorf("cannot parse value %q for step as 32-bit integer: %w", physicalCPU[9], err)
 			}
 			step = int32(stepParsed)
 		}
@@ -210,11 +199,7 @@ func parseProcessorInfo(cmdOutput string) ([]InfoStat, error) {
 		if physicalCPU[psrClockOffset] != "" {
 			clockParsed, err := strconv.ParseInt(physicalCPU[psrClockOffset], 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"cannot parse value %q for clock as 32-bit integer: %w",
-					physicalCPU[10],
-					err,
-				)
+				return nil, fmt.Errorf("cannot parse value %q for clock as 32-bit integer: %w", physicalCPU[10], err)
 			}
 			clock = float64(clockParsed)
 		}
@@ -226,11 +211,7 @@ func parseProcessorInfo(cmdOutput string) ([]InfoStat, error) {
 		case physicalCPU[psrNumCoresOffset] != "":
 			numCores, err = strconv.ParseInt(physicalCPU[psrNumCoresOffset], 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"cannot parse value %q for core count as 32-bit integer: %w",
-					physicalCPU[1],
-					err,
-				)
+				return nil, fmt.Errorf("cannot parse value %q for core count as 32-bit integer: %w", physicalCPU[1], err)
 			}
 
 			for i := 0; i < int(numCores); i++ {
@@ -251,20 +232,12 @@ func parseProcessorInfo(cmdOutput string) ([]InfoStat, error) {
 		case physicalCPU[psrNumCoresHTOffset] != "":
 			numCores, err = strconv.ParseInt(physicalCPU[psrNumCoresHTOffset], 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"cannot parse value %q for core count as 32-bit integer: %w",
-					physicalCPU[3],
-					err,
-				)
+				return nil, fmt.Errorf("cannot parse value %q for core count as 32-bit integer: %w", physicalCPU[3], err)
 			}
 
 			numHT, err = strconv.ParseInt(physicalCPU[psrNumHTOffset], 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"cannot parse value %q for hyperthread count as 32-bit integer: %w",
-					physicalCPU[4],
-					err,
-				)
+				return nil, fmt.Errorf("cannot parse value %q for hyperthread count as 32-bit integer: %w", physicalCPU[4], err)
 			}
 
 			for i := 0; i < int(numCores); i++ {

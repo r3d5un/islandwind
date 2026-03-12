@@ -115,10 +115,7 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			return err
 		}
 	}
-	return fmt.Errorf(
-		"ssh: unable to authenticate, attempted methods %v, no supported methods remain",
-		tried,
-	)
+	return fmt.Errorf("ssh: unable to authenticate, attempted methods %v, no supported methods remain", tried)
 }
 
 // An AuthMethod represents an instance of an RFC 4252 authentication method.
@@ -128,13 +125,7 @@ type AuthMethod interface {
 	// If authentication is not successful, a []string of alternative
 	// method names is returned. If the slice is nil, it will be ignored
 	// and the previous set of possible methods will be reused.
-	auth(
-		session []byte,
-		user string,
-		p packetConn,
-		rand io.Reader,
-		extensions map[string][]byte,
-	) (authResult, []string, error)
+	auth(session []byte, user string, p packetConn, rand io.Reader, extensions map[string][]byte) (authResult, []string, error)
 
 	// method returns the RFC 4252 method name.
 	method() string
@@ -143,13 +134,7 @@ type AuthMethod interface {
 // "none" authentication, RFC 4252 section 5.2.
 type noneAuth int
 
-func (n *noneAuth) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	_ map[string][]byte,
-) (authResult, []string, error) {
+func (n *noneAuth) auth(session []byte, user string, c packetConn, rand io.Reader, _ map[string][]byte) (authResult, []string, error) {
 	if err := c.writePacket(Marshal(&userAuthRequestMsg{
 		User:    user,
 		Service: serviceSSH,
@@ -169,13 +154,7 @@ func (n *noneAuth) method() string {
 // a function call, e.g. by prompting the user.
 type passwordCallback func() (password string, err error)
 
-func (cb passwordCallback) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	_ map[string][]byte,
-) (authResult, []string, error) {
+func (cb passwordCallback) auth(session []byte, user string, c packetConn, rand io.Reader, _ map[string][]byte) (authResult, []string, error) {
 	type passwordAuthMsg struct {
 		User     string `sshtype:"50"`
 		Service  string
@@ -231,7 +210,7 @@ type publickeyAuthMsg struct {
 	PubKey   []byte
 	// Sig is tagged with "rest" so Marshal will exclude it during
 	// validateKey
-	Sig []byte `             ssh:"rest"`
+	Sig []byte `ssh:"rest"`
 }
 
 // publicKeyCallback is an AuthMethod that uses a set of key
@@ -242,10 +221,7 @@ func (cb publicKeyCallback) method() string {
 	return "publickey"
 }
 
-func pickSignatureAlgorithm(
-	signer Signer,
-	extensions map[string][]byte,
-) (MultiAlgorithmSigner, string, error) {
+func pickSignatureAlgorithm(signer Signer, extensions map[string][]byte) (MultiAlgorithmSigner, string, error) {
 	var as MultiAlgorithmSigner
 	keyFormat := signer.PublicKey().Type()
 
@@ -272,12 +248,8 @@ func pickSignatureAlgorithm(
 		// common algorithm cannot be found. We use the public key format if the
 		// MultiAlgorithmSigner supports it, otherwise we return an error.
 		if !slices.Contains(as.Algorithms(), underlyingAlgo(keyFormat)) {
-			return "", fmt.Errorf(
-				"ssh: no common public key signature algorithm, server only supports %q for key type %q, signer only supports %v",
-				underlyingAlgo(keyFormat),
-				keyFormat,
-				as.Algorithms(),
-			)
+			return "", fmt.Errorf("ssh: no common public key signature algorithm, server only supports %q for key type %q, signer only supports %v",
+				underlyingAlgo(keyFormat), keyFormat, as.Algorithms())
 		}
 		return keyFormat, nil
 	}
@@ -319,13 +291,7 @@ func pickSignatureAlgorithm(
 	return as, algo, nil
 }
 
-func (cb publicKeyCallback) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	extensions map[string][]byte,
-) (authResult, []string, error) {
+func (cb publicKeyCallback) auth(session []byte, user string, c packetConn, rand io.Reader, extensions map[string][]byte) (authResult, []string, error) {
 	// Authentication is performed by sending an enquiry to test if a key is
 	// acceptable to the remote. If the key is acceptable, the client will
 	// attempt to authenticate with the valid key.  If not the client will repeat
@@ -563,13 +529,7 @@ func (cb KeyboardInteractiveChallenge) method() string {
 	return "keyboard-interactive"
 }
 
-func (cb KeyboardInteractiveChallenge) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	_ map[string][]byte,
-) (authResult, []string, error) {
+func (cb KeyboardInteractiveChallenge) auth(session []byte, user string, c packetConn, rand io.Reader, _ map[string][]byte) (authResult, []string, error) {
 	type initiateMsg struct {
 		User       string `sshtype:"50"`
 		Service    string
@@ -619,10 +579,7 @@ func (cb KeyboardInteractiveChallenge) auth(
 				return authPartialSuccess, msg.Methods, nil
 			}
 			if !gotUserAuthInfoRequest {
-				return authFailure, msg.Methods, unexpectedMessageError(
-					msgUserAuthInfoRequest,
-					packet[0],
-				)
+				return authFailure, msg.Methods, unexpectedMessageError(msgUserAuthInfoRequest, packet[0])
 			}
 			return authFailure, msg.Methods, nil
 		case msgUserAuthSuccess:
@@ -652,9 +609,7 @@ func (cb KeyboardInteractiveChallenge) auth(
 		}
 
 		if len(rest) != 0 {
-			return authFailure, nil, errors.New(
-				"ssh: extra data following keyboard-interactive pairs",
-			)
+			return authFailure, nil, errors.New("ssh: extra data following keyboard-interactive pairs")
 		}
 
 		answers, err := cb(msg.Name, msg.Instruction, prompts, echos)
@@ -663,11 +618,7 @@ func (cb KeyboardInteractiveChallenge) auth(
 		}
 
 		if len(answers) != len(prompts) {
-			return authFailure, nil, fmt.Errorf(
-				"ssh: incorrect number of answers from keyboard-interactive callback %d (expected %d)",
-				len(answers),
-				len(prompts),
-			)
+			return authFailure, nil, fmt.Errorf("ssh: incorrect number of answers from keyboard-interactive callback %d (expected %d)", len(answers), len(prompts))
 		}
 		responseLength := 1 + 4
 		for _, a := range answers {
@@ -693,13 +644,7 @@ type retryableAuthMethod struct {
 	maxTries   int
 }
 
-func (r *retryableAuthMethod) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	extensions map[string][]byte,
-) (ok authResult, methods []string, err error) {
+func (r *retryableAuthMethod) auth(session []byte, user string, c packetConn, rand io.Reader, extensions map[string][]byte) (ok authResult, methods []string, err error) {
 	for i := 0; r.maxTries <= 0 || i < r.maxTries; i++ {
 		ok, methods, err = r.authMethod.auth(session, user, c, rand, extensions)
 		if ok != authFailure || err != nil { // either success, partial success or error terminate
@@ -744,13 +689,7 @@ type gssAPIWithMICCallback struct {
 	target       string
 }
 
-func (g *gssAPIWithMICCallback) auth(
-	session []byte,
-	user string,
-	c packetConn,
-	rand io.Reader,
-	_ map[string][]byte,
-) (authResult, []string, error) {
+func (g *gssAPIWithMICCallback) auth(session []byte, user string, c packetConn, rand io.Reader, _ map[string][]byte) (authResult, []string, error) {
 	m := &userAuthRequestMsg{
 		User:    user,
 		Service: serviceSSH,
@@ -783,11 +722,7 @@ func (g *gssAPIWithMICCallback) auth(
 	defer g.gssAPIClient.DeleteSecContext()
 	for {
 		// Initiates the establishment of a security context between the application and a remote peer.
-		nextToken, needContinue, err := g.gssAPIClient.InitSecContext(
-			"host@"+g.target,
-			token,
-			false,
-		)
+		nextToken, needContinue, err := g.gssAPIClient.InitSecContext("host@"+g.target, token, false)
 		if err != nil {
 			return authFailure, nil, err
 		}

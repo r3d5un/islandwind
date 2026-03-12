@@ -11,11 +11,7 @@ import (
 )
 
 // ContainerCommit applies changes to a container and creates a new tagged image.
-func (cli *Client) ContainerCommit(
-	ctx context.Context,
-	containerID string,
-	options container.CommitOptions,
-) (container.CommitResponse, error) {
+func (cli *Client) ContainerCommit(ctx context.Context, containerID string, options container.CommitOptions) (container.CommitResponse, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.CommitResponse{}, err
@@ -29,9 +25,7 @@ func (cli *Client) ContainerCommit(
 		}
 
 		if _, isCanonical := ref.(reference.Canonical); isCanonical {
-			return container.CommitResponse{}, errors.New(
-				"refusing to create a tag with a digest reference",
-			)
+			return container.CommitResponse{}, errors.New("refusing to create a tag with a digest reference")
 		}
 		ref = reference.TagNameOnly(ref)
 

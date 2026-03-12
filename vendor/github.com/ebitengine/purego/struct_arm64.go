@@ -50,11 +50,9 @@ func getStruct(outType reflect.Type, syscall syscall15Args) (v reflect.Value) {
 		if isAllFloats, numFields := isAllSameFloat(outType); isAllFloats && numFields <= 4 {
 			switch numFields {
 			case 4:
-				return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b, c, d uintptr }{syscall.f1, syscall.f2, syscall.f3, syscall.f4})).
-					Elem()
+				return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b, c, d uintptr }{syscall.f1, syscall.f2, syscall.f3, syscall.f4})).Elem()
 			case 3:
-				return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b, c uintptr }{syscall.f1, syscall.f2, syscall.f3})).
-					Elem()
+				return reflect.NewAt(outType, unsafe.Pointer(&struct{ a, b, c uintptr }{syscall.f1, syscall.f2, syscall.f3})).Elem()
 			default:
 				panic("unreachable")
 			}
@@ -72,18 +70,12 @@ const (
 	_INT      = 0b11
 )
 
-func addStruct(
-	v reflect.Value,
-	numInts, numFloats, numStack *int,
-	addInt, addFloat, addStack func(uintptr),
-	keepAlive []any,
-) []any {
+func addStruct(v reflect.Value, numInts, numFloats, numStack *int, addInt, addFloat, addStack func(uintptr), keepAlive []any) []any {
 	if v.Type().Size() == 0 {
 		return keepAlive
 	}
 
-	if hva, hfa, size := isHVA(v.Type()), isHFA(v.Type()), v.Type().Size(); hva || hfa ||
-		size <= 16 {
+	if hva, hfa, size := isHVA(v.Type()), isHFA(v.Type()), v.Type().Size(); hva || hfa || size <= 16 {
 		// if this doesn't fit entirely in registers then
 		// each element goes onto the stack
 		if hfa && *numFloats+v.NumField() > numOfFloatRegisters() {
@@ -296,12 +288,7 @@ func isHVA(t reflect.Type) bool {
 		return true
 	case reflect.Array:
 		switch first.Type.Elem().Kind() {
-		case reflect.Uint8,
-			reflect.Uint16,
-			reflect.Uint32,
-			reflect.Int8,
-			reflect.Int16,
-			reflect.Int32:
+		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Int8, reflect.Int16, reflect.Int32:
 			return true
 		default:
 			return false
@@ -459,11 +446,7 @@ func collectStackArgs(args []reflect.Value, startIdx int, numInts, numFloats int
 
 		if val.Kind() == reflect.Struct {
 			// Check if struct still fits in remaining registers
-			fitsInRegister, newNumInts, newNumFloats = structFitsInRegisters(
-				val,
-				tempNumInts,
-				tempNumFloats,
-			)
+			fitsInRegister, newNumInts, newNumFloats = structFitsInRegisters(val, tempNumInts, tempNumFloats)
 		} else {
 			// Primitive argument
 			isFloat := val.Kind() == reflect.Float32 || val.Kind() == reflect.Float64
@@ -482,16 +465,7 @@ func collectStackArgs(args []reflect.Value, startIdx int, numInts, numFloats int
 			// Process through normal register allocation
 			tempNumInts = newNumInts
 			tempNumFloats = newNumFloats
-			keepAlive = addValue(
-				val,
-				keepAlive,
-				addInt,
-				addFloat,
-				addStack,
-				pNumInts,
-				pNumFloats,
-				pNumStack,
-			)
+			keepAlive = addValue(val, keepAlive, addInt, addFloat, addStack, pNumInts, pNumFloats, pNumStack)
 		} else {
 			// Convert strings to C strings before bundling
 			if val.Kind() == reflect.String {

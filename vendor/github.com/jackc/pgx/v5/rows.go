@@ -181,16 +181,7 @@ func (rows *baseRows) Close() {
 	}
 
 	if rows.batchTracer != nil {
-		rows.batchTracer.TraceBatchQuery(
-			rows.ctx,
-			rows.conn,
-			TraceBatchQueryData{
-				SQL:        rows.sql,
-				Args:       rows.args,
-				CommandTag: rows.commandTag,
-				Err:        rows.err,
-			},
-		)
+		rows.batchTracer.TraceBatchQuery(rows.ctx, rows.conn, TraceBatchQueryData{SQL: rows.sql, Args: rows.args, CommandTag: rows.commandTag, Err: rows.err})
 	} else if rows.queryTracer != nil {
 		rows.queryTracer.TraceQueryEnd(rows.ctx, rows.conn, TraceQueryEndData{rows.commandTag, rows.err})
 	}
@@ -247,11 +238,7 @@ func (rows *baseRows) Scan(dest ...any) error {
 	values := rows.values
 
 	if len(fieldDescriptions) != len(values) {
-		err := fmt.Errorf(
-			"number of field descriptions must equal number of values, got %d and %d",
-			len(fieldDescriptions),
-			len(values),
-		)
+		err := fmt.Errorf("number of field descriptions must equal number of values, got %d and %d", len(fieldDescriptions), len(values))
 		rows.fatal(err)
 		return err
 	}
@@ -267,11 +254,7 @@ func (rows *baseRows) Scan(dest ...any) error {
 	}
 
 	if len(fieldDescriptions) != len(dest) {
-		err := fmt.Errorf(
-			"number of field descriptions must equal number of destinations, got %d and %d",
-			len(fieldDescriptions),
-			len(dest),
-		)
+		err := fmt.Errorf("number of field descriptions must equal number of destinations, got %d and %d", len(fieldDescriptions), len(dest))
 		rows.fatal(err)
 		return err
 	}
@@ -280,11 +263,7 @@ func (rows *baseRows) Scan(dest ...any) error {
 		rows.scanPlans = make([]pgtype.ScanPlan, len(values))
 		rows.scanTypes = make([]reflect.Type, len(values))
 		for i := range dest {
-			rows.scanPlans[i] = m.PlanScan(
-				fieldDescriptions[i].DataTypeOID,
-				fieldDescriptions[i].Format,
-				dest[i],
-			)
+			rows.scanPlans[i] = m.PlanScan(fieldDescriptions[i].DataTypeOID, fieldDescriptions[i].Format, dest[i])
 			rows.scanTypes[i] = reflect.TypeOf(dest[i])
 		}
 	}
@@ -295,11 +274,7 @@ func (rows *baseRows) Scan(dest ...any) error {
 		}
 
 		if rows.scanTypes[i] != reflect.TypeOf(dst) {
-			rows.scanPlans[i] = m.PlanScan(
-				fieldDescriptions[i].DataTypeOID,
-				fieldDescriptions[i].Format,
-				dest[i],
-			)
+			rows.scanPlans[i] = m.PlanScan(fieldDescriptions[i].DataTypeOID, fieldDescriptions[i].Format, dest[i])
 			rows.scanTypes[i] = reflect.TypeOf(dest[i])
 		}
 
@@ -389,25 +364,12 @@ func (e ScanArgError) Unwrap() error {
 // fieldDescriptions - OID and format of values
 // values - the raw data as returned from the PostgreSQL server
 // dest - the destination that values will be decoded into
-func ScanRow(
-	typeMap *pgtype.Map,
-	fieldDescriptions []pgconn.FieldDescription,
-	values [][]byte,
-	dest ...any,
-) error {
+func ScanRow(typeMap *pgtype.Map, fieldDescriptions []pgconn.FieldDescription, values [][]byte, dest ...any) error {
 	if len(fieldDescriptions) != len(values) {
-		return fmt.Errorf(
-			"number of field descriptions must equal number of values, got %d and %d",
-			len(fieldDescriptions),
-			len(values),
-		)
+		return fmt.Errorf("number of field descriptions must equal number of values, got %d and %d", len(fieldDescriptions), len(values))
 	}
 	if len(fieldDescriptions) != len(dest) {
-		return fmt.Errorf(
-			"number of field descriptions must equal number of destinations, got %d and %d",
-			len(fieldDescriptions),
-			len(dest),
-		)
+		return fmt.Errorf("number of field descriptions must equal number of destinations, got %d and %d", len(fieldDescriptions), len(dest))
 	}
 
 	for i, d := range dest {
@@ -415,12 +377,7 @@ func ScanRow(
 			continue
 		}
 
-		err := typeMap.Scan(
-			fieldDescriptions[i].DataTypeOID,
-			fieldDescriptions[i].Format,
-			values[i],
-			d,
-		)
+		err := typeMap.Scan(fieldDescriptions[i].DataTypeOID, fieldDescriptions[i].Format, values[i], d)
 		if err != nil {
 			return ScanArgError{ColumnIndex: i, FieldName: fieldDescriptions[i].Name, Err: err}
 		}

@@ -123,10 +123,7 @@ type TarModifierFunc func(path string, header *tar.Header, content io.Reader) (*
 
 // ReplaceFileTarWrapper converts inputTarStream to a new tar stream. Files in the
 // tar stream are modified if they match any of the keys in mods.
-func ReplaceFileTarWrapper(
-	inputTarStream io.ReadCloser,
-	mods map[string]TarModifierFunc,
-) io.ReadCloser {
+func ReplaceFileTarWrapper(inputTarStream io.ReadCloser, mods map[string]TarModifierFunc) io.ReadCloser {
 	pipeReader, pipeWriter := io.Pipe()
 
 	go func() {
@@ -274,11 +271,7 @@ type tarAppender struct {
 	WhiteoutConverter tarWhiteoutConverter
 }
 
-func newTarAppender(
-	idMapping user.IdentityMapping,
-	writer io.Writer,
-	chownOpts *ChownOpts,
-) *tarAppender {
+func newTarAppender(idMapping user.IdentityMapping, writer io.Writer, chownOpts *ChownOpts) *tarAppender {
 	return &tarAppender{
 		SeenFiles:       make(map[uint64]string),
 		TarWriter:       tar.NewWriter(writer),
@@ -348,8 +341,7 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 	// handle re-mapping container ID mappings back to host ID mappings before
 	// writing tar headers/files. We skip whiteout files because they were written
 	// by the kernel and already have proper ownership relative to the host
-	if !isOverlayWhiteout && !strings.HasPrefix(filepath.Base(hdr.Name), WhiteoutPrefix) &&
-		!ta.IdentityMapping.Empty() {
+	if !isOverlayWhiteout && !strings.HasPrefix(filepath.Base(hdr.Name), WhiteoutPrefix) && !ta.IdentityMapping.Empty() {
 		uid, gid, err := getFileUIDGID(fi.Sys())
 		if err != nil {
 			return err
@@ -410,12 +402,7 @@ func (ta *tarAppender) addTarFile(path, name string) error {
 	return nil
 }
 
-func createTarFile(
-	path, extractDir string,
-	hdr *tar.Header,
-	reader io.Reader,
-	opts *TarOptions,
-) error {
+func createTarFile(path, extractDir string, hdr *tar.Header, reader io.Reader, opts *TarOptions) error {
 	var (
 		Lchown                     = true
 		inUserns, bestEffortXattrs bool
@@ -460,9 +447,7 @@ func createTarFile(
 
 	case tar.TypeBlock, tar.TypeChar:
 		if inUserns { // cannot create devices in a userns
-			log.G(context.TODO()).
-				WithFields(log.Fields{"path": path, "type": hdr.Typeflag}).
-				Debug("skipping device nodes in a userns")
+			log.G(context.TODO()).WithFields(log.Fields{"path": path, "type": hdr.Typeflag}).Debug("skipping device nodes in a userns")
 			return nil
 		}
 		// Handle this is an OS-specific way
@@ -475,9 +460,7 @@ func createTarFile(
 		if err := handleTarTypeBlockCharFifo(hdr, path); err != nil {
 			if inUserns && errors.Is(err, syscall.EPERM) {
 				// In most cases, cannot create a fifo if running in user namespace
-				log.G(context.TODO()).
-					WithFields(log.Fields{"error": err, "path": path, "type": hdr.Typeflag}).
-					Debug("creating fifo node in a userns")
+				log.G(context.TODO()).WithFields(log.Fields{"error": err, "path": path, "type": hdr.Typeflag}).Debug("creating fifo node in a userns")
 				return nil
 			}
 			return err
@@ -497,10 +480,7 @@ func createTarFile(
 	case tar.TypeSymlink:
 		// 	path 				-> hdr.Linkname = targetPath
 		// e.g. /extractDir/path/to/symlink 	-> ../2/file	= /extractDir/path/2/file
-		targetPath := filepath.Join(
-			filepath.Dir(path),
-			hdr.Linkname,
-		) // #nosec G305 -- The target path is checked for path traversal.
+		targetPath := filepath.Join(filepath.Dir(path), hdr.Linkname) // #nosec G305 -- The target path is checked for path traversal.
 
 		// the reason we don't need to check symlinks in the path (with FollowSymlinkInScope) is because
 		// that symlink would first have to be created, which would be caught earlier, at this very check:
@@ -529,14 +509,7 @@ func createTarFile(
 			if inUserns && errors.Is(err, syscall.EINVAL) {
 				msg = " (try increasing the number of subordinate IDs in /etc/subuid and /etc/subgid)"
 			}
-			return fmt.Errorf(
-				"failed to Lchown %q for UID %d, GID %d%s: %w",
-				path,
-				hdr.Uid,
-				hdr.Gid,
-				msg,
-				err,
-			)
+			return fmt.Errorf("failed to Lchown %q for UID %d, GID %d%s: %w", path, hdr.Uid, hdr.Gid, msg, err)
 		}
 	}
 
@@ -547,8 +520,7 @@ func createTarFile(
 			continue
 		}
 		if err := lsetxattr(path, xattr, []byte(value), 0); err != nil {
-			if bestEffortXattrs && errors.Is(err, syscall.ENOTSUP) ||
-				errors.Is(err, syscall.EPERM) {
+			if bestEffortXattrs && errors.Is(err, syscall.ENOTSUP) || errors.Is(err, syscall.EPERM) {
 				// EPERM occurs if modifying xattrs is not allowed. This can
 				// happen when running in userns with restrictions (ChromeOS).
 				xattrErrs = append(xattrErrs, err.Error())
@@ -754,10 +726,7 @@ func (t *Tarballer) Do() {
 
 				var matchInfo patternmatcher.MatchInfo
 				if len(parentMatchInfo) != 0 {
-					skip, matchInfo, err = t.pm.MatchesUsingParentResults(
-						relFilePath,
-						parentMatchInfo[len(parentMatchInfo)-1],
-					)
+					skip, matchInfo, err = t.pm.MatchesUsingParentResults(relFilePath, parentMatchInfo[len(parentMatchInfo)-1])
 				} else {
 					skip, matchInfo, err = t.pm.MatchesUsingParentResults(relFilePath, patternmatcher.MatchInfo{})
 				}
@@ -969,13 +938,7 @@ func createImpliedDirectories(dest string, hdr *tar.Header, options *TarOptions)
 			// usage that reduces the portability of an image.
 			uid, gid := options.IDMap.RootPair()
 
-			err = user.MkdirAllAndChown(
-				parentPath,
-				ImpliedDirectoryMode,
-				uid,
-				gid,
-				user.WithOnlyNew,
-			)
+			err = user.MkdirAllAndChown(parentPath, ImpliedDirectoryMode, uid, gid, user.WithOnlyNew)
 			if err != nil {
 				return err
 			}

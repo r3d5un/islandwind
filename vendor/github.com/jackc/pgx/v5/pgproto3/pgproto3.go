@@ -47,12 +47,7 @@ type invalidMessageLenErr struct {
 }
 
 func (e *invalidMessageLenErr) Error() string {
-	return fmt.Sprintf(
-		"%s body must have length of %d, but it is %d",
-		e.messageType,
-		e.expectedLen,
-		e.actualLen,
-	)
+	return fmt.Sprintf("%s body must have length of %d, but it is %d", e.messageType, e.expectedLen, e.actualLen)
 }
 
 type invalidMessageFormatErr struct {
@@ -87,11 +82,7 @@ type ExceededMaxBodyLenErr struct {
 }
 
 func (e *ExceededMaxBodyLenErr) Error() string {
-	return fmt.Sprintf(
-		"invalid body length: expected at most %d, but got %d",
-		e.MaxExpectedBodyLen,
-		e.ActualBodyLen,
-	)
+	return fmt.Sprintf("invalid body length: expected at most %d, but got %d", e.MaxExpectedBodyLen, e.ActualBodyLen)
 }
 
 // getValueFromJSON gets the value from a protocol message representation in JSON.

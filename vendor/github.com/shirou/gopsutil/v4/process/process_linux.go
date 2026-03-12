@@ -202,10 +202,7 @@ func (p *Process) RlimitWithContext(ctx context.Context) ([]RlimitStat, error) {
 	return p.RlimitUsageWithContext(ctx, false)
 }
 
-func (p *Process) RlimitUsageWithContext(
-	ctx context.Context,
-	gatherUsed bool,
-) ([]RlimitStat, error) {
+func (p *Process) RlimitUsageWithContext(ctx context.Context, gatherUsed bool) ([]RlimitStat, error) {
 	rlimits, err := p.fillFromLimitsWithContext(ctx)
 	if !gatherUsed || err != nil {
 		return rlimits, err
@@ -382,17 +379,11 @@ func (p *Process) ConnectionsWithContext(ctx context.Context) ([]net.ConnectionS
 	return net.ConnectionsPidWithContext(ctx, "all", p.Pid)
 }
 
-func (p *Process) ConnectionsMaxWithContext(
-	ctx context.Context,
-	maxConn int,
-) ([]net.ConnectionStat, error) {
+func (p *Process) ConnectionsMaxWithContext(ctx context.Context, maxConn int) ([]net.ConnectionStat, error) {
 	return net.ConnectionsPidMaxWithContext(ctx, "all", p.Pid, maxConn)
 }
 
-func (p *Process) MemoryMapsWithContext(
-	ctx context.Context,
-	grouped bool,
-) (*[]MemoryMapsStat, error) {
+func (p *Process) MemoryMapsWithContext(ctx context.Context, grouped bool) (*[]MemoryMapsStat, error) {
 	pid := p.Pid
 	var ret []MemoryMapsStat
 	smapsPath := common.HostProcWithContext(ctx, strconv.Itoa(int(pid)), "smaps")
@@ -758,9 +749,7 @@ func (p *Process) fillFromIOWithContext(ctx context.Context) (*IOCountersStat, e
 }
 
 // Get memory info from /proc/(pid)/statm
-func (p *Process) fillFromStatmWithContext(
-	ctx context.Context,
-) (*MemoryInfoStat, *MemoryInfoExStat, error) {
+func (p *Process) fillFromStatmWithContext(ctx context.Context) (*MemoryInfoStat, *MemoryInfoExStat, error) {
 	pid := p.Pid
 	memPath := common.HostProcWithContext(ctx, strconv.Itoa(int(pid)), "statm")
 	contents, err := os.ReadFile(memPath)
@@ -1034,16 +1023,11 @@ func (p *Process) fillFromStatusWithContext(ctx context.Context) error {
 	return nil
 }
 
-func (p *Process) fillFromTIDStat(
-	tid int32,
-) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
+func (p *Process) fillFromTIDStat(tid int32) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
 	return p.fillFromTIDStatWithContext(context.Background(), tid)
 }
 
-func (p *Process) fillFromTIDStatWithContext(
-	ctx context.Context,
-	tid int32,
-) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
+func (p *Process) fillFromTIDStatWithContext(ctx context.Context, tid int32) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
 	pid := p.Pid
 	var statPath string
 
@@ -1151,9 +1135,7 @@ func (p *Process) fillFromTIDStatWithContext(
 	return terminal, int32(ppid), cpuTimes, createTime, uint32(rtpriority), nice, faults, nil
 }
 
-func (p *Process) fillFromStatWithContext(
-	ctx context.Context,
-) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
+func (p *Process) fillFromStatWithContext(ctx context.Context) (uint64, int32, *cpu.TimesStat, int64, uint32, int32, *PageFaultsStat, error) {
 	return p.fillFromTIDStatWithContext(ctx, -1)
 }
 

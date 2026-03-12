@@ -8,10 +8,7 @@ import (
 )
 
 // ConfigCreate creates a new config.
-func (cli *Client) ConfigCreate(
-	ctx context.Context,
-	config swarm.ConfigSpec,
-) (swarm.ConfigCreateResponse, error) {
+func (cli *Client) ConfigCreate(ctx context.Context, config swarm.ConfigSpec) (swarm.ConfigCreateResponse, error) {
 	var response swarm.ConfigCreateResponse
 	if err := cli.NewVersionError(ctx, "1.30", "config create"); err != nil {
 		return response, err

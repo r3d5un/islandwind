@@ -81,9 +81,7 @@ func (ws *LogStrategy) AsRegexp() *LogStrategy {
 // Returning a [PermanentError] will stop the wait and return an error, otherwise
 // it will retry until the timeout is reached.
 // [LogStrategy.Occurrence] is ignored if this option is set.
-func (ws *LogStrategy) Submatch(
-	callback func(pattern string, matches [][][]byte) error,
-) *LogStrategy {
+func (ws *LogStrategy) Submatch(callback func(pattern string, matches [][][]byte) error) *LogStrategy {
 	ws.submatchCallback = callback
 
 	return ws

@@ -125,8 +125,7 @@ func (p Properties) Folded() rune {
 // Narrow returns the narrow variant of a rune or 0 if the rune is already
 // narrow or doesn't have a narrow variant.
 func (p Properties) Narrow() rune {
-	if k := p.elem.kind(); byte(p.elem) != 0 &&
-		(k == EastAsianFullwidth || k == EastAsianWide || k == EastAsianAmbiguous) {
+	if k := p.elem.kind(); byte(p.elem) != 0 && (k == EastAsianFullwidth || k == EastAsianWide || k == EastAsianAmbiguous) {
 		buf := inverseData[byte(p.elem)]
 		buf[buf[0]] ^= p.last
 		r, _ := utf8.DecodeRune(buf[1 : 1+buf[0]])

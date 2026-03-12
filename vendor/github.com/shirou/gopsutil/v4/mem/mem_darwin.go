@@ -44,11 +44,7 @@ func SwapMemoryWithContext(_ context.Context) (*SwapMemoryStat, error) {
 		return ret, err
 	}
 	if len(value) != 32 {
-		return ret, fmt.Errorf(
-			"unexpected output of sysctl vm.swapusage: %v (len: %d)",
-			value,
-			len(value),
-		)
+		return ret, fmt.Errorf("unexpected output of sysctl vm.swapusage: %v (len: %d)", value, len(value))
 	}
 	swap := (*swapUsage)(unsafe.Pointer(&value[0]))
 

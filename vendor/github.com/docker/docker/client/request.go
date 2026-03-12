@@ -19,33 +19,17 @@ import (
 )
 
 // head sends an http request to the docker API using the method HEAD.
-func (cli *Client) head(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) head(ctx context.Context, path string, query url.Values, headers http.Header) (*http.Response, error) {
 	return cli.sendRequest(ctx, http.MethodHead, path, query, nil, headers)
 }
 
 // get sends an http request to the docker API using the method GET with a specific Go context.
-func (cli *Client) get(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) get(ctx context.Context, path string, query url.Values, headers http.Header) (*http.Response, error) {
 	return cli.sendRequest(ctx, http.MethodGet, path, query, nil, headers)
 }
 
 // post sends an http request to the docker API using the method POST with a specific Go context.
-func (cli *Client) post(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	obj interface{},
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) post(ctx context.Context, path string, query url.Values, obj interface{}, headers http.Header) (*http.Response, error) {
 	body, headers, err := encodeBody(obj, headers)
 	if err != nil {
 		return nil, err
@@ -53,23 +37,11 @@ func (cli *Client) post(
 	return cli.sendRequest(ctx, http.MethodPost, path, query, body, headers)
 }
 
-func (cli *Client) postRaw(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	body io.Reader,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) postRaw(ctx context.Context, path string, query url.Values, body io.Reader, headers http.Header) (*http.Response, error) {
 	return cli.sendRequest(ctx, http.MethodPost, path, query, body, headers)
 }
 
-func (cli *Client) put(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	obj interface{},
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) put(ctx context.Context, path string, query url.Values, obj interface{}, headers http.Header) (*http.Response, error) {
 	body, headers, err := encodeBody(obj, headers)
 	if err != nil {
 		return nil, err
@@ -78,13 +50,7 @@ func (cli *Client) put(
 }
 
 // putRaw sends an http request to the docker API using the method PUT.
-func (cli *Client) putRaw(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	body io.Reader,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) putRaw(ctx context.Context, path string, query url.Values, body io.Reader, headers http.Header) (*http.Response, error) {
 	// PUT requests are expected to always have a body (apparently)
 	// so explicitly pass an empty body to sendRequest to signal that
 	// it should set the Content-Type header if not already present.
@@ -95,12 +61,7 @@ func (cli *Client) putRaw(
 }
 
 // delete sends an http request to the docker API using the method DELETE.
-func (cli *Client) delete(
-	ctx context.Context,
-	path string,
-	query url.Values,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) delete(ctx context.Context, path string, query url.Values, headers http.Header) (*http.Response, error) {
 	return cli.sendRequest(ctx, http.MethodDelete, path, query, nil, headers)
 }
 
@@ -126,12 +87,7 @@ func encodeBody(obj interface{}, headers http.Header) (io.Reader, http.Header, e
 	return body, headers, nil
 }
 
-func (cli *Client) buildRequest(
-	ctx context.Context,
-	method, path string,
-	body io.Reader,
-	headers http.Header,
-) (*http.Request, error) {
+func (cli *Client) buildRequest(ctx context.Context, method, path string, body io.Reader, headers http.Header) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, method, path, body)
 	if err != nil {
 		return nil, err
@@ -151,13 +107,7 @@ func (cli *Client) buildRequest(
 	return req, nil
 }
 
-func (cli *Client) sendRequest(
-	ctx context.Context,
-	method, path string,
-	query url.Values,
-	body io.Reader,
-	headers http.Header,
-) (*http.Response, error) {
+func (cli *Client) sendRequest(ctx context.Context, method, path string, query url.Values, body io.Reader, headers http.Header) (*http.Response, error) {
 	req, err := cli.buildRequest(ctx, method, cli.getAPIPath(ctx, path, query), body, headers)
 	if err != nil {
 		return nil, err
@@ -178,21 +128,11 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		if cli.scheme != "https" && strings.Contains(err.Error(), "malformed HTTP response") {
-			return nil, errConnectionFailed{
-				fmt.Errorf(
-					"%v.\n* Are you trying to connect to a TLS-enabled daemon without TLS?",
-					err,
-				),
-			}
+			return nil, errConnectionFailed{fmt.Errorf("%v.\n* Are you trying to connect to a TLS-enabled daemon without TLS?", err)}
 		}
 
 		if cli.scheme == "https" && strings.Contains(err.Error(), "bad certificate") {
-			return nil, errConnectionFailed{
-				errors.Wrap(
-					err,
-					"the server probably has client authentication (--tlsverify) enabled; check your TLS client certification settings",
-				),
-			}
+			return nil, errConnectionFailed{errors.Wrap(err, "the server probably has client authentication (--tlsverify) enabled; check your TLS client certification settings")}
 		}
 
 		// Don't decorate context sentinel errors; users may be comparing to
@@ -206,13 +146,7 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 			var nErr *net.OpError
 			if errors.As(uErr.Err, &nErr) {
 				if os.IsPermission(nErr.Err) {
-					return nil, errConnectionFailed{
-						errors.Wrapf(
-							err,
-							"permission denied while trying to connect to the Docker daemon socket at %v",
-							cli.host,
-						),
-					}
+					return nil, errConnectionFailed{errors.Wrapf(err, "permission denied while trying to connect to the Docker daemon socket at %v", cli.host)}
 				}
 			}
 		}
@@ -223,8 +157,7 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 			if nErr.Timeout() {
 				return nil, connectionFailed(cli.host)
 			}
-			if strings.Contains(nErr.Error(), "connection refused") ||
-				strings.Contains(nErr.Error(), "dial unix") {
+			if strings.Contains(nErr.Error(), "connection refused") || strings.Contains(nErr.Error(), "dial unix") {
 				return nil, connectionFailed(cli.host)
 			}
 		}
@@ -242,10 +175,7 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 		if strings.Contains(err.Error(), `open //./pipe/docker_engine`) {
 			// Checks if client is running with elevated privileges
 			if f, elevatedErr := os.Open(`\\.\PHYSICALDRIVE0`); elevatedErr != nil {
-				err = errors.Wrap(
-					err,
-					"in the default daemon configuration on Windows, the docker client must be run with elevated privileges to connect",
-				)
+				err = errors.Wrap(err, "in the default daemon configuration on Windows, the docker client must be run with elevated privileges to connect")
 			} else {
 				_ = f.Close()
 				err = errors.Wrap(err, "this error may indicate that the docker daemon is not running")
@@ -291,32 +221,16 @@ func (cli *Client) checkResponseErr(serverResp *http.Response) (retErr error) {
 		}
 		if bodyR.N == 0 {
 			if reqURL != "" {
-				return fmt.Errorf(
-					"request returned %s with a message (> %d bytes) for API route and version %s, check if the server supports the requested API version",
-					statusMsg,
-					bodyMax,
-					reqURL,
-				)
+				return fmt.Errorf("request returned %s with a message (> %d bytes) for API route and version %s, check if the server supports the requested API version", statusMsg, bodyMax, reqURL)
 			}
-			return fmt.Errorf(
-				"request returned %s with a message (> %d bytes); check if the server supports the requested API version",
-				statusMsg,
-				bodyMax,
-			)
+			return fmt.Errorf("request returned %s with a message (> %d bytes); check if the server supports the requested API version", statusMsg, bodyMax)
 		}
 	}
 	if len(body) == 0 {
 		if reqURL != "" {
-			return fmt.Errorf(
-				"request returned %s for API route and version %s, check if the server supports the requested API version",
-				statusMsg,
-				reqURL,
-			)
+			return fmt.Errorf("request returned %s for API route and version %s, check if the server supports the requested API version", statusMsg, reqURL)
 		}
-		return fmt.Errorf(
-			"request returned %s; check if the server supports the requested API version",
-			statusMsg,
-		)
+		return fmt.Errorf("request returned %s; check if the server supports the requested API version", statusMsg)
 	}
 
 	var daemonErr error

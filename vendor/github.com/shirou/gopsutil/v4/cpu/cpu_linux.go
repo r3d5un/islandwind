@@ -437,11 +437,7 @@ func CountsWithContext(ctx context.Context, logical bool) (int, error) {
 			for _, line := range lines {
 				line = strings.ToLower(line)
 				if strings.HasPrefix(line, "processor") {
-					_, err = strconv.ParseInt(
-						strings.TrimSpace(line[strings.IndexByte(line, ':')+1:]),
-						10,
-						32,
-					)
+					_, err = strconv.ParseInt(strings.TrimSpace(line[strings.IndexByte(line, ':')+1:]), 10, 32)
 					if err == nil {
 						ret++
 					}
@@ -455,8 +451,7 @@ func CountsWithContext(ctx context.Context, logical bool) (int, error) {
 				return 0, err
 			}
 			for _, line := range lines {
-				if len(line) >= 4 && strings.HasPrefix(line, "cpu") && '0' <= line[3] &&
-					line[3] <= '9' { // `^cpu\d` regexp matching
+				if len(line) >= 4 && strings.HasPrefix(line, "cpu") && '0' <= line[3] && line[3] <= '9' { // `^cpu\d` regexp matching
 					ret++
 				}
 			}

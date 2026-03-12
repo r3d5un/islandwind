@@ -155,14 +155,6 @@ func riscvHWProbe(pairs []riscvHWProbePairs, flags uint) bool {
 		p0 = unsafe.Pointer(&_zero)
 	}
 
-	_, _, e1 := syscall.Syscall6(
-		sys_RISCV_HWPROBE,
-		uintptr(p0),
-		uintptr(len(pairs)),
-		uintptr(0),
-		uintptr(0),
-		uintptr(flags),
-		0,
-	)
+	_, _, e1 := syscall.Syscall6(sys_RISCV_HWPROBE, uintptr(p0), uintptr(len(pairs)), uintptr(0), uintptr(0), uintptr(flags), 0)
 	return e1 == 0
 }

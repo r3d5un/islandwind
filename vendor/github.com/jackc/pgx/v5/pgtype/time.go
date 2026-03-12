@@ -257,12 +257,7 @@ func (scanPlanTextAnyToTimeScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanTime(Time{Microseconds: usec, Valid: true})
 }
 
-func (c TimeCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c TimeCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

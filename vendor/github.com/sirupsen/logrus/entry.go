@@ -85,13 +85,7 @@ func (entry *Entry) Dup() *Entry {
 	for k, v := range entry.Data {
 		data[k] = v
 	}
-	return &Entry{
-		Logger:  entry.Logger,
-		Data:    data,
-		Time:    entry.Time,
-		Context: entry.Context,
-		err:     entry.err,
-	}
+	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time, Context: entry.Context, err: entry.err}
 }
 
 // Bytes returns the bytes representation of this entry from the formatter.
@@ -122,13 +116,7 @@ func (entry *Entry) WithContext(ctx context.Context) *Entry {
 	for k, v := range entry.Data {
 		dataCopy[k] = v
 	}
-	return &Entry{
-		Logger:  entry.Logger,
-		Data:    dataCopy,
-		Time:    entry.Time,
-		err:     entry.err,
-		Context: ctx,
-	}
+	return &Entry{Logger: entry.Logger, Data: dataCopy, Time: entry.Time, err: entry.err, Context: ctx}
 }
 
 // WithField adds a single field to the Entry.
@@ -147,8 +135,7 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 		isErrField := false
 		if t := reflect.TypeOf(v); t != nil {
 			switch {
-			case t.Kind() == reflect.Func,
-				t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Func:
+			case t.Kind() == reflect.Func, t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Func:
 				isErrField = true
 			}
 		}
@@ -163,13 +150,7 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 			data[k] = v
 		}
 	}
-	return &Entry{
-		Logger:  entry.Logger,
-		Data:    data,
-		Time:    entry.Time,
-		err:     fieldErr,
-		Context: entry.Context,
-	}
+	return &Entry{Logger: entry.Logger, Data: data, Time: entry.Time, err: fieldErr, Context: entry.Context}
 }
 
 // WithTime overrides the time of the Entry.
@@ -178,13 +159,7 @@ func (entry *Entry) WithTime(t time.Time) *Entry {
 	for k, v := range entry.Data {
 		dataCopy[k] = v
 	}
-	return &Entry{
-		Logger:  entry.Logger,
-		Data:    dataCopy,
-		Time:    t,
-		err:     entry.err,
-		Context: entry.Context,
-	}
+	return &Entry{Logger: entry.Logger, Data: dataCopy, Time: t, err: entry.err, Context: entry.Context}
 }
 
 // getPackageName reduces a fully qualified function name to the package name

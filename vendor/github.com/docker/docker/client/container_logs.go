@@ -33,11 +33,7 @@ import (
 //
 // You can use github.com/docker/docker/pkg/stdcopy.StdCopy to demultiplex this
 // stream.
-func (cli *Client) ContainerLogs(
-	ctx context.Context,
-	containerID string,
-	options container.LogsOptions,
-) (io.ReadCloser, error) {
+func (cli *Client) ContainerLogs(ctx context.Context, containerID string, options container.LogsOptions) (io.ReadCloser, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return nil, err

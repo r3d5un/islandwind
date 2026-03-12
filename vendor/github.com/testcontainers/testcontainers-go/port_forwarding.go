@@ -40,11 +40,7 @@ var sshPassword = uuid.NewString()
 // 1. Create a new SSHD container.
 // 2. Expose the host ports to the container after the container is ready.
 // 3. Close the SSH sessions before killing the container.
-func exposeHostPorts(
-	ctx context.Context,
-	req *ContainerRequest,
-	ports ...int,
-) (sshdConnectHook ContainerLifecycleHooks, err error) {
+func exposeHostPorts(ctx context.Context, req *ContainerRequest, ports ...int) (sshdConnectHook ContainerLifecycleHooks, err error) {
 	if len(ports) == 0 {
 		return sshdConnectHook, errors.New("no ports to expose")
 	}
@@ -137,10 +133,7 @@ func exposeHostPorts(
 	req.HostConfigModifier = func(hostConfig *container.HostConfig) {
 		// adding the host internal alias to the container as an extra host
 		// to allow the container to reach the SSHD container.
-		hostConfig.ExtraHosts = append(
-			hostConfig.ExtraHosts,
-			fmt.Sprintf("%s:%s", HostInternal, sshdIP),
-		)
+		hostConfig.ExtraHosts = append(hostConfig.ExtraHosts, fmt.Sprintf("%s:%s", HostInternal, sshdIP))
 
 		modes := []container.NetworkMode{container.NetworkMode(sshdFirstNetwork), "none", "host"}
 		// if the container is not in one of the modes, attach it to the first network of the SSHD container
@@ -299,12 +292,7 @@ type portForwarder struct {
 
 // newPortForwarder creates a new running portForwarder for the given port.
 // The context is only used for the initial SSH connection.
-func newPortForwarder(
-	ctx context.Context,
-	sshDAddr string,
-	sshConfig *ssh.ClientConfig,
-	port int,
-) (pf *portForwarder, err error) {
+func newPortForwarder(ctx context.Context, sshDAddr string, sshConfig *ssh.ClientConfig, port int) (pf *portForwarder, err error) {
 	var d net.Dialer
 	conn, err := d.DialContext(ctx, "tcp", sshDAddr)
 	if err != nil {

@@ -181,13 +181,7 @@ func (d *decoder) typeMismatchString(toml string, target reflect.Type) string {
 	if d.errorContext != nil && d.errorContext.Struct != nil {
 		ctx := d.errorContext
 		f := ctx.Struct.FieldByIndex(ctx.Field)
-		return fmt.Sprintf(
-			"cannot decode TOML %s into struct field %s.%s of type %s",
-			toml,
-			ctx.Struct,
-			f.Name,
-			f.Type,
-		)
+		return fmt.Sprintf("cannot decode TOML %s into struct field %s.%s of type %s", toml, ctx.Struct, f.Name, f.Type)
 	}
 	return fmt.Sprintf("cannot decode TOML %s into a Go value of type %s", toml, target)
 }
@@ -302,12 +296,7 @@ func (d *decoder) handleRootExpression(expr *unstable.Node, v reflect.Value) err
 		d.clearArrayTable = first
 		x, err = d.handleArrayTable(expr.Key(), v)
 	default:
-		panic(
-			fmt.Errorf(
-				"parser should not permit expression of kind %s at document root",
-				expr.Kind,
-			),
-		)
+		panic(fmt.Errorf("parser should not permit expression of kind %s at document root", expr.Kind))
 	}
 
 	if d.skipUntilTable {
@@ -328,10 +317,7 @@ func (d *decoder) handleArrayTable(key unstable.Iterator, v reflect.Value) (refl
 	return d.handleKeyValues(v)
 }
 
-func (d *decoder) handleArrayTableCollectionLast(
-	key unstable.Iterator,
-	v reflect.Value,
-) (reflect.Value, error) {
+func (d *decoder) handleArrayTableCollectionLast(key unstable.Iterator, v reflect.Value) (reflect.Value, error) {
 	switch v.Kind() {
 	case reflect.Interface:
 		elem := v.Elem()
@@ -392,11 +378,7 @@ func (d *decoder) handleArrayTableCollectionLast(
 	case reflect.Array:
 		idx := d.arrayIndex(true, v)
 		if idx >= v.Len() {
-			return v, fmt.Errorf(
-				"%s at position %d",
-				d.typeMismatchError("array table", v.Type()),
-				idx,
-			)
+			return v, fmt.Errorf("%s at position %d", d.typeMismatchError("array table", v.Type()), idx)
 		}
 		elem := v.Index(idx)
 		_, err := d.handleArrayTable(key, elem)
@@ -410,10 +392,7 @@ func (d *decoder) handleArrayTableCollectionLast(
 // evaluated like a normal key, but if it returns a collection, it also needs to
 // point to the last element of the collection. Unless it is the last part of
 // the key, then it needs to create a new element at the end.
-func (d *decoder) handleArrayTableCollection(
-	key unstable.Iterator,
-	v reflect.Value,
-) (reflect.Value, error) {
+func (d *decoder) handleArrayTableCollection(key unstable.Iterator, v reflect.Value) (reflect.Value, error) {
 	if key.IsLast() {
 		return d.handleArrayTableCollectionLast(key, v)
 	}
@@ -450,11 +429,7 @@ func (d *decoder) handleArrayTableCollection(
 	case reflect.Array:
 		idx := d.arrayIndex(false, v)
 		if idx >= v.Len() {
-			return v, fmt.Errorf(
-				"%s at position %d",
-				d.typeMismatchError("array table", v.Type()),
-				idx,
-			)
+			return v, fmt.Errorf("%s at position %d", d.typeMismatchError("array table", v.Type()), idx)
 		}
 		elem := v.Index(idx)
 		_, err := d.handleArrayTable(key, elem)
@@ -464,12 +439,7 @@ func (d *decoder) handleArrayTableCollection(
 	return d.handleArrayTable(key, v)
 }
 
-func (d *decoder) handleKeyPart(
-	key unstable.Iterator,
-	v reflect.Value,
-	nextFn handlerFn,
-	makeFn valueMakerFn,
-) (reflect.Value, error) {
+func (d *decoder) handleKeyPart(key unstable.Iterator, v reflect.Value, nextFn handlerFn, makeFn valueMakerFn) (reflect.Value, error) {
 	var rv reflect.Value
 
 	// First, dispatch over v to make sure it is a valid object.
@@ -590,10 +560,7 @@ func (d *decoder) handleKeyPart(
 // HandleArrayTablePart navigates the Go structure v using the key v. It is
 // only used for the prefix (non-last) parts of an array-table. When
 // encountering a collection, it should go to the last element.
-func (d *decoder) handleArrayTablePart(
-	key unstable.Iterator,
-	v reflect.Value,
-) (reflect.Value, error) {
+func (d *decoder) handleArrayTablePart(key unstable.Iterator, v reflect.Value) (reflect.Value, error) {
 	var makeFn valueMakerFn
 	if key.IsLast() {
 		makeFn = makeSliceInterface
@@ -608,10 +575,7 @@ func (d *decoder) handleArrayTablePart(
 func (d *decoder) handleTable(key unstable.Iterator, v reflect.Value) (reflect.Value, error) {
 	if v.Kind() == reflect.Slice {
 		if v.Len() == 0 {
-			return reflect.Value{}, unstable.NewParserError(
-				key.Node().Data,
-				"cannot store a table in a slice",
-			)
+			return reflect.Value{}, unstable.NewParserError(key.Node().Data, "cannot store a table in a slice")
 		}
 		elem := v.Index(v.Len() - 1)
 		x, err := d.handleTable(key, elem)
@@ -832,11 +796,7 @@ func (d *decoder) unmarshalInlineTable(itable *unstable.Node, v reflect.Value) e
 		}
 		return d.unmarshalInlineTable(itable, elem)
 	default:
-		return unstable.NewParserError(
-			d.p.Raw(itable.Raw),
-			"cannot store inline table in Go type %s",
-			v.Kind(),
-		)
+		return unstable.NewParserError(d.p.Raw(itable.Raw), "cannot store inline table in Go type %s", v.Kind())
 	}
 
 	it := itable.Children()
@@ -1050,10 +1010,7 @@ func (d *decoder) unmarshalInteger(value *unstable.Node, v reflect.Value) error 
 	case reflect.Interface:
 		r = reflect.ValueOf(i)
 	default:
-		return unstable.NewParserError(
-			d.p.Raw(value.Raw),
-			d.typeMismatchString("integer", v.Type()),
-		)
+		return unstable.NewParserError(d.p.Raw(value.Raw), d.typeMismatchString("integer", v.Type()))
 	}
 
 	if !r.Type().AssignableTo(v.Type()) {
@@ -1092,11 +1049,7 @@ func (d *decoder) handleKeyValue(expr *unstable.Node, v reflect.Value) (reflect.
 	return v, err
 }
 
-func (d *decoder) handleKeyValueInner(
-	key unstable.Iterator,
-	value *unstable.Node,
-	v reflect.Value,
-) (reflect.Value, error) {
+func (d *decoder) handleKeyValueInner(key unstable.Iterator, value *unstable.Node, v reflect.Value) (reflect.Value, error) {
 	if key.Next() {
 		// Still scoping the key
 		return d.handleKeyValuePart(key, value, v)
@@ -1117,80 +1070,48 @@ func (d *decoder) keyFromData(keyType reflect.Type, data []byte) (reflect.Value,
 	case keyType.Implements(textUnmarshalerType):
 		mk := reflect.New(keyType.Elem())
 		if err := mk.Interface().(encoding.TextUnmarshaler).UnmarshalText(data); err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error unmarshalling key type %s from text: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error unmarshalling key type %s from text: %w", stringType, err)
 		}
 		return mk, nil
 
 	case reflect.PointerTo(keyType).Implements(textUnmarshalerType):
 		mk := reflect.New(keyType)
 		if err := mk.Interface().(encoding.TextUnmarshaler).UnmarshalText(data); err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error unmarshalling key type %s from text: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error unmarshalling key type %s from text: %w", stringType, err)
 		}
 		return mk.Elem(), nil
 
 	case keyType.Kind() == reflect.Int || keyType.Kind() == reflect.Int8 || keyType.Kind() == reflect.Int16 || keyType.Kind() == reflect.Int32 || keyType.Kind() == reflect.Int64:
 		key, err := strconv.ParseInt(string(data), 10, 64)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error parsing key of type %s from integer: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error parsing key of type %s from integer: %w", stringType, err)
 		}
 		return reflect.ValueOf(key).Convert(keyType), nil
 	case keyType.Kind() == reflect.Uint || keyType.Kind() == reflect.Uint8 || keyType.Kind() == reflect.Uint16 || keyType.Kind() == reflect.Uint32 || keyType.Kind() == reflect.Uint64:
 		key, err := strconv.ParseUint(string(data), 10, 64)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error parsing key of type %s from unsigned integer: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error parsing key of type %s from unsigned integer: %w", stringType, err)
 		}
 		return reflect.ValueOf(key).Convert(keyType), nil
 
 	case keyType.Kind() == reflect.Float32:
 		key, err := strconv.ParseFloat(string(data), 32)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error parsing key of type %s from float: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error parsing key of type %s from float: %w", stringType, err)
 		}
 		return reflect.ValueOf(float32(key)), nil
 
 	case keyType.Kind() == reflect.Float64:
 		key, err := strconv.ParseFloat(string(data), 64)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf(
-				"toml: error parsing key of type %s from float: %w",
-				stringType,
-				err,
-			)
+			return reflect.Value{}, fmt.Errorf("toml: error parsing key of type %s from float: %w", stringType, err)
 		}
 		return reflect.ValueOf(float64(key)), nil
 	}
-	return reflect.Value{}, fmt.Errorf(
-		"toml: cannot convert map key of type %s to expected type %s",
-		stringType,
-		keyType,
-	)
+	return reflect.Value{}, fmt.Errorf("toml: cannot convert map key of type %s to expected type %s", stringType, keyType)
 }
 
-func (d *decoder) handleKeyValuePart(
-	key unstable.Iterator,
-	value *unstable.Node,
-	v reflect.Value,
-) (reflect.Value, error) {
+func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node, v reflect.Value) (reflect.Value, error) {
 	// contains the replacement for v
 	var rv reflect.Value
 

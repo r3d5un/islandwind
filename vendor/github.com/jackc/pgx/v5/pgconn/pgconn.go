@@ -122,11 +122,7 @@ func Connect(ctx context.Context, connString string) (*PgConn, error) {
 // Connect establishes a connection to a PostgreSQL server using the environment and connString (in URL or keyword/value
 // format) and ParseConfigOptions to provide additional configuration. See documentation for [ParseConfig] for details.
 // ctx can be used to cancel a connect attempt.
-func ConnectWithOptions(
-	ctx context.Context,
-	connString string,
-	parseConfigOptions ParseConfigOptions,
-) (*PgConn, error) {
+func ConnectWithOptions(ctx context.Context, connString string, parseConfigOptions ParseConfigOptions) (*PgConn, error) {
 	config, err := ParseConfigWithOptions(connString, parseConfigOptions)
 	if err != nil {
 		return nil, err
@@ -156,10 +152,7 @@ func ConnectConfig(ctx context.Context, config *Config) (*PgConn, error) {
 	}
 
 	if len(connectConfigs) == 0 {
-		return nil, &ConnectError{
-			Config: config,
-			err:    fmt.Errorf("hostname resolving error: %w", errors.Join(allErrors...)),
-		}
+		return nil, &ConnectError{Config: config, err: fmt.Errorf("hostname resolving error: %w", errors.Join(allErrors...))}
 	}
 
 	pgConn, errs := connectPreferred(ctx, config, connectConfigs)
@@ -172,10 +165,7 @@ func ConnectConfig(ctx context.Context, config *Config) (*PgConn, error) {
 		err := config.AfterConnect(ctx, pgConn)
 		if err != nil {
 			pgConn.conn.Close()
-			return nil, &ConnectError{
-				Config: config,
-				err:    fmt.Errorf("AfterConnect error: %w", err),
-			}
+			return nil, &ConnectError{Config: config, err: fmt.Errorf("AfterConnect error: %w", err)}
 		}
 	}
 
@@ -225,9 +215,7 @@ func buildConnectOneConfigs(ctx context.Context, config *Config) ([]*connectOneC
 			if err == nil {
 				port, err := strconv.ParseUint(splitPort, 10, 16)
 				if err != nil {
-					return nil, []error{
-						fmt.Errorf("error parsing port (%s) from lookup: %w", splitPort, err),
-					}
+					return nil, []error{fmt.Errorf("error parsing port (%s) from lookup: %w", splitPort, err)}
 				}
 				network, address := NetworkAddress(splitIP, uint16(port))
 				configs = append(configs, &connectOneConfig{
@@ -254,11 +242,7 @@ func buildConnectOneConfigs(ctx context.Context, config *Config) ([]*connectOneC
 // connectPreferred attempts to connect to the preferred host from connectOneConfigs. The connections are attempted in
 // order. If a connection is successful it is returned. If no connection is successful then all errors are returned. If
 // a connection attempt returns a [NotPreferredError], then that host will be used if no other hosts are successful.
-func connectPreferred(
-	ctx context.Context,
-	config *Config,
-	connectOneConfigs []*connectOneConfig,
-) (*PgConn, []error) {
+func connectPreferred(ctx context.Context, config *Config, connectOneConfigs []*connectOneConfig) (*PgConn, []error) {
 	octx := ctx
 	var allErrors []error
 
@@ -330,11 +314,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 
 	newPerDialConnectError := func(msg string, err error) *perDialConnectError {
 		err = normalizeTimeoutError(ctx, err)
-		e := &perDialConnectError{
-			address:          connectConfig.address,
-			originalHostname: connectConfig.originalHostname,
-			err:              fmt.Errorf("%s: %w", msg, err),
-		}
+		e := &perDialConnectError{address: connectConfig.address, originalHostname: connectConfig.originalHostname, err: fmt.Errorf("%s: %w", msg, err)}
 		return e
 	}
 
@@ -344,9 +324,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	}
 
 	if connectConfig.tlsConfig != nil {
-		pgConn.contextWatcher = ctxwatch.NewContextWatcher(
-			&DeadlineContextWatcherHandler{Conn: pgConn.conn},
-		)
+		pgConn.contextWatcher = ctxwatch.NewContextWatcher(&DeadlineContextWatcherHandler{Conn: pgConn.conn})
 		pgConn.contextWatcher.Watch(ctx)
 		var (
 			tlsConn net.Conn
@@ -760,9 +738,7 @@ func (pgConn *PgConn) IsBusy() bool {
 func (pgConn *PgConn) lock() error {
 	switch pgConn.status {
 	case connStatusBusy:
-		return &connLockError{
-			status: "conn busy",
-		} // This only should be possible in case of an application bug.
+		return &connLockError{status: "conn busy"} // This only should be possible in case of an application bug.
 	case connStatusClosed:
 		return &connLockError{status: "conn closed"}
 	case connStatusUninitialized:
@@ -778,9 +754,7 @@ func (pgConn *PgConn) unlock() {
 		pgConn.status = connStatusIdle
 	case connStatusClosed:
 	default:
-		panic(
-			"BUG: cannot unlock unlocked connection",
-		) // This should only be possible if there is a bug in this package.
+		panic("BUG: cannot unlock unlocked connection") // This should only be possible if there is a bug in this package.
 	}
 }
 
@@ -859,10 +833,7 @@ type FieldDescription struct {
 	Format               int16
 }
 
-func (pgConn *PgConn) convertRowDescription(
-	dst []FieldDescription,
-	rd *pgproto3.RowDescription,
-) []FieldDescription {
+func (pgConn *PgConn) convertRowDescription(dst []FieldDescription, rd *pgproto3.RowDescription) []FieldDescription {
 	if cap(dst) >= len(rd.Fields) {
 		dst = dst[:len(rd.Fields):len(rd.Fields)]
 	} else {
@@ -898,11 +869,7 @@ type StatementDescription struct {
 // In extremely rare cases, Prepare may fail after the Parse is successful, but before the Describe is complete. In this
 // case, the returned error will be an error where errors.As with a *PrepareError succeeds and the *PrepareError has
 // ParseComplete set to true.
-func (pgConn *PgConn) Prepare(
-	ctx context.Context,
-	name, sql string,
-	paramOIDs []uint32,
-) (*StatementDescription, error) {
+func (pgConn *PgConn) Prepare(ctx context.Context, name, sql string, paramOIDs []uint32) (*StatementDescription, error) {
 	if err := pgConn.lock(); err != nil {
 		return nil, err
 	}
@@ -1071,9 +1038,7 @@ func (pgConn *PgConn) CancelRequest(ctx context.Context) error {
 	defer cancelConn.Close()
 
 	if ctx != context.Background() {
-		contextWatcher := ctxwatch.NewContextWatcher(
-			&DeadlineContextWatcherHandler{Conn: cancelConn},
-		)
+		contextWatcher := ctxwatch.NewContextWatcher(&DeadlineContextWatcherHandler{Conn: cancelConn})
 		contextWatcher.Watch(ctx)
 		defer contextWatcher.Unwatch()
 	}
@@ -1190,26 +1155,14 @@ func (pgConn *PgConn) Exec(ctx context.Context, sql string) *MultiResultReader {
 // binary format. If resultFormats is nil all results will be in text format.
 //
 // ResultReader must be closed before PgConn can be used again.
-func (pgConn *PgConn) ExecParams(
-	ctx context.Context,
-	sql string,
-	paramValues [][]byte,
-	paramOIDs []uint32,
-	paramFormats, resultFormats []int16,
-) *ResultReader {
+func (pgConn *PgConn) ExecParams(ctx context.Context, sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) *ResultReader {
 	result := pgConn.execExtendedPrefix(ctx, paramValues)
 	if result.closed {
 		return result
 	}
 
 	pgConn.frontend.SendParse(&pgproto3.Parse{Query: sql, ParameterOIDs: paramOIDs})
-	pgConn.frontend.SendBind(
-		&pgproto3.Bind{
-			ParameterFormatCodes: paramFormats,
-			Parameters:           paramValues,
-			ResultFormatCodes:    resultFormats,
-		},
-	)
+	pgConn.frontend.SendBind(&pgproto3.Bind{ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 
 	pgConn.execExtendedSuffix(result)
 
@@ -1228,25 +1181,13 @@ func (pgConn *PgConn) ExecParams(
 // binary format. If resultFormats is nil all results will be in text format.
 //
 // ResultReader must be closed before PgConn can be used again.
-func (pgConn *PgConn) ExecPrepared(
-	ctx context.Context,
-	stmtName string,
-	paramValues [][]byte,
-	paramFormats, resultFormats []int16,
-) *ResultReader {
+func (pgConn *PgConn) ExecPrepared(ctx context.Context, stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) *ResultReader {
 	result := pgConn.execExtendedPrefix(ctx, paramValues)
 	if result.closed {
 		return result
 	}
 
-	pgConn.frontend.SendBind(
-		&pgproto3.Bind{
-			PreparedStatement:    stmtName,
-			ParameterFormatCodes: paramFormats,
-			Parameters:           paramValues,
-			ResultFormatCodes:    resultFormats,
-		},
-	)
+	pgConn.frontend.SendBind(&pgproto3.Bind{PreparedStatement: stmtName, ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 
 	pgConn.execExtendedSuffix(result)
 
@@ -1267,10 +1208,7 @@ func (pgConn *PgConn) execExtendedPrefix(ctx context.Context, paramValues [][]by
 	}
 
 	if len(paramValues) > math.MaxUint16 {
-		result.concludeCommand(
-			CommandTag{},
-			fmt.Errorf("extended protocol limited to %v parameters", math.MaxUint16),
-		)
+		result.concludeCommand(CommandTag{}, fmt.Errorf("extended protocol limited to %v parameters", math.MaxUint16))
 		result.closed = true
 		pgConn.unlock()
 		return result
@@ -1801,12 +1739,7 @@ type Batch struct {
 }
 
 // ExecParams appends an ExecParams command to the batch. See PgConn.ExecParams for parameter descriptions.
-func (batch *Batch) ExecParams(
-	sql string,
-	paramValues [][]byte,
-	paramOIDs []uint32,
-	paramFormats, resultFormats []int16,
-) {
+func (batch *Batch) ExecParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) {
 	if batch.err != nil {
 		return
 	}
@@ -1819,18 +1752,12 @@ func (batch *Batch) ExecParams(
 }
 
 // ExecPrepared appends an ExecPrepared e command to the batch. See PgConn.ExecPrepared for parameter descriptions.
-func (batch *Batch) ExecPrepared(
-	stmtName string,
-	paramValues [][]byte,
-	paramFormats, resultFormats []int16,
-) {
+func (batch *Batch) ExecPrepared(stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) {
 	if batch.err != nil {
 		return
 	}
 
-	batch.buf, batch.err = (&pgproto3.Bind{PreparedStatement: stmtName, ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats}).Encode(
-		batch.buf,
-	)
+	batch.buf, batch.err = (&pgproto3.Bind{PreparedStatement: stmtName, ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats}).Encode(batch.buf)
 	if batch.err != nil {
 		return
 	}
@@ -2000,8 +1927,7 @@ func (pgConn *PgConn) flushWithPotentialWriteReadDeadlock() error {
 // This should not be confused with the PostgreSQL protocol Sync message.
 func (pgConn *PgConn) SyncConn(ctx context.Context) error {
 	for range 10 {
-		if pgConn.bgReader.Status() == bgreader.StatusStopped &&
-			pgConn.frontend.ReadBufferLen() == 0 {
+		if pgConn.bgReader.Status() == bgreader.StatusStopped && pgConn.frontend.ReadBufferLen() == 0 {
 			return nil
 		}
 
@@ -2302,47 +2228,25 @@ func (p *Pipeline) SendDeallocate(name string) {
 }
 
 // SendQueryParams is the pipeline version of *PgConn.QueryParams.
-func (p *Pipeline) SendQueryParams(
-	sql string,
-	paramValues [][]byte,
-	paramOIDs []uint32,
-	paramFormats, resultFormats []int16,
-) {
+func (p *Pipeline) SendQueryParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) {
 	if p.closed {
 		return
 	}
 
 	p.conn.frontend.SendParse(&pgproto3.Parse{Query: sql, ParameterOIDs: paramOIDs})
-	p.conn.frontend.SendBind(
-		&pgproto3.Bind{
-			ParameterFormatCodes: paramFormats,
-			Parameters:           paramValues,
-			ResultFormatCodes:    resultFormats,
-		},
-	)
+	p.conn.frontend.SendBind(&pgproto3.Bind{ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 	p.conn.frontend.SendDescribe(&pgproto3.Describe{ObjectType: 'P'})
 	p.conn.frontend.SendExecute(&pgproto3.Execute{})
 	p.state.PushBackRequestType(pipelineQueryParams)
 }
 
 // SendQueryPrepared is the pipeline version of *PgConn.QueryPrepared.
-func (p *Pipeline) SendQueryPrepared(
-	stmtName string,
-	paramValues [][]byte,
-	paramFormats, resultFormats []int16,
-) {
+func (p *Pipeline) SendQueryPrepared(stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) {
 	if p.closed {
 		return
 	}
 
-	p.conn.frontend.SendBind(
-		&pgproto3.Bind{
-			PreparedStatement:    stmtName,
-			ParameterFormatCodes: paramFormats,
-			Parameters:           paramValues,
-			ResultFormatCodes:    resultFormats,
-		},
-	)
+	p.conn.frontend.SendBind(&pgproto3.Bind{PreparedStatement: stmtName, ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 	p.conn.frontend.SendDescribe(&pgproto3.Describe{ObjectType: 'P'})
 	p.conn.frontend.SendExecute(&pgproto3.Execute{})
 	p.state.PushBackRequestType(pipelineQueryPrepared)
@@ -2584,9 +2488,7 @@ type CancelRequestContextWatcherHandler struct {
 func (h *CancelRequestContextWatcherHandler) HandleCancel(context.Context) {
 	h.cancelFinishedChan = make(chan struct{})
 	var handleUnwatchedAfterCancelCalledCtx context.Context
-	handleUnwatchedAfterCancelCalledCtx, h.handleUnwatchAfterCancelCalled = context.WithCancel(
-		context.Background(),
-	)
+	handleUnwatchedAfterCancelCalledCtx, h.handleUnwatchAfterCancelCalled = context.WithCancel(context.Background())
 
 	deadline := time.Now().Add(h.DeadlineDelay)
 	h.Conn.conn.SetDeadline(deadline)
@@ -2600,10 +2502,7 @@ func (h *CancelRequestContextWatcherHandler) HandleCancel(context.Context) {
 		case <-time.After(h.CancelRequestDelay):
 		}
 
-		cancelRequestCtx, cancel := context.WithDeadline(
-			handleUnwatchedAfterCancelCalledCtx,
-			deadline,
-		)
+		cancelRequestCtx, cancel := context.WithDeadline(handleUnwatchedAfterCancelCalledCtx, deadline)
 		defer cancel()
 		h.Conn.CancelRequest(cancelRequestCtx)
 

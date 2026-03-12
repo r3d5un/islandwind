@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package winterm
@@ -50,11 +49,7 @@ func (h *windowsAnsiEventHandler) insertLines(param int) error {
 }
 
 // scroll scrolls the provided scroll region by param lines. The scroll region is in buffer coordinates.
-func (h *windowsAnsiEventHandler) scroll(
-	param int,
-	sr scrollRegion,
-	info *CONSOLE_SCREEN_BUFFER_INFO,
-) error {
+func (h *windowsAnsiEventHandler) scroll(param int, sr scrollRegion, info *CONSOLE_SCREEN_BUFFER_INFO) error {
 	h.logf("scroll: scrollTop: %d, scrollBottom: %d", sr.top, sr.bottom)
 	h.logf("scroll: windowTop: %d, windowBottom: %d", info.Window.Top, info.Window.Bottom)
 
@@ -96,11 +91,7 @@ func (h *windowsAnsiEventHandler) insertCharacters(param int) error {
 }
 
 // scrollLine scrolls a line horizontally starting at the provided position by a number of columns.
-func (h *windowsAnsiEventHandler) scrollLine(
-	columns int,
-	position COORD,
-	info *CONSOLE_SCREEN_BUFFER_INFO,
-) error {
+func (h *windowsAnsiEventHandler) scrollLine(columns int, position COORD, info *CONSOLE_SCREEN_BUFFER_INFO) error {
 	// Copy from and clip to the scroll region (full buffer width)
 	scrollRect := SMALL_RECT{
 		Top:    position.Y,

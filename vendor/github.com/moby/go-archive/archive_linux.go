@@ -20,11 +20,7 @@ func getWhiteoutConverter(format WhiteoutFormat) tarWhiteoutConverter {
 
 type overlayWhiteoutConverter struct{}
 
-func (overlayWhiteoutConverter) ConvertWrite(
-	hdr *tar.Header,
-	path string,
-	fi os.FileInfo,
-) (wo *tar.Header, _ error) {
+func (overlayWhiteoutConverter) ConvertWrite(hdr *tar.Header, path string, fi os.FileInfo) (wo *tar.Header, _ error) {
 	// convert whiteouts to AUFS format
 	if fi.Mode()&os.ModeCharDevice != 0 && hdr.Devmajor == 0 && hdr.Devminor == 0 {
 		// we just rename the file and make it normal
@@ -59,12 +55,9 @@ func (overlayWhiteoutConverter) ConvertWrite(
 	// create a header for the whiteout file
 	// it should inherit some properties from the parent, but be a regular file
 	return &tar.Header{
-		Typeflag: tar.TypeReg,
-		Mode:     hdr.Mode & int64(os.ModePerm),
-		Name: filepath.Join(
-			hdr.Name,
-			WhiteoutOpaqueDir,
-		), // #nosec G305 -- An archive is being created, not extracted.
+		Typeflag:   tar.TypeReg,
+		Mode:       hdr.Mode & int64(os.ModePerm),
+		Name:       filepath.Join(hdr.Name, WhiteoutOpaqueDir), // #nosec G305 -- An archive is being created, not extracted.
 		Size:       0,
 		Uid:        hdr.Uid,
 		Uname:      hdr.Uname,

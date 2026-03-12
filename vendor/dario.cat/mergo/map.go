@@ -31,12 +31,7 @@ func isExported(field reflect.StructField) bool {
 // Traverses recursively both values, assigning src's fields values to dst.
 // The map argument tracks comparisons that have already been seen, which allows
 // short circuiting on recursive types.
-func deepMap(
-	dst, src reflect.Value,
-	visited map[uintptr]*visit,
-	depth int,
-	config *Config,
-) (err error) {
+func deepMap(dst, src reflect.Value, visited map[uintptr]*visit, depth int, config *Config) (err error) {
 	overwrite := config.Overwrite
 	if dst.CanAddr() {
 		addr := dst.UnsafeAddr()
@@ -63,9 +58,7 @@ func deepMap(
 			}
 			fieldName := field.Name
 			fieldName = changeInitialCase(fieldName, unicode.ToLower)
-			if _, ok := dstMap[fieldName]; !ok ||
-				(!isEmptyValue(reflect.ValueOf(src.Field(i).Interface()), !config.ShouldNotDereference) && overwrite) ||
-				config.overwriteWithEmptyValue {
+			if _, ok := dstMap[fieldName]; !ok || (!isEmptyValue(reflect.ValueOf(src.Field(i).Interface()), !config.ShouldNotDereference) && overwrite) || config.overwriteWithEmptyValue {
 				dstMap[fieldName] = src.Field(i).Interface()
 			}
 		}

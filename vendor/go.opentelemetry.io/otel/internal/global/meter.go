@@ -146,10 +146,7 @@ func (m *meter) setDelegate(provider metric.MeterProvider) {
 	m.registry.Init()
 }
 
-func (m *meter) Int64Counter(
-	name string,
-	options ...metric.Int64CounterOption,
-) (metric.Int64Counter, error) {
+func (m *meter) Int64Counter(name string, options ...metric.Int64CounterOption) (metric.Int64Counter, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -198,10 +195,7 @@ func (m *meter) Int64UpDownCounter(
 	return i, nil
 }
 
-func (m *meter) Int64Histogram(
-	name string,
-	options ...metric.Int64HistogramOption,
-) (metric.Int64Histogram, error) {
+func (m *meter) Int64Histogram(name string, options ...metric.Int64HistogramOption) (metric.Int64Histogram, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -224,10 +218,7 @@ func (m *meter) Int64Histogram(
 	return i, nil
 }
 
-func (m *meter) Int64Gauge(
-	name string,
-	options ...metric.Int64GaugeOption,
-) (metric.Int64Gauge, error) {
+func (m *meter) Int64Gauge(name string, options ...metric.Int64GaugeOption) (metric.Int64Gauge, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -328,10 +319,7 @@ func (m *meter) Int64ObservableGauge(
 	return i, nil
 }
 
-func (m *meter) Float64Counter(
-	name string,
-	options ...metric.Float64CounterOption,
-) (metric.Float64Counter, error) {
+func (m *meter) Float64Counter(name string, options ...metric.Float64CounterOption) (metric.Float64Counter, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -406,10 +394,7 @@ func (m *meter) Float64Histogram(
 	return i, nil
 }
 
-func (m *meter) Float64Gauge(
-	name string,
-	options ...metric.Float64GaugeOption,
-) (metric.Float64Gauge, error) {
+func (m *meter) Float64Gauge(name string, options ...metric.Float64GaugeOption) (metric.Float64Gauge, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -511,10 +496,7 @@ func (m *meter) Float64ObservableGauge(
 }
 
 // RegisterCallback captures the function that will be called during Collect.
-func (m *meter) RegisterCallback(
-	f metric.Callback,
-	insts ...metric.Observable,
-) (metric.Registration, error) {
+func (m *meter) RegisterCallback(f metric.Callback, insts ...metric.Observable) (metric.Registration, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 
@@ -597,19 +579,11 @@ func unwrapInt64Observable(inst metric.Int64Observable) metric.Int64Observable {
 	return inst
 }
 
-func (uo *unwrapObs) ObserveFloat64(
-	inst metric.Float64Observable,
-	value float64,
-	opts ...metric.ObserveOption,
-) {
+func (uo *unwrapObs) ObserveFloat64(inst metric.Float64Observable, value float64, opts ...metric.ObserveOption) {
 	uo.obs.ObserveFloat64(unwrapFloat64Observable(inst), value, opts...)
 }
 
-func (uo *unwrapObs) ObserveInt64(
-	inst metric.Int64Observable,
-	value int64,
-	opts ...metric.ObserveOption,
-) {
+func (uo *unwrapObs) ObserveInt64(inst metric.Int64Observable, value int64, opts ...metric.ObserveOption) {
 	uo.obs.ObserveInt64(unwrapInt64Observable(inst), value, opts...)
 }
 

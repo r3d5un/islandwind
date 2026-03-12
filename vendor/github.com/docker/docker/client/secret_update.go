@@ -8,12 +8,7 @@ import (
 )
 
 // SecretUpdate attempts to update a secret.
-func (cli *Client) SecretUpdate(
-	ctx context.Context,
-	id string,
-	version swarm.Version,
-	secret swarm.SecretSpec,
-) error {
+func (cli *Client) SecretUpdate(ctx context.Context, id string, version swarm.Version, secret swarm.SecretSpec) error {
 	id, err := trimID("secret", id)
 	if err != nil {
 		return err

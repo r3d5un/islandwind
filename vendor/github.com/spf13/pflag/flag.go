@@ -387,10 +387,7 @@ func (f *FlagSet) ShorthandLookup(name string) *Flag {
 		return nil
 	}
 	if len(name) > 1 {
-		msg := fmt.Sprintf(
-			"can not look up shorthand which is more than one ASCII character: %q",
-			name,
-		)
+		msg := fmt.Sprintf("can not look up shorthand which is more than one ASCII character: %q", name)
 		fmt.Fprintf(f.Output(), msg)
 		panic(msg)
 	}
@@ -404,11 +401,7 @@ func (f *FlagSet) lookup(name NormalizedName) *Flag {
 }
 
 // func to return a given type for a given flag name
-func (f *FlagSet) getFlagType(
-	name string,
-	ftype string,
-	convFunc func(sval string) (interface{}, error),
-) (interface{}, error) {
+func (f *FlagSet) getFlagType(name string, ftype string, convFunc func(sval string) (interface{}, error)) (interface{}, error) {
 	flag := f.Lookup(name)
 	if flag == nil {
 		err := &NotExistError{name: name, messageType: flagNotDefinedMessage}
@@ -701,15 +694,7 @@ func wrap(i, w int, s string) string {
 		var t string
 
 		t, s = wrapN(wrap, slop, s)
-		r = r + "\n" + strings.Repeat(
-			" ",
-			i,
-		) + strings.Replace(
-			t,
-			"\n",
-			"\n"+strings.Repeat(" ", i),
-			-1,
-		)
+		r = r + "\n" + strings.Repeat(" ", i) + strings.Replace(t, "\n", "\n"+strings.Repeat(" ", i), -1)
 	}
 
 	return r
@@ -914,12 +899,7 @@ func (f *FlagSet) AddFlag(flag *Flag) {
 	c := flag.Shorthand[0]
 	used, alreadyThere := f.shorthands[c]
 	if alreadyThere {
-		msg := fmt.Sprintf(
-			"unable to redefine %q shorthand in %q flagset: it's already used for %q flag",
-			c,
-			f.name,
-			used.Name,
-		)
+		msg := fmt.Sprintf("unable to redefine %q shorthand in %q flagset: it's already used for %q flag", c, f.name, used.Name)
 		fmt.Fprintf(f.Output(), msg)
 		panic(msg)
 	}
@@ -1057,11 +1037,7 @@ func (f *FlagSet) parseLongArg(s string, args []string, fn parseFunc) (a []strin
 	return
 }
 
-func (f *FlagSet) parseSingleShortArg(
-	shorthands string,
-	args []string,
-	fn parseFunc,
-) (outShorts string, outArgs []string, err error) {
+func (f *FlagSet) parseSingleShortArg(shorthands string, args []string, fn parseFunc) (outShorts string, outArgs []string, err error) {
 	outArgs = args
 
 	if isGotestShorthandFlag(shorthands) {
@@ -1127,12 +1103,7 @@ func (f *FlagSet) parseSingleShortArg(
 	}
 
 	if flag.ShorthandDeprecated != "" {
-		fmt.Fprintf(
-			f.Output(),
-			"Flag shorthand -%s has been deprecated, %s\n",
-			flag.Shorthand,
-			flag.ShorthandDeprecated,
-		)
+		fmt.Fprintf(f.Output(), "Flag shorthand -%s has been deprecated, %s\n", flag.Shorthand, flag.ShorthandDeprecated)
 	}
 
 	err = fn(flag, value)

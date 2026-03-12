@@ -22,11 +22,7 @@ func ImageHistoryWithPlatform(platform ocispec.Platform) ImageHistoryOption {
 }
 
 // ImageHistory returns the changes in an image in history format.
-func (cli *Client) ImageHistory(
-	ctx context.Context,
-	imageID string,
-	historyOpts ...ImageHistoryOption,
-) ([]image.HistoryResponseItem, error) {
+func (cli *Client) ImageHistory(ctx context.Context, imageID string, historyOpts ...ImageHistoryOption) ([]image.HistoryResponseItem, error) {
 	query := url.Values{}
 
 	var opts imageHistoryOpts

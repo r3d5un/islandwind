@@ -301,8 +301,7 @@ func (info *FileInfo) addChanges(oldInfo *FileInfo, changes *[]Change) {
 	// If there were changes inside this directory, we need to add it, even if the directory
 	// itself wasn't changed. This is needed to properly save and restore filesystem permissions.
 	// As this runs on the daemon side, file paths are OS specific.
-	if len(*changes) > sizeAtEntry && info.isDir() && !info.added &&
-		info.path() != string(os.PathSeparator) {
+	if len(*changes) > sizeAtEntry && info.isDir() && !info.added && info.path() != string(os.PathSeparator) {
 		change := Change{
 			Path: info.path(),
 			Kind: ChangeModify,
@@ -384,11 +383,7 @@ func ChangesSize(newDir string, changes []Change) int64 {
 }
 
 // ExportChanges produces an Archive from the provided changes, relative to dir.
-func ExportChanges(
-	dir string,
-	changes []Change,
-	idMap user.IdentityMapping,
-) (io.ReadCloser, error) {
+func ExportChanges(dir string, changes []Change, idMap user.IdentityMapping) (io.ReadCloser, error) {
 	reader, writer := io.Pipe()
 	go func() {
 		ta := newTarAppender(idMap, writer, nil)

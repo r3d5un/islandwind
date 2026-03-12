@@ -159,10 +159,7 @@ func parseUntypedTextArray(src string) (*untypedTextArray, error) {
 				return nil, fmt.Errorf("invalid array, expected ']' got %v", r)
 			}
 
-			explicitDimensions = append(
-				explicitDimensions,
-				ArrayDimension{LowerBound: lower, Length: upper - lower + 1},
-			)
+			explicitDimensions = append(explicitDimensions, ArrayDimension{LowerBound: lower, Length: upper - lower + 1})
 		}
 
 		r, _, err = buf.ReadRune()
@@ -371,9 +368,7 @@ func isSpace(ch byte) bool {
 }
 
 func quoteArrayElementIfNeeded(src string) string {
-	if src == "" || (len(src) == 4 && strings.EqualFold(src, "null")) || isSpace(src[0]) ||
-		isSpace(src[len(src)-1]) ||
-		strings.ContainsAny(src, `{},"\`) {
+	if src == "" || (len(src) == 4 && strings.EqualFold(src, "null")) || isSpace(src[0]) || isSpace(src[len(src)-1]) || strings.ContainsAny(src, `{},"\`) {
 		return quoteArrayElement(src)
 	}
 	return src

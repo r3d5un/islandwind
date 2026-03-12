@@ -211,16 +211,7 @@ func (encodePlanTimestampCodecText) Encode(value any, buf []byte) (newBuf []byte
 		bc := false
 		if year := t.Year(); year <= 0 {
 			year = -year + 1
-			t = time.Date(
-				year,
-				t.Month(),
-				t.Day(),
-				t.Hour(),
-				t.Minute(),
-				t.Second(),
-				t.Nanosecond(),
-				time.UTC,
-			)
+			t = time.Date(year, t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
 			bc = true
 		}
 
@@ -242,16 +233,7 @@ func (encodePlanTimestampCodecText) Encode(value any, buf []byte) (newBuf []byte
 
 func discardTimeZone(t time.Time) time.Time {
 	if t.Location() != time.UTC {
-		return time.Date(
-			t.Year(),
-			t.Month(),
-			t.Day(),
-			t.Hour(),
-			t.Minute(),
-			t.Second(),
-			t.Nanosecond(),
-			time.UTC,
-		)
+		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.UTC)
 	}
 
 	return t
@@ -301,16 +283,7 @@ func (plan *scanPlanBinaryTimestampToTimestampScanner) Scan(src []byte, dst any)
 			(microsecFromUnixEpochToY2K%1_000_000*1_000)+(microsecSinceY2K%1_000_000*1000),
 		).UTC()
 		if plan.location != nil {
-			tim = time.Date(
-				tim.Year(),
-				tim.Month(),
-				tim.Day(),
-				tim.Hour(),
-				tim.Minute(),
-				tim.Second(),
-				tim.Nanosecond(),
-				plan.location,
-			)
+			tim = time.Date(tim.Year(), tim.Month(), tim.Day(), tim.Hour(), tim.Minute(), tim.Second(), tim.Nanosecond(), plan.location)
 		}
 		ts = Timestamp{Time: tim, Valid: true}
 	}
@@ -347,29 +320,11 @@ func (plan *scanPlanTextTimestampToTimestampScanner) Scan(src []byte, dst any) e
 
 		if bc {
 			year := -tim.Year() + 1
-			tim = time.Date(
-				year,
-				tim.Month(),
-				tim.Day(),
-				tim.Hour(),
-				tim.Minute(),
-				tim.Second(),
-				tim.Nanosecond(),
-				tim.Location(),
-			)
+			tim = time.Date(year, tim.Month(), tim.Day(), tim.Hour(), tim.Minute(), tim.Second(), tim.Nanosecond(), tim.Location())
 		}
 
 		if plan.location != nil {
-			tim = time.Date(
-				tim.Year(),
-				tim.Month(),
-				tim.Day(),
-				tim.Hour(),
-				tim.Minute(),
-				tim.Second(),
-				tim.Nanosecond(),
-				plan.location,
-			)
+			tim = time.Date(tim.Year(), tim.Month(), tim.Day(), tim.Hour(), tim.Minute(), tim.Second(), tim.Nanosecond(), plan.location)
 		}
 
 		ts = Timestamp{Time: tim, Valid: true}
@@ -378,12 +333,7 @@ func (plan *scanPlanTextTimestampToTimestampScanner) Scan(src []byte, dst any) e
 	return scanner.ScanTimestamp(ts)
 }
 
-func (c *TimestampCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *TimestampCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

@@ -47,12 +47,7 @@ func (w *Warnings) Error() string {
 		return str
 	}
 	if w.tooManyErrors {
-		return fmt.Sprintf(
-			"%s > %v - %s",
-			numberOfWarningsMessage,
-			maxWarnings,
-			tooManyErrorsMessage,
-		)
+		return fmt.Sprintf("%s > %v - %s", numberOfWarningsMessage, maxWarnings, tooManyErrorsMessage)
 	}
 	return fmt.Sprintf("%s %v", numberOfWarningsMessage, len(w.List))
 }

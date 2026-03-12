@@ -176,22 +176,8 @@ func formatLineNumber(line int, width int) string {
 	return fmt.Sprintf(format, line)
 }
 
-func linesOfContext(
-	document []byte,
-	highlight []byte,
-	offset int,
-	linesAround int,
-) ([][]byte, [][]byte) {
-	return beforeLines(
-			document,
-			offset,
-			linesAround,
-		), afterLines(
-			document,
-			highlight,
-			offset,
-			linesAround,
-		)
+func linesOfContext(document []byte, highlight []byte, offset int, linesAround int) ([][]byte, [][]byte) {
+	return beforeLines(document, offset, linesAround), afterLines(document, highlight, offset, linesAround)
 }
 
 func beforeLines(document []byte, offset int, linesAround int) [][]byte {

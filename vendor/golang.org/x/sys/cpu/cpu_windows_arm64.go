@@ -25,15 +25,9 @@ func doinit() {
 		ARM64.HasSHA2 = true
 	}
 	ARM64.HasSHA3 = windows.IsProcessorFeaturePresent(windows.PF_ARM_SHA3_INSTRUCTIONS_AVAILABLE)
-	ARM64.HasCRC32 = windows.IsProcessorFeaturePresent(
-		windows.PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE,
-	)
-	ARM64.HasSHA512 = windows.IsProcessorFeaturePresent(
-		windows.PF_ARM_SHA512_INSTRUCTIONS_AVAILABLE,
-	)
-	ARM64.HasATOMICS = windows.IsProcessorFeaturePresent(
-		windows.PF_ARM_V81_ATOMIC_INSTRUCTIONS_AVAILABLE,
-	)
+	ARM64.HasCRC32 = windows.IsProcessorFeaturePresent(windows.PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE)
+	ARM64.HasSHA512 = windows.IsProcessorFeaturePresent(windows.PF_ARM_SHA512_INSTRUCTIONS_AVAILABLE)
+	ARM64.HasATOMICS = windows.IsProcessorFeaturePresent(windows.PF_ARM_V81_ATOMIC_INSTRUCTIONS_AVAILABLE)
 	if windows.IsProcessorFeaturePresent(windows.PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE) {
 		ARM64.HasASIMDDP = true
 		ARM64.HasASIMDRDM = true
@@ -44,7 +38,5 @@ func doinit() {
 	}
 	ARM64.HasSVE = windows.IsProcessorFeaturePresent(windows.PF_ARM_SVE_INSTRUCTIONS_AVAILABLE)
 	ARM64.HasSVE2 = windows.IsProcessorFeaturePresent(windows.PF_ARM_SVE2_INSTRUCTIONS_AVAILABLE)
-	ARM64.HasJSCVT = windows.IsProcessorFeaturePresent(
-		windows.PF_ARM_V83_JSCVT_INSTRUCTIONS_AVAILABLE,
-	)
+	ARM64.HasJSCVT = windows.IsProcessorFeaturePresent(windows.PF_ARM_V83_JSCVT_INSTRUCTIONS_AVAILABLE)
 }

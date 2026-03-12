@@ -482,9 +482,7 @@ func (w *timeWrapper) ScanTime(v Time) error {
 	seconds := usec / microsecondsPerSecond
 	usec -= seconds * microsecondsPerSecond
 	ns := usec * 1000
-	*w = timeWrapper(
-		time.Date(2000, 1, 1, int(hours), int(minutes), int(seconds), int(ns), time.UTC),
-	)
+	*w = timeWrapper(time.Date(2000, 1, 1, int(hours), int(minutes), int(seconds), int(ns), time.UTC))
 	return nil
 }
 
@@ -722,12 +720,7 @@ func (w structWrapper) IsNull() bool {
 
 func (w structWrapper) Index(i int) any {
 	if i >= len(w.exportedFields) {
-		return fmt.Errorf(
-			"%#v only has %d public fields - %d is out of bounds",
-			w.s,
-			len(w.exportedFields),
-			i,
-		)
+		return fmt.Errorf("%#v only has %d public fields - %d is out of bounds", w.s, len(w.exportedFields), i)
 	}
 
 	return w.exportedFields[i].Interface()
@@ -745,12 +738,7 @@ func (w *ptrStructWrapper) ScanNull() error {
 
 func (w *ptrStructWrapper) ScanIndex(i int) any {
 	if i >= len(w.exportedFields) {
-		return fmt.Errorf(
-			"%#v only has %d public fields - %d is out of bounds",
-			w.s,
-			len(w.exportedFields),
-			i,
-		)
+		return fmt.Errorf("%#v only has %d public fields - %d is out of bounds", w.s, len(w.exportedFields), i)
 	}
 
 	return w.exportedFields[i].Addr().Interface()
@@ -879,11 +867,7 @@ func (a *anyMultiDimSliceArray) SetDimensions(dimensions []ArrayDimension) error
 		}
 
 		if sliceDimensionCount != len(dimensions) {
-			return fmt.Errorf(
-				"PostgreSQL array has %d dimensions but slice has %d dimensions",
-				len(dimensions),
-				sliceDimensionCount,
-			)
+			return fmt.Errorf("PostgreSQL array has %d dimensions but slice has %d dimensions", len(dimensions), sliceDimensionCount)
 		}
 
 		elementCount := cardinality(dimensions)
@@ -900,12 +884,7 @@ func (a *anyMultiDimSliceArray) SetDimensions(dimensions []ArrayDimension) error
 	}
 }
 
-func (a *anyMultiDimSliceArray) makeMultidimensionalSlice(
-	sliceType reflect.Type,
-	dimensions []ArrayDimension,
-	flatSlice reflect.Value,
-	flatSliceIdx int,
-) reflect.Value {
+func (a *anyMultiDimSliceArray) makeMultidimensionalSlice(sliceType reflect.Type, dimensions []ArrayDimension, flatSlice reflect.Value, flatSliceIdx int) reflect.Value {
 	if len(dimensions) == 1 {
 		endIdx := flatSliceIdx + int(dimensions[0].Length)
 		return flatSlice.Slice3(flatSliceIdx, endIdx, endIdx)
@@ -914,12 +893,7 @@ func (a *anyMultiDimSliceArray) makeMultidimensionalSlice(
 	sliceLen := int(dimensions[0].Length)
 	slice := reflect.MakeSlice(sliceType, sliceLen, sliceLen)
 	for i := range sliceLen {
-		subSlice := a.makeMultidimensionalSlice(
-			sliceType.Elem(),
-			dimensions[1:],
-			flatSlice,
-			flatSliceIdx+(i*int(dimensions[1].Length)),
-		)
+		subSlice := a.makeMultidimensionalSlice(sliceType.Elem(), dimensions[1:], flatSlice, flatSliceIdx+(i*int(dimensions[1].Length)))
 		slice.Index(i).Set(subSlice)
 	}
 
@@ -959,18 +933,11 @@ func (a *anyArrayArrayReflect) SetDimensions(dimensions []ArrayDimension) error 
 	}
 
 	if len(dimensions) != 1 {
-		return fmt.Errorf(
-			"anyArrayArrayReflect: cannot scan multi-dimensional array into %v",
-			a.array.Type().String(),
-		)
+		return fmt.Errorf("anyArrayArrayReflect: cannot scan multi-dimensional array into %v", a.array.Type().String())
 	}
 
 	if int(dimensions[0].Length) != a.array.Len() {
-		return fmt.Errorf(
-			"anyArrayArrayReflect: cannot scan array with length %v into %v",
-			dimensions[0].Length,
-			a.array.Type().String(),
-		)
+		return fmt.Errorf("anyArrayArrayReflect: cannot scan array with length %v into %v", dimensions[0].Length, a.array.Type().String())
 	}
 
 	return nil

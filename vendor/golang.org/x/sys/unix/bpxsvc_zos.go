@@ -373,13 +373,7 @@ func BpxFchattr(fd int32, attr *Bpxyatt_t) (rv int32, rc int32, rn int32) {
 	return rv, rc, rn
 }
 
-func BpxCondTimedWait(
-	sec uint32,
-	nsec uint32,
-	events uint32,
-	secrem *uint32,
-	nsecrem *uint32,
-) (rv int32, rc int32, rn int32) {
+func BpxCondTimedWait(sec uint32, nsec uint32, events uint32, secrem *uint32, nsecrem *uint32) (rv int32, rc int32, rn int32) {
 	var parms [8]unsafe.Pointer
 	parms[0] = unsafe.Pointer(&sec)
 	parms[1] = unsafe.Pointer(&nsec)
@@ -394,9 +388,7 @@ func BpxCondTimedWait(
 }
 func BpxGetthent(in *Pgtha, outlen *uint32, out unsafe.Pointer) (rv int32, rc int32, rn int32) {
 	var parms [7]unsafe.Pointer
-	inlen := uint32(
-		26,
-	) // nothing else will work. Go says Pgtha is 28-byte because of alignment, but Pgtha is "packed" and must be 26-byte
+	inlen := uint32(26) // nothing else will work. Go says Pgtha is 28-byte because of alignment, but Pgtha is "packed" and must be 26-byte
 	parms[0] = unsafe.Pointer(&inlen)
 	parms[1] = unsafe.Pointer(&in)
 	parms[2] = unsafe.Pointer(outlen)
@@ -598,13 +590,7 @@ const (
 	PT_PSWG3                = 109 // Bytes 12-15 (IA low word)
 )
 
-func Bpx4ptr(
-	request int32,
-	pid int32,
-	addr unsafe.Pointer,
-	data unsafe.Pointer,
-	buffer unsafe.Pointer,
-) (rv int32, rc int32, rn int32) {
+func Bpx4ptr(request int32, pid int32, addr unsafe.Pointer, data unsafe.Pointer, buffer unsafe.Pointer) (rv int32, rc int32, rn int32) {
 	var parms [8]unsafe.Pointer
 	parms[0] = unsafe.Pointer(&request)
 	parms[1] = unsafe.Pointer(&pid)

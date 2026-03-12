@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package winterm
@@ -214,29 +213,15 @@ func SetConsoleMode(handle uintptr, mode uint32) error {
 // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms683171(v=vs.85).aspx.
 func GetConsoleScreenBufferInfo(handle uintptr) (*CONSOLE_SCREEN_BUFFER_INFO, error) {
 	info := CONSOLE_SCREEN_BUFFER_INFO{}
-	err := checkError(
-		getConsoleScreenBufferInfoProc.Call(handle, uintptr(unsafe.Pointer(&info)), 0),
-	)
+	err := checkError(getConsoleScreenBufferInfoProc.Call(handle, uintptr(unsafe.Pointer(&info)), 0))
 	if err != nil {
 		return nil, err
 	}
 	return &info, nil
 }
 
-func ScrollConsoleScreenBuffer(
-	handle uintptr,
-	scrollRect SMALL_RECT,
-	clipRect SMALL_RECT,
-	destOrigin COORD,
-	char CHAR_INFO,
-) error {
-	r1, r2, err := scrollConsoleScreenBufferProc.Call(
-		handle,
-		uintptr(unsafe.Pointer(&scrollRect)),
-		uintptr(unsafe.Pointer(&clipRect)),
-		coordToPointer(destOrigin),
-		uintptr(unsafe.Pointer(&char)),
-	)
+func ScrollConsoleScreenBuffer(handle uintptr, scrollRect SMALL_RECT, clipRect SMALL_RECT, destOrigin COORD, char CHAR_INFO) error {
+	r1, r2, err := scrollConsoleScreenBufferProc.Call(handle, uintptr(unsafe.Pointer(&scrollRect)), uintptr(unsafe.Pointer(&clipRect)), coordToPointer(destOrigin), uintptr(unsafe.Pointer(&char)))
 	use(scrollRect)
 	use(clipRect)
 	use(destOrigin)
@@ -265,11 +250,7 @@ func SetConsoleTextAttribute(handle uintptr, attribute uint16) error {
 // Note that the size and location must be within and no larger than the backing console screen buffer.
 // See https://msdn.microsoft.com/en-us/library/windows/desktop/ms686125(v=vs.85).aspx.
 func SetConsoleWindowInfo(handle uintptr, isAbsolute bool, rect SMALL_RECT) error {
-	r1, r2, err := setConsoleWindowInfoProc.Call(
-		handle,
-		uintptr(boolToBOOL(isAbsolute)),
-		uintptr(unsafe.Pointer(&rect)),
-	)
+	r1, r2, err := setConsoleWindowInfoProc.Call(handle, uintptr(boolToBOOL(isAbsolute)), uintptr(unsafe.Pointer(&rect)))
 	use(isAbsolute)
 	use(rect)
 	return checkError(r1, r2, err)
@@ -277,20 +258,8 @@ func SetConsoleWindowInfo(handle uintptr, isAbsolute bool, rect SMALL_RECT) erro
 
 // WriteConsoleOutput writes the CHAR_INFOs from the provided buffer to the active console buffer.
 // See https://msdn.microsoft.com/en-us/library/windows/desktop/ms687404(v=vs.85).aspx.
-func WriteConsoleOutput(
-	handle uintptr,
-	buffer []CHAR_INFO,
-	bufferSize COORD,
-	bufferCoord COORD,
-	writeRegion *SMALL_RECT,
-) error {
-	r1, r2, err := writeConsoleOutputProc.Call(
-		handle,
-		uintptr(unsafe.Pointer(&buffer[0])),
-		coordToPointer(bufferSize),
-		coordToPointer(bufferCoord),
-		uintptr(unsafe.Pointer(writeRegion)),
-	)
+func WriteConsoleOutput(handle uintptr, buffer []CHAR_INFO, bufferSize COORD, bufferCoord COORD, writeRegion *SMALL_RECT) error {
+	r1, r2, err := writeConsoleOutputProc.Call(handle, uintptr(unsafe.Pointer(&buffer[0])), coordToPointer(bufferSize), coordToPointer(bufferCoord), uintptr(unsafe.Pointer(writeRegion)))
 	use(buffer)
 	use(bufferSize)
 	use(bufferCoord)
@@ -300,12 +269,7 @@ func WriteConsoleOutput(
 // ReadConsoleInput reads (and removes) data from the console input buffer.
 // See https://msdn.microsoft.com/en-us/library/windows/desktop/ms684961(v=vs.85).aspx.
 func ReadConsoleInput(handle uintptr, buffer []INPUT_RECORD, count *uint32) error {
-	r1, r2, err := readConsoleInputProc.Call(
-		handle,
-		uintptr(unsafe.Pointer(&buffer[0])),
-		uintptr(len(buffer)),
-		uintptr(unsafe.Pointer(count)),
-	)
+	r1, r2, err := readConsoleInputProc.Call(handle, uintptr(unsafe.Pointer(&buffer[0])), uintptr(len(buffer)), uintptr(unsafe.Pointer(count)))
 	use(buffer)
 	return checkError(r1, r2, err)
 }
@@ -327,13 +291,7 @@ func WaitForSingleObject(handle uintptr, msWait uint32) (bool, error) {
 
 // String helpers
 func (info CONSOLE_SCREEN_BUFFER_INFO) String() string {
-	return fmt.Sprintf(
-		"Size(%v) Cursor(%v) Window(%v) Max(%v)",
-		info.Size,
-		info.CursorPosition,
-		info.Window,
-		info.MaximumWindowSize,
-	)
+	return fmt.Sprintf("Size(%v) Cursor(%v) Window(%v) Max(%v)", info.Size, info.CursorPosition, info.Window, info.MaximumWindowSize)
 }
 
 func (coord COORD) String() string {

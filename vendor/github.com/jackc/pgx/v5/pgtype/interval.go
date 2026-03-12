@@ -192,9 +192,7 @@ func (scanPlanBinaryIntervalToIntervalScanner) Scan(src []byte, dst any) error {
 	days := int32(binary.BigEndian.Uint32(src[8:]))
 	months := int32(binary.BigEndian.Uint32(src[12:]))
 
-	return scanner.ScanInterval(
-		Interval{Microseconds: microseconds, Days: days, Months: months, Valid: true},
-	)
+	return scanner.ScanInterval(Interval{Microseconds: microseconds, Days: days, Months: months, Valid: true})
 }
 
 type scanPlanTextAnyToIntervalScanner struct{}
@@ -281,17 +279,10 @@ func (scanPlanTextAnyToIntervalScanner) Scan(src []byte, dst any) error {
 		}
 	}
 
-	return scanner.ScanInterval(
-		Interval{Months: months, Days: days, Microseconds: microseconds, Valid: true},
-	)
+	return scanner.ScanInterval(Interval{Months: months, Days: days, Microseconds: microseconds, Valid: true})
 }
 
-func (c IntervalCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c IntervalCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return codecDecodeToTextFormat(c, m, oid, format, src)
 }
 

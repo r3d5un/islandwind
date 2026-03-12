@@ -349,16 +349,7 @@ func UtimesNanoAt(dirfd int, path string, ts []Timespec, flags int) error {
 
 // FcntlInt performs a fcntl syscall on fd with the provided command and argument.
 func FcntlInt(fd uintptr, cmd, arg int) (int, error) {
-	valptr, _, errno := sysvicall6(
-		uintptr(unsafe.Pointer(&procfcntl)),
-		3,
-		uintptr(fd),
-		uintptr(cmd),
-		uintptr(arg),
-		0,
-		0,
-		0,
-	)
+	valptr, _, errno := sysvicall6(uintptr(unsafe.Pointer(&procfcntl)), 3, uintptr(fd), uintptr(cmd), uintptr(arg), 0, 0, 0)
 	var err error
 	if errno != 0 {
 		err = errno
@@ -368,16 +359,7 @@ func FcntlInt(fd uintptr, cmd, arg int) (int, error) {
 
 // FcntlFlock performs a fcntl syscall for the F_GETLK, F_SETLK or F_SETLKW command.
 func FcntlFlock(fd uintptr, cmd int, lk *Flock_t) error {
-	_, _, e1 := sysvicall6(
-		uintptr(unsafe.Pointer(&procfcntl)),
-		3,
-		uintptr(fd),
-		uintptr(cmd),
-		uintptr(unsafe.Pointer(lk)),
-		0,
-		0,
-		0,
-	)
+	_, _, e1 := sysvicall6(uintptr(unsafe.Pointer(&procfcntl)), 3, uintptr(fd), uintptr(cmd), uintptr(unsafe.Pointer(lk)), 0, 0, 0)
 	if e1 != 0 {
 		return e1
 	}
@@ -469,13 +451,7 @@ func Accept(fd int) (nfd int, sa Sockaddr, err error) {
 
 //sys	recvmsg(s int, msg *Msghdr, flags int) (n int, err error) = libsocket.__xnet_recvmsg
 
-func recvmsgRaw(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	flags int,
-	rsa *RawSockaddrAny,
-) (n, oobn int, recvflags int, err error) {
+func recvmsgRaw(fd int, iov []Iovec, oob []byte, flags int, rsa *RawSockaddrAny) (n, oobn int, recvflags int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(unsafe.Pointer(rsa))
 	msg.Namelen = uint32(SizeofSockaddrAny)
@@ -503,14 +479,7 @@ func recvmsgRaw(
 
 //sys	sendmsg(s int, msg *Msghdr, flags int) (n int, err error) = libsocket.__xnet_sendmsg
 
-func sendmsgN(
-	fd int,
-	iov []Iovec,
-	oob []byte,
-	ptr unsafe.Pointer,
-	salen _Socklen,
-	flags int,
-) (n int, err error) {
+func sendmsgN(fd int, iov []Iovec, oob []byte, ptr unsafe.Pointer, salen _Socklen, flags int) (n int, err error) {
 	var msg Msghdr
 	msg.Name = (*byte)(unsafe.Pointer(ptr))
 	msg.Namelen = uint32(salen)
@@ -824,12 +793,7 @@ func (e *EventPort) FdIsWatched(fd uintptr) bool {
 
 // AssociatePath wraps port_associate(3c) for a filesystem path including
 // creating the necessary file_obj from the provided stat information.
-func (e *EventPort) AssociatePath(
-	path string,
-	stat os.FileInfo,
-	events int,
-	cookie interface{},
-) error {
+func (e *EventPort) AssociatePath(path string, stat os.FileInfo, events int, cookie interface{}) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if _, found := e.paths[path]; found {
@@ -839,13 +803,7 @@ func (e *EventPort) AssociatePath(
 	if err != nil {
 		return err
 	}
-	_, err = port_associate(
-		e.port,
-		PORT_SOURCE_FILE,
-		uintptr(unsafe.Pointer(fCookie.fobj)),
-		events,
-		(*byte)(unsafe.Pointer(fCookie)),
-	)
+	_, err = port_associate(e.port, PORT_SOURCE_FILE, uintptr(unsafe.Pointer(fCookie.fobj)), events, (*byte)(unsafe.Pointer(fCookie)))
 	if err != nil {
 		return err
 	}
@@ -919,11 +877,7 @@ func (e *EventPort) DissociateFd(fd uintptr) error {
 	return err
 }
 
-func createFileObjCookie(
-	name string,
-	stat os.FileInfo,
-	cookie interface{},
-) (*fileObjCookie, error) {
+func createFileObjCookie(name string, stat os.FileInfo, cookie interface{}) (*fileObjCookie, error) {
 	fCookie := new(fileObjCookie)
 	fCookie.cookie = cookie
 	if name != "" && stat != nil {
@@ -973,9 +927,7 @@ func (e *EventPort) peIntToExt(peInt *portEvent, peExt *PortEvent) error {
 	_, found := e.cookies[fCookie]
 
 	if !found {
-		panic(
-			"unexpected event port address; may be due to kernel bug; see https://go.dev/issue/54254",
-		)
+		panic("unexpected event port address; may be due to kernel bug; see https://go.dev/issue/54254")
 	}
 	peExt.Cookie = fCookie.cookie
 	delete(e.cookies, fCookie)

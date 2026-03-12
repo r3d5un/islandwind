@@ -330,10 +330,7 @@ func (p *Parser) parseKeyval(b []byte) (reference, []byte, error) {
 	b = p.parseWhitespace(b)
 
 	if len(b) == 0 {
-		return invalidReference, nil, NewParserError(
-			b,
-			"expected = after a key, but the document ends there",
-		)
+		return invalidReference, nil, NewParserError(b, "expected = after a key, but the document ends there")
 	}
 
 	b, err = expect('=', b)
@@ -791,11 +788,7 @@ func (p *Parser) parseMultilineBasicString(b []byte) ([]byte, []byte, []byte, er
 				builder.WriteRune(x)
 				i += 8
 			default:
-				return nil, nil, nil, NewParserError(
-					token[i:i+1],
-					"invalid escaped character %#U",
-					c,
-				)
+				return nil, nil, nil, NewParserError(token[i:i+1], "invalid escaped character %#U", c)
 			}
 			i++
 		} else {
@@ -955,11 +948,7 @@ func (p *Parser) parseBasicString(b []byte) ([]byte, []byte, []byte, error) {
 				builder.WriteRune(x)
 				i += 8
 			default:
-				return nil, nil, nil, NewParserError(
-					token[i:i+1],
-					"invalid escaped character %#U",
-					c,
-				)
+				return nil, nil, nil, NewParserError(token[i:i+1], "invalid escaped character %#U", c)
 			}
 			i++
 		} else {
@@ -1187,10 +1176,7 @@ func (p *Parser) scanIntOrFloat(b []byte) (reference, []byte, error) {
 				}), b[i+3:], nil
 			}
 
-			return invalidReference, nil, NewParserError(
-				b[i:i+1],
-				"unexpected character 'i' while scanning for a number",
-			)
+			return invalidReference, nil, NewParserError(b[i:i+1], "unexpected character 'i' while scanning for a number")
 		}
 
 		if c == 'n' {
@@ -1202,10 +1188,7 @@ func (p *Parser) scanIntOrFloat(b []byte) (reference, []byte, error) {
 				}), b[i+3:], nil
 			}
 
-			return invalidReference, nil, NewParserError(
-				b[i:i+1],
-				"unexpected character 'n' while scanning for a number",
-			)
+			return invalidReference, nil, NewParserError(b[i:i+1], "unexpected character 'n' while scanning for a number")
 		}
 
 		break

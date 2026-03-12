@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package ole
@@ -9,12 +8,7 @@ import (
 	"unsafe"
 )
 
-func reflectQueryInterface(
-	self interface{},
-	method uintptr,
-	interfaceID *GUID,
-	obj interface{},
-) (err error) {
+func reflectQueryInterface(self interface{}, method uintptr, interfaceID *GUID, obj interface{}) (err error) {
 	selfValue := reflect.ValueOf(self).Elem()
 	objValue := reflect.ValueOf(obj).Elem()
 

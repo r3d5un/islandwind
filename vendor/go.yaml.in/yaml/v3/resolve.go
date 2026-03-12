@@ -258,11 +258,7 @@ func resolve(tag string, in string) (rtag string, out interface{}) {
 				}
 			}
 		default:
-			panic(
-				"internal error: missing handler for resolver table: " + string(
-					rune(hint),
-				) + " (with " + in + ")",
-			)
+			panic("internal error: missing handler for resolver table: " + string(rune(hint)) + " (with " + in + ")")
 		}
 	}
 	return strTag, in

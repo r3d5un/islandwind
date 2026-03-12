@@ -19,13 +19,7 @@ func newTextValue(val encoding.TextMarshaler, p encoding.TextUnmarshaler) textVa
 		defVal = defVal.Elem()
 	}
 	if defVal.Type() != ptrVal.Type().Elem() {
-		panic(
-			fmt.Sprintf(
-				"default type does not match variable type: %v != %v",
-				defVal.Type(),
-				ptrVal.Type().Elem(),
-			),
-		)
+		panic(fmt.Sprintf("default type does not match variable type: %v != %v", defVal.Type(), ptrVal.Type().Elem()))
 	}
 	ptrVal.Elem().Set(defVal)
 	return textValue{p}
@@ -61,32 +55,18 @@ func (f *FlagSet) GetText(name string, out encoding.TextUnmarshaler) error {
 		return fmt.Errorf("flag accessed but not defined: %s", name)
 	}
 	if flag.Value.Type() != reflect.TypeOf(out).Name() {
-		return fmt.Errorf(
-			"trying to get %s value of flag of type %s",
-			reflect.TypeOf(out).Name(),
-			flag.Value.Type(),
-		)
+		return fmt.Errorf("trying to get %s value of flag of type %s", reflect.TypeOf(out).Name(), flag.Value.Type())
 	}
 	return out.UnmarshalText([]byte(flag.Value.String()))
 }
 
 // TextVar defines a flag with a specified name, default value, and usage string. The argument p must be a pointer to a variable that will hold the value of the flag, and p must implement encoding.TextUnmarshaler. If the flag is used, the flag value will be passed to p's UnmarshalText method. The type of the default value must be the same as the type of p.
-func (f *FlagSet) TextVar(
-	p encoding.TextUnmarshaler,
-	name string,
-	value encoding.TextMarshaler,
-	usage string,
-) {
+func (f *FlagSet) TextVar(p encoding.TextUnmarshaler, name string, value encoding.TextMarshaler, usage string) {
 	f.VarP(newTextValue(value, p), name, "", usage)
 }
 
 // TextVarP is like TextVar, but accepts a shorthand letter that can be used after a single dash.
-func (f *FlagSet) TextVarP(
-	p encoding.TextUnmarshaler,
-	name, shorthand string,
-	value encoding.TextMarshaler,
-	usage string,
-) {
+func (f *FlagSet) TextVarP(p encoding.TextUnmarshaler, name, shorthand string, value encoding.TextMarshaler, usage string) {
 	f.VarP(newTextValue(value, p), name, shorthand, usage)
 }
 
@@ -96,11 +76,6 @@ func TextVar(p encoding.TextUnmarshaler, name string, value encoding.TextMarshal
 }
 
 // TextVarP is like TextVar, but accepts a shorthand letter that can be used after a single dash.
-func TextVarP(
-	p encoding.TextUnmarshaler,
-	name, shorthand string,
-	value encoding.TextMarshaler,
-	usage string,
-) {
+func TextVarP(p encoding.TextUnmarshaler, name, shorthand string, value encoding.TextMarshaler, usage string) {
 	CommandLine.VarP(newTextValue(value, p), name, shorthand, usage)
 }

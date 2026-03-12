@@ -256,10 +256,7 @@ func CopyInfoDestinationPath(path string) (info CopyInfo, err error) {
 // contain the archived resource described by srcInfo, to the destination
 // described by dstInfo. Returns the possibly modified content archive along
 // with the path to the destination directory which it should be extracted to.
-func PrepareArchiveCopy(
-	srcContent io.Reader,
-	srcInfo, dstInfo CopyInfo,
-) (dstDir string, content io.ReadCloser, err error) {
+func PrepareArchiveCopy(srcContent io.Reader, srcInfo, dstInfo CopyInfo) (dstDir string, content io.ReadCloser, err error) {
 	// Ensure in platform semantics
 	srcInfo.Path = normalizePath(srcInfo.Path)
 	dstInfo.Path = normalizePath(dstInfo.Path)
@@ -444,10 +441,7 @@ func CopyTo(content io.Reader, srcInfo CopyInfo, dstPath string) error {
 // whether to follow symbol link or not, if followLink is true, resolvedPath will return
 // link target of any symbol link file, else it will only resolve symlink of directory
 // but return symbol link file itself without resolving.
-func ResolveHostSourcePath(
-	path string,
-	followLink bool,
-) (resolvedPath, rebaseName string, _ error) {
+func ResolveHostSourcePath(path string, followLink bool) (resolvedPath, rebaseName string, _ error) {
 	if followLink {
 		var err error
 		resolvedPath, err = filepath.EvalSymlinks(path)

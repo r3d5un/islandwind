@@ -67,8 +67,7 @@ func UnpackLayer(dest string, layer io.Reader, options *TarOptions) (size int64,
 		// image but have it tagged as Windows inadvertently.
 		if runtime.GOOS == "windows" {
 			if strings.Contains(hdr.Name, ":") {
-				log.G(context.TODO()).
-					Warnf("Windows: Ignoring %s (is this a Linux image?)", hdr.Name)
+				log.G(context.TODO()).Warnf("Windows: Ignoring %s (is this a Linux image?)", hdr.Name)
 				continue
 			}
 		}
@@ -243,12 +242,7 @@ func IsEmpty(rd io.Reader) (bool, error) {
 }
 
 // do the bulk load of ApplyLayer, but allow for not calling DecompressStream
-func applyLayerHandler(
-	dest string,
-	layer io.Reader,
-	options *TarOptions,
-	decompress bool,
-) (int64, error) {
+func applyLayerHandler(dest string, layer io.Reader, options *TarOptions, decompress bool) (int64, error) {
 	dest = filepath.Clean(dest)
 
 	// We need to be able to set any perms

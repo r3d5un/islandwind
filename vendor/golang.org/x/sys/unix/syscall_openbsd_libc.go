@@ -11,10 +11,7 @@ import _ "unsafe"
 // Implemented in the runtime package (runtime/sys_openbsd3.go)
 func syscall_syscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno)
 func syscall_syscall6(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno)
-
-func syscall_syscall10(
-	fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 uintptr,
-) (r1, r2 uintptr, err Errno)
+func syscall_syscall10(fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 uintptr) (r1, r2 uintptr, err Errno)
 func syscall_rawSyscall(fn, a1, a2, a3 uintptr) (r1, r2 uintptr, err Errno)
 func syscall_rawSyscall6(fn, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err Errno)
 

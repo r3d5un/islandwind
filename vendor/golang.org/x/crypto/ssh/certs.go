@@ -175,9 +175,7 @@ func parseTuples(in []byte) (map[string]string, error) {
 				return nil, errShortRead
 			}
 			if len(extra) > 0 {
-				return nil, fmt.Errorf(
-					"ssh: unexpected trailing data after certificate option value",
-				)
+				return nil, fmt.Errorf("ssh: unexpected trailing data after certificate option value")
 			}
 			tups[keyStr] = string(val)
 		} else {
@@ -238,10 +236,7 @@ func parseCert(in []byte, privAlgo string) (*Certificate, error) {
 	// The Type() function is intended to return only certificate key types, but
 	// we use certKeyAlgoNames anyway for safety, to match [Certificate.Type].
 	if _, ok := certKeyAlgoNames[k.Type()]; ok {
-		return nil, fmt.Errorf(
-			"ssh: the signature key type %q is invalid for certificates",
-			k.Type(),
-		)
+		return nil, fmt.Errorf("ssh: the signature key type %q is invalid for certificates", k.Type())
 	}
 	c.SignatureKey = k
 	c.Signature, rest, ok = parseSignatureBody(g.Signature)
@@ -293,11 +288,7 @@ func (s *openSSHCertSigner) PublicKey() PublicKey {
 	return s.pub
 }
 
-func (s *algorithmOpenSSHCertSigner) SignWithAlgorithm(
-	rand io.Reader,
-	data []byte,
-	algorithm string,
-) (*Signature, error) {
+func (s *algorithmOpenSSHCertSigner) SignWithAlgorithm(rand io.Reader, data []byte, algorithm string) (*Signature, error) {
 	return s.algorithmSigner.SignWithAlgorithm(rand, data, algorithm)
 }
 
@@ -431,11 +422,7 @@ func (c *CertChecker) CheckCert(principal string, cert *Certificate) error {
 			}
 		}
 		if !found {
-			return fmt.Errorf(
-				"ssh: principal %q not in the set of valid principals for given certificate: %q",
-				principal,
-				cert.ValidPrincipals,
-			)
+			return fmt.Errorf("ssh: principal %q not in the set of valid principals for given certificate: %q", principal, cert.ValidPrincipals)
 		}
 	}
 
@@ -448,8 +435,7 @@ func (c *CertChecker) CheckCert(principal string, cert *Certificate) error {
 	if after := int64(cert.ValidAfter); after < 0 || unixNow < int64(cert.ValidAfter) {
 		return fmt.Errorf("ssh: cert is not yet valid")
 	}
-	if before := int64(cert.ValidBefore); cert.ValidBefore != uint64(CertTimeInfinity) &&
-		(unixNow >= before || before < 0) {
+	if before := int64(cert.ValidBefore); cert.ValidBefore != uint64(CertTimeInfinity) && (unixNow >= before || before < 0) {
 		return fmt.Errorf("ssh: cert has expired")
 	}
 	if err := cert.SignatureKey.Verify(cert.bytesForSigning(), cert.Signature); err != nil {

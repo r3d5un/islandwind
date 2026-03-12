@@ -29,11 +29,7 @@ type GSSAPIClient interface {
 	// reply token is received from the ssh server, passing the reply
 	// token to InitSecContext via the token parameters.
 	// See RFC 2743 section 2.2.1 and RFC 4462 section 3.4.
-	InitSecContext(
-		target string,
-		token []byte,
-		isGSSDelegCreds bool,
-	) (outputToken []byte, needContinue bool, err error)
+	InitSecContext(target string, token []byte, isGSSDelegCreds bool) (outputToken []byte, needContinue bool, err error)
 	// GetMIC generates a cryptographic MIC for the SSH2 message, and places
 	// the MIC in a token for transfer to the ssh server.
 	// The contents of the MIC field are obtained by calling GSS_GetMIC()
@@ -74,9 +70,7 @@ type GSSAPIServer interface {
 	// token parameters.
 	// The srcName return value is the authenticated username.
 	// See RFC 2743 section 2.2.2 and RFC 4462 section 3.4.
-	AcceptSecContext(
-		token []byte,
-	) (outputToken []byte, srcName string, needContinue bool, err error)
+	AcceptSecContext(token []byte) (outputToken []byte, srcName string, needContinue bool, err error)
 	// VerifyMIC verifies that a cryptographic MIC, contained in the token parameter,
 	// fits the supplied message is received from the ssh client.
 	// See RFC 2743 section 2.3.2.

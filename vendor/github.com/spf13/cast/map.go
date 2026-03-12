@@ -138,11 +138,7 @@ func ToStringMapE(i any) (map[string]any, error) {
 	return toStringMapE(i, fn)
 }
 
-func toStringMapIntE[T int | int64](
-	i any,
-	fn func(any) T,
-	fnE func(any) (T, error),
-) (map[string]T, error) {
+func toStringMapIntE[T int | int64](i any, fn func(any) T, fnE func(any) (T, error)) (map[string]T, error) {
 	m := map[string]T{}
 
 	if i == nil {

@@ -8,11 +8,7 @@ import (
 )
 
 // ContainerRemove kills and removes a container from the docker host.
-func (cli *Client) ContainerRemove(
-	ctx context.Context,
-	containerID string,
-	options container.RemoveOptions,
-) error {
+func (cli *Client) ContainerRemove(ctx context.Context, containerID string, options container.RemoveOptions) error {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return err

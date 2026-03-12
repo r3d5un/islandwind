@@ -1,4 +1,3 @@
-//go:build windows
 // +build windows
 
 package winterm
@@ -12,12 +11,7 @@ const (
 
 // collectAnsiIntoWindowsAttributes modifies the passed Windows text mode flags to reflect the
 // request represented by the passed ANSI mode.
-func collectAnsiIntoWindowsAttributes(
-	windowsMode uint16,
-	inverted bool,
-	baseMode uint16,
-	ansiMode int16,
-) (uint16, bool) {
+func collectAnsiIntoWindowsAttributes(windowsMode uint16, inverted bool, baseMode uint16, ansiMode int16) (uint16, bool) {
 	switch ansiMode {
 
 	// Mode styles

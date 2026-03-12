@@ -24,12 +24,7 @@ func addLongPathPrefix(srcPath string) string {
 // can't use filepath.Join(srcPath,include) because this will clean away
 // a trailing "." or "/" which may be important.
 func getWalkRoot(srcPath string, include string) string {
-	return strings.TrimSuffix(
-		srcPath,
-		string(filepath.Separator),
-	) + string(
-		filepath.Separator,
-	) + include
+	return strings.TrimSuffix(srcPath, string(filepath.Separator)) + string(filepath.Separator) + include
 }
 
 // chmodTarEntry is used to adjust the file permissions used in tar header based

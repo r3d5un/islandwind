@@ -133,12 +133,7 @@ func RegisterFunc(fptr any, cfn uintptr) {
 		panic("purego: cfn is nil")
 	}
 	if ty.NumOut() == 1 && (ty.Out(0).Kind() == reflect.Float32 || ty.Out(0).Kind() == reflect.Float64) &&
-		runtime.GOARCH != "arm" && runtime.GOARCH != "arm64" && runtime.GOARCH != "386" &&
-		runtime.GOARCH != "amd64" &&
-		runtime.GOARCH != "loong64" &&
-		runtime.GOARCH != "ppc64le" &&
-		runtime.GOARCH != "riscv64" &&
-		runtime.GOARCH != "s390x" {
+		runtime.GOARCH != "arm" && runtime.GOARCH != "arm64" && runtime.GOARCH != "386" && runtime.GOARCH != "amd64" && runtime.GOARCH != "loong64" && runtime.GOARCH != "ppc64le" && runtime.GOARCH != "riscv64" && runtime.GOARCH != "s390x" {
 		panic("purego: float returns are not supported")
 	}
 	{
@@ -163,22 +158,9 @@ func RegisterFunc(fptr any, cfn uintptr) {
 						panic("purego: CDecl must be the first argument")
 					}
 				}
-			case reflect.String,
-				reflect.Uintptr,
-				reflect.Uint,
-				reflect.Uint8,
-				reflect.Uint16,
-				reflect.Uint32,
-				reflect.Uint64,
-				reflect.Int,
-				reflect.Int8,
-				reflect.Int16,
-				reflect.Int32,
-				reflect.Int64,
-				reflect.Ptr,
-				reflect.UnsafePointer,
-				reflect.Slice,
-				reflect.Bool:
+			case reflect.String, reflect.Uintptr, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+				reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Ptr, reflect.UnsafePointer,
+				reflect.Slice, reflect.Bool:
 				if ints < numOfIntegerRegisters() {
 					ints++
 				} else {
@@ -204,16 +186,7 @@ func RegisterFunc(fptr any, cfn uintptr) {
 				addStack := func(u uintptr) {
 					stack++
 				}
-				_ = addStruct(
-					reflect.New(arg).Elem(),
-					&ints,
-					&floats,
-					&stack,
-					addInt,
-					addFloat,
-					addStack,
-					nil,
-				)
+				_ = addStruct(reflect.New(arg).Elem(), &ints, &floats, &stack, addInt, addFloat, addStack, nil)
 			default:
 				panic("purego: unsupported kind " + arg.Kind().String())
 			}
@@ -300,8 +273,7 @@ func RegisterFunc(fptr any, cfn uintptr) {
 		var arm64_r8 uintptr
 		if ty.NumOut() == 1 && ty.Out(0).Kind() == reflect.Struct {
 			outType := ty.Out(0)
-			if (runtime.GOARCH == "amd64" || runtime.GOARCH == "loong64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "riscv64" || runtime.GOARCH == "s390x") &&
-				outType.Size() > maxRegAllocStructSize {
+			if (runtime.GOARCH == "amd64" || runtime.GOARCH == "loong64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "riscv64" || runtime.GOARCH == "s390x") && outType.Size() > maxRegAllocStructSize {
 				val := reflect.New(outType)
 				keepAlive = append(keepAlive, val)
 				addInt(val.Pointer())
@@ -320,22 +292,12 @@ func RegisterFunc(fptr any, cfn uintptr) {
 					panic("purego: can only expand last parameter")
 				}
 				for _, x := range variadic {
-					keepAlive = addValue(
-						reflect.ValueOf(x),
-						keepAlive,
-						addInt,
-						addFloat,
-						addStack,
-						&numInts,
-						&numFloats,
-						&numStack,
-					)
+					keepAlive = addValue(reflect.ValueOf(x), keepAlive, addInt, addFloat, addStack, &numInts, &numFloats, &numStack)
 				}
 				continue
 			}
 			// Check if we need to start Darwin ARM64 C-style stack packing
-			if runtime.GOARCH == "arm64" && runtime.GOOS == "darwin" &&
-				shouldBundleStackArgs(v, numInts, numFloats) {
+			if runtime.GOARCH == "arm64" && runtime.GOOS == "darwin" && shouldBundleStackArgs(v, numInts, numFloats) {
 				// Collect and separate remaining args into register vs stack
 				stackArgs, newKeepAlive := collectStackArgs(args, i, numInts, numFloats,
 					keepAlive, addInt, addFloat, addStack, &numInts, &numFloats, &numStack)
@@ -345,24 +307,13 @@ func RegisterFunc(fptr any, cfn uintptr) {
 				bundleStackArgs(stackArgs, addStack)
 				break
 			}
-			keepAlive = addValue(
-				v,
-				keepAlive,
-				addInt,
-				addFloat,
-				addStack,
-				&numInts,
-				&numFloats,
-				&numStack,
-			)
+			keepAlive = addValue(v, keepAlive, addInt, addFloat, addStack, &numInts, &numFloats, &numStack)
 		}
 
 		syscall := thePool.Get().(*syscall15Args)
 		defer thePool.Put(syscall)
 
-		if runtime.GOARCH == "loong64" || runtime.GOARCH == "ppc64le" ||
-			runtime.GOARCH == "riscv64" ||
-			runtime.GOARCH == "s390x" {
+		if runtime.GOARCH == "loong64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "riscv64" || runtime.GOARCH == "s390x" {
 			syscall.Set(cfn, sysargs[:], floats[:], 0)
 			runtime_cgocall(syscall15XABI0, unsafe.Pointer(syscall))
 		} else if runtime.GOARCH == "arm64" || runtime.GOOS != "windows" {
@@ -383,12 +334,7 @@ func RegisterFunc(fptr any, cfn uintptr) {
 		outType := ty.Out(0)
 		v := reflect.New(outType).Elem()
 		switch outType.Kind() {
-		case reflect.Uintptr,
-			reflect.Uint,
-			reflect.Uint8,
-			reflect.Uint16,
-			reflect.Uint32,
-			reflect.Uint64:
+		case reflect.Uintptr, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			v.SetUint(uint64(syscall.a1))
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			v.SetInt(int64(syscall.a1))
@@ -446,28 +392,14 @@ func RegisterFunc(fptr any, cfn uintptr) {
 	fn.Set(v)
 }
 
-func addValue(
-	v reflect.Value,
-	keepAlive []any,
-	addInt func(x uintptr),
-	addFloat func(x uintptr),
-	addStack func(x uintptr),
-	numInts *int,
-	numFloats *int,
-	numStack *int,
-) []any {
+func addValue(v reflect.Value, keepAlive []any, addInt func(x uintptr), addFloat func(x uintptr), addStack func(x uintptr), numInts *int, numFloats *int, numStack *int) []any {
 	const is32bit = unsafe.Sizeof(uintptr(0)) == 4
 	switch v.Kind() {
 	case reflect.String:
 		ptr := strings.CString(v.String())
 		keepAlive = append(keepAlive, ptr)
 		addInt(uintptr(unsafe.Pointer(ptr)))
-	case reflect.Uintptr,
-		reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64:
+	case reflect.Uintptr, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		addInt(uintptr(v.Uint()))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		addInt(uintptr(v.Int()))
@@ -498,16 +430,7 @@ func addValue(
 			addFloat(uintptr(math.Float64bits(v.Float())))
 		}
 	case reflect.Struct:
-		keepAlive = addStruct(
-			v,
-			numInts,
-			numFloats,
-			numStack,
-			addInt,
-			addFloat,
-			addStack,
-			keepAlive,
-		)
+		keepAlive = addStruct(v, numInts, numFloats, numStack, addInt, addFloat, addStack, keepAlive)
 	default:
 		panic("purego: unsupported kind: " + v.Kind().String())
 	}

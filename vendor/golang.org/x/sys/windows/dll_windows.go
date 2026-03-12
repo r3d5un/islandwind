@@ -179,158 +179,23 @@ func (p *Proc) Call(a ...uintptr) (r1, r2 uintptr, lastErr error) {
 	case 6:
 		return syscall.Syscall6(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5])
 	case 7:
-		return syscall.Syscall9(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			0,
-			0,
-		)
+		return syscall.Syscall9(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], 0, 0)
 	case 8:
-		return syscall.Syscall9(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			0,
-		)
+		return syscall.Syscall9(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], 0)
 	case 9:
-		return syscall.Syscall9(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-		)
+		return syscall.Syscall9(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8])
 	case 10:
-		return syscall.Syscall12(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			0,
-			0,
-		)
+		return syscall.Syscall12(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], 0, 0)
 	case 11:
-		return syscall.Syscall12(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			a[10],
-			0,
-		)
+		return syscall.Syscall12(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], 0)
 	case 12:
-		return syscall.Syscall12(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			a[10],
-			a[11],
-		)
+		return syscall.Syscall12(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11])
 	case 13:
-		return syscall.Syscall15(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			a[10],
-			a[11],
-			a[12],
-			0,
-			0,
-		)
+		return syscall.Syscall15(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], 0, 0)
 	case 14:
-		return syscall.Syscall15(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			a[10],
-			a[11],
-			a[12],
-			a[13],
-			0,
-		)
+		return syscall.Syscall15(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], 0)
 	case 15:
-		return syscall.Syscall15(
-			p.Addr(),
-			uintptr(len(a)),
-			a[0],
-			a[1],
-			a[2],
-			a[3],
-			a[4],
-			a[5],
-			a[6],
-			a[7],
-			a[8],
-			a[9],
-			a[10],
-			a[11],
-			a[12],
-			a[13],
-			a[14],
-		)
+		return syscall.Syscall15(p.Addr(), uintptr(len(a)), a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14])
 	default:
 		panic("Call " + p.Name + " with too many arguments " + itoa(len(a)) + ".")
 	}

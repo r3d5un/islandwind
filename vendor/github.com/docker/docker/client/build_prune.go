@@ -12,10 +12,7 @@ import (
 )
 
 // BuildCachePrune requests the daemon to delete unused cache data
-func (cli *Client) BuildCachePrune(
-	ctx context.Context,
-	opts build.CachePruneOptions,
-) (*build.CachePruneReport, error) {
+func (cli *Client) BuildCachePrune(ctx context.Context, opts build.CachePruneOptions) (*build.CachePruneReport, error) {
 	if err := cli.NewVersionError(ctx, "1.31", "build prune"); err != nil {
 		return nil, err
 	}

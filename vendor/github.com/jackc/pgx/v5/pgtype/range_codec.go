@@ -70,10 +70,7 @@ type encodePlanRangeCodecRangeValuerToBinary struct {
 	m  *Map
 }
 
-func (plan *encodePlanRangeCodecRangeValuerToBinary) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *encodePlanRangeCodecRangeValuerToBinary) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	getter := value.(RangeValuer)
 
 	if getter.IsNull() {
@@ -164,10 +161,7 @@ type encodePlanRangeCodecRangeValuerToText struct {
 	m  *Map
 }
 
-func (plan *encodePlanRangeCodecRangeValuerToText) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *encodePlanRangeCodecRangeValuerToText) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	getter := value.(RangeValuer)
 
 	if getter.IsNull() {
@@ -357,12 +351,7 @@ func (plan *scanPlanTextRangeToRangeScanner) Scan(src []byte, target any) error 
 	return rangeScanner.SetBoundTypes(utr.LowerType, utr.UpperType)
 }
 
-func (c *RangeCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *RangeCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

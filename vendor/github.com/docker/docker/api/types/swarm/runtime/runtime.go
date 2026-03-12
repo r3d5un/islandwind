@@ -21,13 +21,7 @@ type PluginPrivilege struct {
 }
 
 var (
-	ErrInvalidLengthPlugin = fmt.Errorf(
-		"proto: negative length found during unmarshaling",
-	) // Deprecated: this error was only used internally and is no longer used.
-	ErrIntOverflowPlugin = fmt.Errorf(
-		"proto: integer overflow",
-	) // Deprecated: this error was only used internally and is no longer used.
-	ErrUnexpectedEndOfGroupPlugin = fmt.Errorf(
-		"proto: unexpected end of group",
-	) // Deprecated: this error was only used internally and is no longer used.
+	ErrInvalidLengthPlugin        = fmt.Errorf("proto: negative length found during unmarshaling") // Deprecated: this error was only used internally and is no longer used.
+	ErrIntOverflowPlugin          = fmt.Errorf("proto: integer overflow")                          // Deprecated: this error was only used internally and is no longer used.
+	ErrUnexpectedEndOfGroupPlugin = fmt.Errorf("proto: unexpected end of group")                   // Deprecated: this error was only used internally and is no longer used.
 )

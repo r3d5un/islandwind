@@ -17,14 +17,7 @@ import (
 
 // ContainerCreate creates a new container based on the given configuration.
 // It can be associated with a name, but it's not mandatory.
-func (cli *Client) ContainerCreate(
-	ctx context.Context,
-	config *container.Config,
-	hostConfig *container.HostConfig,
-	networkingConfig *network.NetworkingConfig,
-	platform *ocispec.Platform,
-	containerName string,
-) (container.CreateResponse, error) {
+func (cli *Client) ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, platform *ocispec.Platform, containerName string) (container.CreateResponse, error) {
 	var response container.CreateResponse
 
 	// Make sure we negotiated (if the client is configured to do so),
@@ -36,25 +29,16 @@ func (cli *Client) ContainerCreate(
 		return response, err
 	}
 
-	if err := cli.NewVersionError(ctx, "1.25", "stop timeout"); config != nil &&
-		config.StopTimeout != nil &&
-		err != nil {
+	if err := cli.NewVersionError(ctx, "1.25", "stop timeout"); config != nil && config.StopTimeout != nil && err != nil {
 		return response, err
 	}
-	if err := cli.NewVersionError(ctx, "1.41", "specify container image platform"); platform != nil &&
-		err != nil {
+	if err := cli.NewVersionError(ctx, "1.41", "specify container image platform"); platform != nil && err != nil {
 		return response, err
 	}
-	if err := cli.NewVersionError(ctx, "1.44", "specify health-check start interval"); config != nil &&
-		config.Healthcheck != nil &&
-		config.Healthcheck.StartInterval != 0 &&
-		err != nil {
+	if err := cli.NewVersionError(ctx, "1.44", "specify health-check start interval"); config != nil && config.Healthcheck != nil && config.Healthcheck.StartInterval != 0 && err != nil {
 		return response, err
 	}
-	if err := cli.NewVersionError(ctx, "1.44", "specify mac-address per network"); hasEndpointSpecificMacAddress(
-		networkingConfig,
-	) &&
-		err != nil {
+	if err := cli.NewVersionError(ctx, "1.44", "specify mac-address per network"); hasEndpointSpecificMacAddress(networkingConfig) && err != nil {
 		return response, err
 	}
 
@@ -63,13 +47,11 @@ func (cli *Client) ContainerCreate(
 			// When using API 1.24 and under, the client is responsible for removing the container
 			hostConfig.AutoRemove = false
 		}
-		if versions.GreaterThanOrEqualTo(cli.ClientVersion(), "1.42") ||
-			versions.LessThan(cli.ClientVersion(), "1.40") {
+		if versions.GreaterThanOrEqualTo(cli.ClientVersion(), "1.42") || versions.LessThan(cli.ClientVersion(), "1.40") {
 			// KernelMemory was added in API 1.40, and deprecated in API 1.42
 			hostConfig.KernelMemory = 0
 		}
-		if platform != nil && platform.OS == "linux" &&
-			versions.LessThan(cli.ClientVersion(), "1.42") {
+		if platform != nil && platform.OS == "linux" && versions.LessThan(cli.ClientVersion(), "1.42") {
 			// When using API under 1.42, the Linux daemon doesn't respect the ConsoleSize
 			hostConfig.ConsoleSize = [2]uint{0, 0}
 		}
@@ -78,15 +60,10 @@ func (cli *Client) ContainerCreate(
 				if m.BindOptions != nil {
 					// ReadOnlyNonRecursive can be safely ignored when API < 1.44
 					if m.BindOptions.ReadOnlyForceRecursive {
-						return response, errors.New(
-							"bind-recursive=readonly requires API v1.44 or later",
-						)
+						return response, errors.New("bind-recursive=readonly requires API v1.44 or later")
 					}
-					if m.BindOptions.NonRecursive &&
-						versions.LessThan(cli.ClientVersion(), "1.40") {
-						return response, errors.New(
-							"bind-recursive=disabled requires API v1.40 or later",
-						)
+					if m.BindOptions.NonRecursive && versions.LessThan(cli.ClientVersion(), "1.40") {
+						return response, errors.New("bind-recursive=disabled requires API v1.40 or later")
 					}
 				}
 			}

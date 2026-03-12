@@ -13,11 +13,7 @@ func (*BindComplete) Backend() {}
 // type identifier and 4 byte message length.
 func (dst *BindComplete) Decode(src []byte) error {
 	if len(src) != 0 {
-		return &invalidMessageLenErr{
-			messageType: "BindComplete",
-			expectedLen: 0,
-			actualLen:   len(src),
-		}
+		return &invalidMessageLenErr{messageType: "BindComplete", expectedLen: 0, actualLen: len(src)}
 	}
 
 	return nil

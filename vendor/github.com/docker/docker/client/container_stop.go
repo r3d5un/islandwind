@@ -16,11 +16,7 @@ import (
 // If the timeout is nil, the container's StopTimeout value is used, if set,
 // otherwise the engine default. A negative timeout value can be specified,
 // meaning no timeout, i.e. no forceful termination is performed.
-func (cli *Client) ContainerStop(
-	ctx context.Context,
-	containerID string,
-	options container.StopOptions,
-) error {
+func (cli *Client) ContainerStop(ctx context.Context, containerID string, options container.StopOptions) error {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return err

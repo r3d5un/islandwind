@@ -133,10 +133,7 @@ func (p compositeTextMapPropagator) Inject(ctx context.Context, carrier TextMapC
 	}
 }
 
-func (p compositeTextMapPropagator) Extract(
-	ctx context.Context,
-	carrier TextMapCarrier,
-) context.Context {
+func (p compositeTextMapPropagator) Extract(ctx context.Context, carrier TextMapCarrier) context.Context {
 	for _, i := range p {
 		ctx = i.Extract(ctx, carrier)
 	}

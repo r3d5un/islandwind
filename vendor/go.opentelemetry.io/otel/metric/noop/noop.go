@@ -68,10 +68,7 @@ func (Meter) Int64Counter(string, ...metric.Int64CounterOption) (metric.Int64Cou
 
 // Int64UpDownCounter returns an UpDownCounter used to record int64
 // measurements that produces no telemetry.
-func (Meter) Int64UpDownCounter(
-	string,
-	...metric.Int64UpDownCounterOption,
-) (metric.Int64UpDownCounter, error) {
+func (Meter) Int64UpDownCounter(string, ...metric.Int64UpDownCounterOption) (metric.Int64UpDownCounter, error) {
 	return Int64UpDownCounter{}, nil
 }
 
@@ -107,10 +104,7 @@ func (Meter) Int64ObservableUpDownCounter(
 
 // Int64ObservableGauge returns an ObservableGauge used to record int64
 // measurements that produces no telemetry.
-func (Meter) Int64ObservableGauge(
-	string,
-	...metric.Int64ObservableGaugeOption,
-) (metric.Int64ObservableGauge, error) {
+func (Meter) Int64ObservableGauge(string, ...metric.Int64ObservableGaugeOption) (metric.Int64ObservableGauge, error) {
 	return Int64ObservableGauge{}, nil
 }
 
@@ -122,19 +116,13 @@ func (Meter) Float64Counter(string, ...metric.Float64CounterOption) (metric.Floa
 
 // Float64UpDownCounter returns an UpDownCounter used to record int64
 // measurements that produces no telemetry.
-func (Meter) Float64UpDownCounter(
-	string,
-	...metric.Float64UpDownCounterOption,
-) (metric.Float64UpDownCounter, error) {
+func (Meter) Float64UpDownCounter(string, ...metric.Float64UpDownCounterOption) (metric.Float64UpDownCounter, error) {
 	return Float64UpDownCounter{}, nil
 }
 
 // Float64Histogram returns a Histogram used to record int64 measurements that
 // produces no telemetry.
-func (Meter) Float64Histogram(
-	string,
-	...metric.Float64HistogramOption,
-) (metric.Float64Histogram, error) {
+func (Meter) Float64Histogram(string, ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
 	return Float64Histogram{}, nil
 }
 

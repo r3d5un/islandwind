@@ -55,14 +55,7 @@ func (c *PostgresContainer) ConnectionString(ctx context.Context, args ...string
 	}
 
 	extraArgs := strings.Join(args, "&")
-	connStr := fmt.Sprintf(
-		"postgres://%s:%s@%s/%s?%s",
-		c.user,
-		c.password,
-		endpoint,
-		c.dbName,
-		extraArgs,
-	)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?%s", c.user, c.password, endpoint, c.dbName, extraArgs)
 	return connStr, nil
 }
 
@@ -115,13 +108,9 @@ func WithOrderedInitScripts(scripts ...string) testcontainers.CustomizeRequestOp
 	containerFiles := []testcontainers.ContainerFile{}
 	for idx, script := range scripts {
 		initScript := testcontainers.ContainerFile{
-			HostFilePath: script,
-			ContainerFilePath: "/docker-entrypoint-initdb.d/" + fmt.Sprintf(
-				"%03d-%s",
-				idx,
-				filepath.Base(script),
-			),
-			FileMode: 0o755,
+			HostFilePath:      script,
+			ContainerFilePath: "/docker-entrypoint-initdb.d/" + fmt.Sprintf("%03d-%s", idx, filepath.Base(script)),
+			FileMode:          0o755,
 		}
 		containerFiles = append(containerFiles, initScript)
 	}
@@ -149,19 +138,12 @@ func WithUsername(user string) testcontainers.ContainerCustomizer {
 
 // Deprecated: use Run instead
 // RunContainer creates an instance of the Postgres container type
-func RunContainer(
-	ctx context.Context,
-	opts ...testcontainers.ContainerCustomizer,
-) (*PostgresContainer, error) {
+func RunContainer(ctx context.Context, opts ...testcontainers.ContainerCustomizer) (*PostgresContainer, error) {
 	return Run(ctx, "postgres:16-alpine", opts...)
 }
 
 // Run creates an instance of the Postgres container type
-func Run(
-	ctx context.Context,
-	img string,
-	opts ...testcontainers.ContainerCustomizer,
-) (*PostgresContainer, error) {
+func Run(ctx context.Context, img string, opts ...testcontainers.ContainerCustomizer) (*PostgresContainer, error) {
 	// Gather all config options (defaults and then apply provided options)
 	settings := defaultOptions()
 	for _, opt := range opts {
@@ -244,11 +226,7 @@ func WithSnapshotName(name string) SnapshotOption {
 // WithSSLSettings configures the Postgres server to run with the provided CA Chain
 // This will not function if the corresponding postgres conf is not correctly configured.
 // Namely the paths below must match what is set in the conf file
-func WithSSLCert(
-	caCertFile string,
-	certFile string,
-	keyFile string,
-) testcontainers.CustomizeRequestOption {
+func WithSSLCert(caCertFile string, certFile string, keyFile string) testcontainers.CustomizeRequestOption {
 	const defaultPermission = 0o600
 
 	return func(req *testcontainers.GenericContainerRequest) error {
@@ -321,23 +299,14 @@ func (c *PostgresContainer) Restore(ctx context.Context, opts ...SnapshotOption)
 	}
 
 	// execute the commands to restore the snapshot, in order
-	return c.execCommandsSQL(
-		ctx,
+	return c.execCommandsSQL(ctx,
 		// Terminate all connections to the template database explicitly as the forced drop below will sometimes
 		// not terminate them and then fail to drop the database.
-		fmt.Sprintf(
-			`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid()`,
-			snapshotName,
-		),
+		fmt.Sprintf(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid()`, snapshotName),
 		// Drop the database if it exists
 		fmt.Sprintf(`DROP DATABASE IF EXISTS "%s" with (FORCE)`, c.dbName),
 		// Then restore the previous snapshot
-		fmt.Sprintf(
-			`CREATE DATABASE "%s" WITH TEMPLATE "%s" OWNER "%s"`,
-			c.dbName,
-			snapshotName,
-			c.user,
-		),
+		fmt.Sprintf(`CREATE DATABASE "%s" WITH TEMPLATE "%s" OWNER "%s"`, c.dbName, snapshotName, c.user),
 	)
 }
 
@@ -353,9 +322,7 @@ func (c *PostgresContainer) checkSnapshotConfig(opts []SnapshotOption) (string, 
 	}
 
 	if c.dbName == "postgres" {
-		return "", errors.New(
-			"cannot restore the postgres system database as it cannot be dropped to be restored",
-		)
+		return "", errors.New("cannot restore the postgres system database as it cannot be dropped to be restored")
 	}
 	return snapshotName, nil
 }
@@ -363,10 +330,7 @@ func (c *PostgresContainer) checkSnapshotConfig(opts []SnapshotOption) (string, 
 func (c *PostgresContainer) execCommandsSQL(ctx context.Context, cmds ...string) error {
 	conn, cleanup, err := c.snapshotConnection(ctx)
 	if err != nil {
-		log.Printf(
-			"Could not connect to database to restore snapshot, falling back to `docker exec psql`: %v",
-			err,
-		)
+		log.Printf("Could not connect to database to restore snapshot, falling back to `docker exec psql`: %v", err)
 		return c.execCommandsFallback(ctx, cmds)
 	}
 	if cleanup != nil {
@@ -417,10 +381,7 @@ func (c *PostgresContainer) snapshotConnection(ctx context.Context) (*sql.Conn, 
 
 func (c *PostgresContainer) execCommandsFallback(ctx context.Context, cmds []string) error {
 	for _, cmd := range cmds {
-		exitCode, reader, err := c.Exec(
-			ctx,
-			[]string{"psql", "-v", "ON_ERROR_STOP=1", "-U", c.user, "-d", "postgres", "-c", cmd},
-		)
+		exitCode, reader, err := c.Exec(ctx, []string{"psql", "-v", "ON_ERROR_STOP=1", "-U", c.user, "-d", "postgres", "-c", cmd})
 		if err != nil {
 			return err
 		}
@@ -428,10 +389,7 @@ func (c *PostgresContainer) execCommandsFallback(ctx context.Context, cmds []str
 			buf := new(strings.Builder)
 			_, err := io.Copy(buf, reader)
 			if err != nil {
-				return fmt.Errorf(
-					"non-zero exit code for restore command, could not read command output: %w",
-					err,
-				)
+				return fmt.Errorf("non-zero exit code for restore command, could not read command output: %w", err)
 			}
 
 			return fmt.Errorf("non-zero exit code for restore command: %s", buf.String())

@@ -1058,12 +1058,7 @@ func (d *Decoder) decodeMap(name string, data any, val reflect.Value) error {
 	}
 }
 
-func (d *Decoder) decodeMapFromSlice(
-	name string,
-	dataVal reflect.Value,
-	val reflect.Value,
-	valMap reflect.Value,
-) error {
+func (d *Decoder) decodeMapFromSlice(name string, dataVal reflect.Value, val reflect.Value, valMap reflect.Value) error {
 	// Special case for BC reasons (covered by tests)
 	if dataVal.Len() == 0 {
 		val.Set(valMap)
@@ -1082,12 +1077,7 @@ func (d *Decoder) decodeMapFromSlice(
 	return nil
 }
 
-func (d *Decoder) decodeMapFromMap(
-	name string,
-	dataVal reflect.Value,
-	val reflect.Value,
-	valMap reflect.Value,
-) error {
+func (d *Decoder) decodeMapFromMap(name string, dataVal reflect.Value, val reflect.Value, valMap reflect.Value) error {
 	valType := val.Type()
 	valKeyType := valType.Key()
 	valElemType := valType.Elem()
@@ -1136,12 +1126,7 @@ func (d *Decoder) decodeMapFromMap(
 	return errors.Join(errs...)
 }
 
-func (d *Decoder) decodeMapFromStruct(
-	name string,
-	dataVal reflect.Value,
-	val reflect.Value,
-	valMap reflect.Value,
-) error {
+func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val reflect.Value, valMap reflect.Value) error {
 	typ := dataVal.Type()
 	for i := 0; i < typ.NumField(); i++ {
 		// Get the StructField first since this is a cheap operation. If the
@@ -1157,11 +1142,7 @@ func (d *Decoder) decodeMapFromStruct(
 		if !v.Type().AssignableTo(valMap.Type().Elem()) {
 			return newDecodeError(
 				name+"."+f.Name,
-				fmt.Errorf(
-					"cannot assign type %q to map value field of type %q",
-					v.Type(),
-					valMap.Type().Elem(),
-				),
+				fmt.Errorf("cannot assign type %q to map value field of type %q", v.Type(), valMap.Type().Elem()),
 			)
 		}
 
@@ -1466,9 +1447,7 @@ func (d *Decoder) decodeArray(name string, data any, val reflect.Value) error {
 
 	valArray := val
 
-	if isComparable(valArray) &&
-		valArray.Interface() == reflect.Zero(valArray.Type()).Interface() ||
-		d.config.ZeroFields {
+	if isComparable(valArray) && valArray.Interface() == reflect.Zero(valArray.Type()).Interface() || d.config.ZeroFields {
 		// Check input type
 		if dataValKind != reflect.Array && dataValKind != reflect.Slice {
 			if d.config.WeaklyTypedInput {
@@ -1493,14 +1472,8 @@ func (d *Decoder) decodeArray(name string, data any, val reflect.Value) error {
 
 		}
 		if dataVal.Len() > arrayType.Len() {
-			return newDecodeError(
-				name,
-				fmt.Errorf(
-					"expected source data to have length less or equal to %d, got %d",
-					arrayType.Len(),
-					dataVal.Len(),
-				),
-			)
+			return newDecodeError(name,
+				fmt.Errorf("expected source data to have length less or equal to %d, got %d", arrayType.Len(), dataVal.Len()))
 		}
 
 		// Make a new array to hold our result, same size as the original data.
@@ -1836,12 +1809,7 @@ func isEmptyValue(v reflect.Value) bool {
 		return !v.Bool()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0
-	case reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-		reflect.Uintptr:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return v.Uint() == 0
 	case reflect.Float32, reflect.Float64:
 		return v.Float() == 0
@@ -1868,11 +1836,7 @@ func getKind(val reflect.Value) reflect.Kind {
 	}
 }
 
-func isStructTypeConvertibleToMap(
-	typ reflect.Type,
-	checkMapstructureTags bool,
-	tagName string,
-) bool {
+func isStructTypeConvertibleToMap(typ reflect.Type, checkMapstructureTags bool, tagName string) bool {
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
 		if f.PkgPath == "" && !checkMapstructureTags { // check for unexported fields

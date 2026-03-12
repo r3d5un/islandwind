@@ -50,11 +50,7 @@ func RetryNotify(operation Operation, b BackOff, notify Notify) error {
 }
 
 // RetryNotifyWithData is like RetryNotify but returns data in the response too.
-func RetryNotifyWithData[T any](
-	operation OperationWithData[T],
-	b BackOff,
-	notify Notify,
-) (T, error) {
+func RetryNotifyWithData[T any](operation OperationWithData[T], b BackOff, notify Notify) (T, error) {
 	return doRetryNotify(operation, b, notify, nil)
 }
 
@@ -67,21 +63,11 @@ func RetryNotifyWithTimer(operation Operation, b BackOff, notify Notify, t Timer
 }
 
 // RetryNotifyWithTimerAndData is like RetryNotifyWithTimer but returns data in the response too.
-func RetryNotifyWithTimerAndData[T any](
-	operation OperationWithData[T],
-	b BackOff,
-	notify Notify,
-	t Timer,
-) (T, error) {
+func RetryNotifyWithTimerAndData[T any](operation OperationWithData[T], b BackOff, notify Notify, t Timer) (T, error) {
 	return doRetryNotify(operation, b, notify, t)
 }
 
-func doRetryNotify[T any](
-	operation OperationWithData[T],
-	b BackOff,
-	notify Notify,
-	t Timer,
-) (T, error) {
+func doRetryNotify[T any](operation OperationWithData[T], b BackOff, notify Notify, t Timer) (T, error) {
 	var (
 		err  error
 		next time.Duration

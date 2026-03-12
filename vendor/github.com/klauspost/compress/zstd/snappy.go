@@ -182,10 +182,7 @@ func (r *SnappyConverter) Convert(in io.Reader, w io.Writer) (int64, error) {
 			case errIncompressible:
 				r.block.popOffsets()
 				r.block.reset(nil)
-				r.block.literals, err = snappy.Decode(
-					r.block.literals[:n],
-					r.buf[snappyChecksumSize:chunkLen],
-				)
+				r.block.literals, err = snappy.Decode(r.block.literals[:n], r.buf[snappyChecksumSize:chunkLen])
 				if err != nil {
 					return written, err
 				}
@@ -300,56 +297,32 @@ func decodeSnappy(blk *blockEnc, src []byte) error {
 				s++
 			case x == 60:
 				s += 2
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					println("uint(s) > uint(len(src)", s, src)
 					return ErrSnappyCorrupt
 				}
 				x = uint32(src[s-1])
 			case x == 61:
 				s += 3
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					println("uint(s) > uint(len(src)", s, src)
 					return ErrSnappyCorrupt
 				}
 				x = uint32(src[s-2]) | uint32(src[s-1])<<8
 			case x == 62:
 				s += 4
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					println("uint(s) > uint(len(src)", s, src)
 					return ErrSnappyCorrupt
 				}
 				x = uint32(src[s-3]) | uint32(src[s-2])<<8 | uint32(src[s-1])<<16
 			case x == 63:
 				s += 5
-				if uint(
-					s,
-				) > uint(
-					len(src),
-				) { // The uint conversions catch overflow from the previous line.
+				if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 					println("uint(s) > uint(len(src)", s, src)
 					return ErrSnappyCorrupt
 				}
-				x = uint32(
-					src[s-4],
-				) | uint32(
-					src[s-3],
-				)<<8 | uint32(
-					src[s-2],
-				)<<16 | uint32(
-					src[s-1],
-				)<<24
+				x = uint32(src[s-4]) | uint32(src[s-3])<<8 | uint32(src[s-2])<<16 | uint32(src[s-1])<<24
 			}
 			if x > snappyMaxBlockSize {
 				println("x > snappyMaxBlockSize", x, snappyMaxBlockSize)
@@ -373,11 +346,7 @@ func decodeSnappy(blk *blockEnc, src []byte) error {
 
 		case snappyTagCopy1:
 			s += 2
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				println("uint(s) > uint(len(src)", s, len(src))
 				return ErrSnappyCorrupt
 			}
@@ -386,11 +355,7 @@ func decodeSnappy(blk *blockEnc, src []byte) error {
 
 		case snappyTagCopy2:
 			s += 3
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				println("uint(s) > uint(len(src)", s, len(src))
 				return ErrSnappyCorrupt
 			}
@@ -399,35 +364,16 @@ func decodeSnappy(blk *blockEnc, src []byte) error {
 
 		case snappyTagCopy4:
 			s += 5
-			if uint(
-				s,
-			) > uint(
-				len(src),
-			) { // The uint conversions catch overflow from the previous line.
+			if uint(s) > uint(len(src)) { // The uint conversions catch overflow from the previous line.
 				println("uint(s) > uint(len(src)", s, len(src))
 				return ErrSnappyCorrupt
 			}
 			length = 1 + int(src[s-5])>>2
-			offset = uint32(
-				src[s-4],
-			) | uint32(
-				src[s-3],
-			)<<8 | uint32(
-				src[s-2],
-			)<<16 | uint32(
-				src[s-1],
-			)<<24
+			offset = uint32(src[s-4]) | uint32(src[s-3])<<8 | uint32(src[s-2])<<16 | uint32(src[s-1])<<24
 		}
 
 		if offset <= 0 || blk.size+lits < int(offset) /*|| length > len(blk)-d */ {
-			println(
-				"offset <= 0 || blk.size+lits < int(offset)",
-				offset,
-				blk.size+lits,
-				int(offset),
-				blk.size,
-				lits,
-			)
+			println("offset <= 0 || blk.size+lits < int(offset)", offset, blk.size+lits, int(offset), blk.size, lits)
 
 			return ErrSnappyCorrupt
 		}

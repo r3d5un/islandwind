@@ -106,9 +106,7 @@ func (t *Transport) RoundTrip(r *http.Request) (*http.Response, error) {
 		}
 	}
 
-	opts := append(
-		[]trace.SpanStartOption{},
-		t.spanStartOptions...) // start with the configured options
+	opts := append([]trace.SpanStartOption{}, t.spanStartOptions...) // start with the configured options
 
 	ctx, span := tracer.Start(r.Context(), t.spanNameFormatter("", r), opts...)
 

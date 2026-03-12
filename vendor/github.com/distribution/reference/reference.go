@@ -61,10 +61,7 @@ var (
 	ErrNameEmpty = errors.New("repository name must have at least one component")
 
 	// ErrNameTooLong is returned when a repository name is longer than RepositoryNameTotalLengthMax.
-	ErrNameTooLong = fmt.Errorf(
-		"repository name must not be more than %v characters",
-		RepositoryNameTotalLengthMax,
-	)
+	ErrNameTooLong = fmt.Errorf("repository name must not be more than %v characters", RepositoryNameTotalLengthMax)
 
 	// ErrNameNotCanonical is returned when a name is not canonical.
 	ErrNameNotCanonical = errors.New("repository name must be canonical")

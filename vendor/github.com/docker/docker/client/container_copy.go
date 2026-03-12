@@ -15,10 +15,7 @@ import (
 )
 
 // ContainerStatPath returns stat information about a path inside the container filesystem.
-func (cli *Client) ContainerStatPath(
-	ctx context.Context,
-	containerID, path string,
-) (container.PathStat, error) {
+func (cli *Client) ContainerStatPath(ctx context.Context, containerID, path string) (container.PathStat, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return container.PathStat{}, err
@@ -37,12 +34,7 @@ func (cli *Client) ContainerStatPath(
 
 // CopyToContainer copies content into the container filesystem.
 // Note that `content` must be a Reader for a TAR archive
-func (cli *Client) CopyToContainer(
-	ctx context.Context,
-	containerID, dstPath string,
-	content io.Reader,
-	options container.CopyToContainerOptions,
-) error {
+func (cli *Client) CopyToContainer(ctx context.Context, containerID, dstPath string, content io.Reader, options container.CopyToContainerOptions) error {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return err
@@ -70,10 +62,7 @@ func (cli *Client) CopyToContainer(
 
 // CopyFromContainer gets the content from the container and returns it as a Reader
 // for a TAR archive to manipulate it in the host. It's up to the caller to close the reader.
-func (cli *Client) CopyFromContainer(
-	ctx context.Context,
-	containerID, srcPath string,
-) (io.ReadCloser, container.PathStat, error) {
+func (cli *Client) CopyFromContainer(ctx context.Context, containerID, srcPath string) (io.ReadCloser, container.PathStat, error) {
 	containerID, err := trimID("container", containerID)
 	if err != nil {
 		return nil, container.PathStat{}, err

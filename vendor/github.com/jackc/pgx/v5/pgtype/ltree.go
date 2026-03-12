@@ -112,12 +112,7 @@ func (scanPlanBinaryLtreeToTextScanner) Scan(src []byte, target any) error {
 }
 
 // DecodeDatabaseSQLValue returns src decoded into a value compatible with the sql.Scanner interface.
-func (l LtreeCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (l LtreeCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	return (TextCodec)(l).DecodeDatabaseSQLValue(m, oid, format, src)
 }
 

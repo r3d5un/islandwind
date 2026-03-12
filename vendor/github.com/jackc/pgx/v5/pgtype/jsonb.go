@@ -21,22 +21,12 @@ func (*JSONBCodec) PreferredFormat() int16 {
 func (c *JSONBCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
 	switch format {
 	case BinaryFormatCode:
-		plan := (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanEncode(
-			m,
-			oid,
-			TextFormatCode,
-			value,
-		)
+		plan := (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanEncode(m, oid, TextFormatCode, value)
 		if plan != nil {
 			return &encodePlanJSONBCodecBinaryWrapper{textPlan: plan}
 		}
 	case TextFormatCode:
-		return (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanEncode(
-			m,
-			oid,
-			format,
-			value,
-		)
+		return (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanEncode(m, oid, format, value)
 	}
 
 	return nil
@@ -46,10 +36,7 @@ type encodePlanJSONBCodecBinaryWrapper struct {
 	textPlan EncodePlan
 }
 
-func (plan *encodePlanJSONBCodecBinaryWrapper) Encode(
-	value any,
-	buf []byte,
-) (newBuf []byte, err error) {
+func (plan *encodePlanJSONBCodecBinaryWrapper) Encode(value any, buf []byte) (newBuf []byte, err error) {
 	buf = append(buf, 1)
 	return plan.textPlan.Encode(value, buf)
 }
@@ -57,22 +44,12 @@ func (plan *encodePlanJSONBCodecBinaryWrapper) Encode(
 func (c *JSONBCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan {
 	switch format {
 	case BinaryFormatCode:
-		plan := (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanScan(
-			m,
-			oid,
-			TextFormatCode,
-			target,
-		)
+		plan := (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanScan(m, oid, TextFormatCode, target)
 		if plan != nil {
 			return &scanPlanJSONBCodecBinaryUnwrapper{textPlan: plan}
 		}
 	case TextFormatCode:
-		return (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanScan(
-			m,
-			oid,
-			format,
-			target,
-		)
+		return (&JSONCodec{Marshal: c.Marshal, Unmarshal: c.Unmarshal}).PlanScan(m, oid, format, target)
 	}
 
 	return nil
@@ -98,12 +75,7 @@ func (plan *scanPlanJSONBCodecBinaryUnwrapper) Scan(src []byte, dst any) error {
 	return plan.textPlan.Scan(src[1:], dst)
 }
 
-func (c *JSONBCodec) DecodeDatabaseSQLValue(
-	m *Map,
-	oid uint32,
-	format int16,
-	src []byte,
-) (driver.Value, error) {
+func (c *JSONBCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}

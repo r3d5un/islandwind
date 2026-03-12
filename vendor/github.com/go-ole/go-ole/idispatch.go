@@ -23,11 +23,7 @@ func (v *IDispatch) GetIDsOfName(names []string) (dispid []int32, err error) {
 	return
 }
 
-func (v *IDispatch) Invoke(
-	dispid int32,
-	dispatch int16,
-	params ...interface{},
-) (result *VARIANT, err error) {
+func (v *IDispatch) Invoke(dispid int32, dispatch int16, params ...interface{}) (result *VARIANT, err error) {
 	result, err = invoke(v, dispid, dispatch, params...)
 	return
 }
@@ -63,11 +59,7 @@ func (v *IDispatch) GetSingleIDOfName(name string) (displayID int32, err error) 
 // Passing params as an array is a workaround that could be fixed in later versions of Go that
 // prevent passing empty params. During testing it was discovered that this is an acceptable way of
 // getting around not being able to pass params normally.
-func (v *IDispatch) InvokeWithOptionalArgs(
-	name string,
-	dispatch int16,
-	params []interface{},
-) (result *VARIANT, err error) {
+func (v *IDispatch) InvokeWithOptionalArgs(name string, dispatch int16, params []interface{}) (result *VARIANT, err error) {
 	displayID, err := v.GetSingleIDOfName(name)
 	if err != nil {
 		return

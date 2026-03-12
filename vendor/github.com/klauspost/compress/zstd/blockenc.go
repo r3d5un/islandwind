@@ -237,13 +237,7 @@ func (h literalsHeader) size() int {
 }
 
 func (h literalsHeader) String() string {
-	return fmt.Sprintf(
-		"Type: %d, SizeFormat: %d, Size: 0x%d, Bytes:%d",
-		literalsBlockType(h&3),
-		(h>>2)&3,
-		h&((1<<60)-1)>>4,
-		h>>60,
-	)
+	return fmt.Sprintf("Type: %d, SizeFormat: %d, Size: 0x%d, Bytes:%d", literalsBlockType(h&3), (h>>2)&3, h&((1<<60)-1)>>4, h>>60)
 }
 
 // pushOffsets will push the recent offsets to the backup store.
@@ -658,27 +652,8 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 			return prev, compModeRepeat
 		default:
 			if debugEncoder {
-				println(
-					"Using new, predef",
-					predefSize>>3,
-					". previous:",
-					prevSize>>3,
-					">",
-					nSize>>3,
-					"header max:",
-					cur.maxHeaderSize()>>3,
-					"bytes",
-				)
-				println(
-					"tl:",
-					cur.actualTableLog,
-					"symbolLen:",
-					cur.symbolLen,
-					"norm:",
-					cur.norm[:cur.symbolLen],
-					"hist",
-					cur.count[:cur.symbolLen],
-				)
+				println("Using new, predef", predefSize>>3, ". previous:", prevSize>>3, ">", nSize>>3, "header max:", cur.maxHeaderSize()>>3, "bytes")
+				println("tl:", cur.actualTableLog, "symbolLen:", cur.symbolLen, "norm:", cur.norm[:cur.symbolLen], "hist", cur.count[:cur.symbolLen])
 			}
 			return cur, compModeFSE
 		}
@@ -734,19 +709,8 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 		return err
 	}
 	if false {
-		println(
-			"block:",
-			b.output[start:],
-			"tablelog",
-			ofEnc.actualTableLog,
-			"maxcount:",
-			ofEnc.maxCount,
-		)
-		fmt.Printf(
-			"selected TableLog: %d, Symbol length: %d\n",
-			ofEnc.actualTableLog,
-			ofEnc.symbolLen,
-		)
+		println("block:", b.output[start:], "tablelog", ofEnc.actualTableLog, "maxcount:", ofEnc.maxCount)
+		fmt.Printf("selected TableLog: %d, Symbol length: %d\n", ofEnc.actualTableLog, ofEnc.symbolLen)
 		for i, v := range ofEnc.norm[:ofEnc.symbolLen] {
 			fmt.Printf("%3d: %5d -> %4d \n", i, ofEnc.count[i], v)
 		}
@@ -785,23 +749,7 @@ func (b *blockEnc) encode(org []byte, raw, rawAllLits bool) error {
 	wr.flush32()
 	wr.addBits32NC(s.offset, ofB.outBits)
 	if debugSequences {
-		println(
-			"Encoded seq",
-			seq,
-			s,
-			"codes:",
-			s.llCode,
-			s.mlCode,
-			s.ofCode,
-			"states:",
-			ll.state,
-			ml.state,
-			of.state,
-			"bits:",
-			llB,
-			mlB,
-			ofB,
-		)
+		println("Encoded seq", seq, s, "codes:", s.llCode, s.mlCode, s.ofCode, "states:", ll.state, ml.state, of.state, "bits:", llB, mlB, ofB)
 	}
 	seq--
 	// Store sequences in reverse...
@@ -924,13 +872,7 @@ func (b *blockEnc) genCodes() {
 		if v > mlMax {
 			mlMax = v
 			if debugAsserts && mlMax > maxMatchLengthSymbol {
-				panic(
-					fmt.Errorf(
-						"mlMax > maxMatchLengthSymbol (%d), matchlen: %d",
-						mlMax,
-						seq.matchLen,
-					),
-				)
+				panic(fmt.Errorf("mlMax > maxMatchLengthSymbol (%d), matchlen: %d", mlMax, seq.matchLen))
 			}
 		}
 	}
