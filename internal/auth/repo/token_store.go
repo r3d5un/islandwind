@@ -43,7 +43,7 @@ func (s *tokenStore) Read(ctx context.Context, ID uuid.UUID) (*RefreshToken, err
 	return refreshToken, nil
 }
 
-func (r *tokenStore) newToken(
+func (s *tokenStore) newToken(
 	jti uuid.UUID,
 	exp time.Time,
 	iat time.Time,
@@ -55,7 +55,7 @@ func (r *tokenStore) newToken(
 	)
 }
 
-func (r *tokenStore) newRefreshTokenFromRow(row *data.RefreshToken) data.RefreshToken {
+func (s *tokenStore) newRefreshTokenFromRow(row *data.RefreshToken) data.RefreshToken {
 	return data.RefreshToken{
 		ID:            row.ID,
 		Issuer:        row.Issuer,
