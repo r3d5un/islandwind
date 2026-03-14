@@ -227,10 +227,9 @@ func DeleteBlogpostHandler(
 		case true:
 			err = blogposts.Purge(ctx, body.Data.ID)
 		default:
-			change := true
 			_, err = blogposts.Update(
 				ctx,
-				repo.PostPatch{ID: body.Data.ID, Deleted: &change},
+				repo.PostPatch{ID: body.Data.ID, Deleted: new(true)},
 			)
 		}
 		if err != nil {

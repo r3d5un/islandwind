@@ -51,10 +51,9 @@ func TestBlogModel(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		del := true
 		updated, err := models.Posts.Update(
 			ctx,
-			data.PostPatch{ID: post.ID, Deleted: &del},
+			data.PostPatch{ID: post.ID, Deleted: new(true)},
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, updated)

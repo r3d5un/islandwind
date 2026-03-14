@@ -29,13 +29,16 @@ func NewModule(ctx context.Context, cfg *config.Config, db *pgxpool.Pool) (*Modu
 	ctx, logger := logging.ContextLogger(ctx, slog.Group("module", slog.String("name", moduleName)))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "setting up module")
-	timeout := time.Duration(cfg.DB.TimeoutSeconds) * time.Second
 	module := Module{
 		name:   moduleName,
 		logger: logger,
 		db:     db,
 		cfg:    cfg,
-		repo:   repo.NewRepository(db, &timeout, cfg.Auth),
+		repo: repo.NewRepository(
+			db,
+			new(time.Duration(cfg.DB.TimeoutSeconds)*time.Second),
+			cfg.Auth,
+		),
 	}
 	logger.LogAttrs(ctx, slog.LevelInfo, "module setup complete")
 

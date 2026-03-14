@@ -65,18 +65,19 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("UpdateRefreshToken", func(t *testing.T) {
-		invalidated := true
 		token, err := authRepo.Tokens.Update(ctx, repo.RefreshTokenPatch{
 			ID:          tokens[0].ID,
-			Invalidated: &invalidated,
+			Invalidated: new(true),
 		})
 		assert.NoError(t, err)
 		assert.NotNil(t, token)
 	})
 
 	t.Run("Purge", func(t *testing.T) {
-		timestamp := time.Now().UTC()
-		affected, err := authRepo.Tokens.Delete(ctx, data.Filter{ExpirationFrom: &timestamp})
+		affected, err := authRepo.Tokens.Delete(
+			ctx,
+			data.Filter{ExpirationFrom: new(time.Now().UTC())},
+		)
 		assert.NoError(t, err)
 		assert.NotNil(t, affected)
 	})

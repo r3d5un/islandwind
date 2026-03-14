@@ -303,9 +303,7 @@ func (r *TokenRepository) newRefreshToken(ctx context.Context) (*jwt.Token, erro
 	if err != nil {
 		return nil, err
 	}
-	token := r.newToken(row.ID, row.Expiration, row.IssuedAt)
-
-	return &token, nil
+	return new(r.newToken(row.ID, row.Expiration, row.IssuedAt)), nil
 }
 
 func (r *TokenRepository) CreateRefreshToken(ctx context.Context) (*string, error) {
@@ -464,10 +462,9 @@ func (r *TokenRepository) DeleteExpired(ctx context.Context) error {
 	logger := logging.LoggerFromContext(ctx)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "deleting expired tokens")
-	timestamp := time.Now().UTC()
 	affectedRows, err := r.models.RefreshTokens.DeleteMany(
 		ctx,
-		data.Filter{ExpirationFrom: &timestamp},
+		data.Filter{ExpirationFrom: new(time.Now().UTC())},
 	)
 	if err != nil {
 		return err

@@ -58,10 +58,9 @@ func TestPostRepository(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		del := false
 		updated, err := blog.Posts.Update(
 			ctx,
-			repo.PostPatch{ID: post.ID, Deleted: &del},
+			repo.PostPatch{ID: post.ID, Deleted: new(false)},
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, updated)

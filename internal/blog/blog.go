@@ -39,15 +39,18 @@ func NewModule(
 ) (*Module, error) {
 	ctx, logger := logging.ContextLogger(ctx, slog.Group("module", slog.String("name", moduleName)))
 
-	timeout := time.Duration(cfg.DB.TimeoutSeconds) * time.Second
 	module := Module{
 		name:   moduleName,
 		logger: logger,
 		db:     db,
 		cache:  cache,
 		cfg:    cfg,
-		repo:   repo.NewRepository(db, cache, &timeout),
-		auth:   authModule,
+		repo: repo.NewRepository(
+			db,
+			cache,
+			new(time.Duration(cfg.DB.TimeoutSeconds)*time.Second),
+		),
+		auth: authModule,
 	}
 
 	return &module, nil

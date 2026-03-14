@@ -37,10 +37,9 @@ func TestMain(m *testing.M) {
 		logger.Error("unable to create database connection pool", slog.String("error", err.Error()))
 		return
 	}
-	timeout := cfg.TimeoutDuration()
 	authRepo = repo.NewRepository(
 		db,
-		&timeout,
+		new(cfg.TimeoutDuration()),
 		config.Config{SigningSecret: "islandwind", TokenIssuer: "islandwind"},
 	)
 

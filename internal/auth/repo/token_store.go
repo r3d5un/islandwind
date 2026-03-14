@@ -28,9 +28,7 @@ func (s *tokenStore) Create(ctx context.Context, issuer string) (*jwt.Token, err
 	if err != nil {
 		return nil, err
 	}
-	token := s.newToken(row.ID, row.Expiration, row.IssuedAt, issuer)
-
-	return &token, nil
+	return new(s.newToken(row.ID, row.Expiration, row.IssuedAt, issuer)), nil
 }
 
 func (s *tokenStore) Read(ctx context.Context, ID uuid.UUID) (*RefreshToken, error) {

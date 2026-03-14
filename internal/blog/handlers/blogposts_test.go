@@ -87,11 +87,10 @@ func TestBlogpostHandlers(t *testing.T) {
 	})
 
 	t.Run("PatchBlogpostHandler", func(t *testing.T) {
-		change := false
 		body, err := json.Marshal(handlers.PatchRequestBody{
 			Data: repo.PostPatch{
 				ID:        post.Data.ID,
-				Published: &change,
+				Published: new(false),
 			},
 		})
 		assert.NoError(t, err)

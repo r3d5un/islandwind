@@ -82,10 +82,9 @@ func TestRefreshTokenModel(t *testing.T) {
 	})
 
 	t.Run("DeleteMany", func(t *testing.T) {
-		timestamp := time.Now()
 		rowsAffected, err := models.RefreshTokens.DeleteMany(
 			ctx,
-			data.Filter{ExpirationTo: &timestamp},
+			data.Filter{ExpirationTo: new(time.Now())},
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, *rowsAffected)

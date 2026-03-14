@@ -44,8 +44,7 @@ func TestMain(m *testing.M) {
 	}
 	defer postgresCache.Shutdown()
 
-	timeout := cfg.TimeoutDuration()
-	repository := repo.NewRepository(db, postgresCache, &timeout)
+	repository := repo.NewRepository(db, postgresCache, new(cfg.TimeoutDuration()))
 	blogReaderWriter = repository.Posts
 
 	exitCode := m.Run()

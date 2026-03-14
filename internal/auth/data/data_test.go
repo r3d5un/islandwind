@@ -43,8 +43,7 @@ func TestMain(m *testing.M) {
 		logger.Error("unable to create database connection pool", slog.String("error", err.Error()))
 		return
 	}
-	timeout := cfg.TimeoutDuration()
-	models = data.NewModels(db, &timeout)
+	models = data.NewModels(db, new(cfg.TimeoutDuration()))
 
 	exitCode := m.Run()
 

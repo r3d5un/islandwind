@@ -115,11 +115,10 @@ func TestAuthHandlers(t *testing.T) {
 	})
 
 	t.Run("PatchRefreshTokenHandler", func(t *testing.T) {
-		invalidated := true
 		body, err := json.Marshal(handlers.RefreshTokenPatchBody{
 			Data: repo.RefreshTokenPatch{
 				ID:          tokenList[0].ID,
-				Invalidated: &invalidated,
+				Invalidated: new(true),
 			},
 		})
 		assert.NoError(t, err)
