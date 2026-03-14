@@ -9,20 +9,12 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/testsuite"
 )
 
-const (
-	dbName     string = "postgres"
-	dbUser     string = "postgres"
-	dbPassword string = "postgres"
-)
-
 var models data.Models
-var db *pgxpool.Pool
 
 func TestMain(m *testing.M) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)

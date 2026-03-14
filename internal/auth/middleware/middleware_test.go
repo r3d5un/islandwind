@@ -15,12 +15,6 @@ import (
 	"github.com/r3d5un/islandwind/internal/testsuite"
 )
 
-const (
-	dbName     string = "postgres"
-	dbUser     string = "postgres"
-	dbPassword string = "postgres"
-)
-
 var authRepo repo.Repository
 
 func TestMain(m *testing.M) {
