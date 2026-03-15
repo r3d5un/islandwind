@@ -216,17 +216,17 @@ func HandleError(ctx context.Context, err error) error {
 }
 
 const (
-	applicationName string = "islandwind"
-	postgresVersion string = "postgres:18.3"
-	dbName          string = "postgres"
-	dbUser          string = "postgres"
-	dbPassword      string = "postgres"
+	applicationName      string = "islandwind"
+	postgresImageVersion string = "postgres:18.3"
+	dbName               string = "postgres"
+	dbUser               string = "postgres"
+	dbPassword           string = "postgres"
 )
 
 func NewPostgresTestcontainer(ctx context.Context) (*postgres.PostgresContainer, func(), error) {
 	container, err := postgres.Run(
 		ctx,
-		"postgres:18.3",
+		postgresImageVersion,
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
