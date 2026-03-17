@@ -16,3 +16,19 @@ func False(condition bool, message string) {
 		panic(message)
 	}
 }
+
+// Nil asserts that a given object is nil or panics. The message is used as part of the panic
+// function call.
+func Nil(obj any, message string) {
+	if obj != nil {
+		panic(message)
+	}
+}
+
+// NotNil asserts that a given object is not nil or panics. The message is used as part of the panic
+// function call.
+func NotNil(obj any, message string) {
+	if obj == nil {
+		panic(message)
+	}
+}

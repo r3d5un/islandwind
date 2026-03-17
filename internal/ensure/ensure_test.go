@@ -46,3 +46,43 @@ func TestFalse(t *testing.T) {
 		)
 	})
 }
+
+func TestNil(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(
+			t,
+			func() {
+				ensure.Nil(nil, "should never panic")
+			},
+		)
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.Nil(&struct{}{}, "should always panic")
+			},
+		)
+	})
+}
+
+func TestNotNil(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(
+			t,
+			func() {
+				ensure.NotNil(&struct{}{}, "should never panic")
+			},
+		)
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.NotNil(nil, "should always panic")
+			},
+		)
+	})
+}
