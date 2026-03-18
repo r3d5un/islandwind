@@ -5,7 +5,7 @@ package ensure
 // panic function call.
 func True(condition bool, message string) {
 	if condition != true {
-		panic(message)
+		panic(messageHelper("true boolean assertion failed", message))
 	}
 }
 
@@ -13,7 +13,7 @@ func True(condition bool, message string) {
 // panic function call.
 func False(condition bool, message string) {
 	if condition == true {
-		panic(message)
+		panic(messageHelper("false boolean assertion failed", message))
 	}
 }
 
@@ -21,7 +21,7 @@ func False(condition bool, message string) {
 // function call.
 func Nil(obj any, message string) {
 	if obj != nil {
-		panic(message)
+		panic(messageHelper("nil assertion failed", message))
 	}
 }
 
@@ -29,22 +29,26 @@ func Nil(obj any, message string) {
 // function call.
 func NotNil(obj any, message string) {
 	if obj == nil {
-		panic(message)
+		panic(messageHelper("not nil assertion failed", message))
 	}
 }
 
 // Equal asserts that two given objects are equal or panics. A given message is printed as part of
 // the panic function call.
-func Equal(a, b any, message string) {
-	if a != b {
-		panic(message)
+func Equal(expected, actual any, message string) {
+	if expected != actual {
+		panic(messageHelper("equality assertion failed", message))
 	}
 }
 
 // NotEqual asserts that two given objects are equal or panics. A given message is printed as part
 // of the panic function call.
-func NotEqual(a, b any, message string) {
-	if a == b {
-		panic(message)
+func NotEqual(expected, actual any, message string) {
+	if expected == actual {
+		panic(messageHelper("non-equality assertion failed", message))
 	}
+}
+
+func messageHelper(assertion string, message string) string {
+	return assertion + ": " + message
 }
