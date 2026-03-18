@@ -86,3 +86,43 @@ func TestNotNil(t *testing.T) {
 		)
 	})
 }
+
+func TestEqual(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(
+			t,
+			func() {
+				ensure.Equal(1, 1, "should never panic")
+			},
+		)
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.Equal(0, 1, "should always panic")
+			},
+		)
+	})
+}
+
+func TestNotEqual(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(
+			t,
+			func() {
+				ensure.NotEqual(0, 1, "should never panic")
+			},
+		)
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.NotEqual(1, 1, "should always panic")
+			},
+		)
+	})
+}

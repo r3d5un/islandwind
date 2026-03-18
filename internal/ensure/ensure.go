@@ -32,3 +32,19 @@ func NotNil(obj any, message string) {
 		panic(message)
 	}
 }
+
+// Equal asserts that two given objects are equal or panics. A given message is printed as part of
+// the panic function call.
+func Equal(a, b any, message string) {
+	if a != b {
+		panic(message)
+	}
+}
+
+// NotEqual asserts that two given objects are equal or panics. A given message is printed as part
+// of the panic function call.
+func NotEqual(a, b any, message string) {
+	if a == b {
+		panic(message)
+	}
+}
