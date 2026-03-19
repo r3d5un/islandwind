@@ -1,6 +1,7 @@
 package ensure_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/r3d5un/islandwind/internal/ensure"
@@ -122,6 +123,36 @@ func TestNotEqual(t *testing.T) {
 			t,
 			func() {
 				ensure.NotEqual(1, 1, "should always panic")
+			},
+		)
+	})
+}
+
+func TestError(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		ensure.Error(nil, "should never panic")
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.Error(errors.New("test error"), "should always panic")
+			},
+		)
+	})
+}
+
+func TestNoError(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		ensure.NoError(errors.New("test error"), "should never panic")
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(
+			t,
+			func() {
+				ensure.NoError(nil, "should always panic")
 			},
 		)
 	})

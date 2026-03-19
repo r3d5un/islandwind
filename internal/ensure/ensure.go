@@ -49,6 +49,18 @@ func NotEqual(expected, actual any, message string) {
 	}
 }
 
+func Error(err error, message string) {
+	if err != nil {
+		panic(messageHelper("error assertion failed", message))
+	}
+}
+
+func NoError(err error, message string) {
+	if err == nil {
+		panic(messageHelper("non-error assertion failed", message))
+	}
+}
+
 func messageHelper(assertion string, message string) string {
 	return assertion + ": " + message
 }
