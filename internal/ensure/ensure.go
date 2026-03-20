@@ -66,6 +66,18 @@ func NoError(err error, message string) {
 	}
 }
 
+// Index asserts that a given index is within the bounds of a given length or panics. A given
+// message is printed as part of the panic function call.
+//
+// Example:
+//
+//	ensure.Index(i, len(slice), "index out of bounds")
+func Index(i, len int, message string) {
+	if i < 0 || i >= len {
+		panic(messageHelper(fmt.Sprintf("index out of bounds: index %d, len %d", i, len), message))
+	}
+}
+
 // messageHelper returns a formatted string indicating the file, line, and assertion details. It is
 // used to format the panic message for runtime assertions.
 func messageHelper(assertion string, message string) string {

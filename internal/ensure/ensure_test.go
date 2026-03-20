@@ -137,7 +137,7 @@ func TestError(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			ensure.Error(nil, "should never panic")
+			ensure.Error(nil, "should always panic")
 		})
 	})
 }
@@ -151,7 +151,21 @@ func TestNoError(t *testing.T) {
 
 	t.Run("Panic", func(t *testing.T) {
 		assert.Panics(t, func() {
-			ensure.NoError(errors.New("test error"), "should never panic")
+			ensure.NoError(errors.New("test error"), "should always panic")
+		})
+	})
+}
+
+func TestIndexs(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Index(0, 10, "should never panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Index(100, 10, "should always panic")
 		})
 	})
 }
