@@ -1,6 +1,11 @@
 // Package ensure contains functions for runtime assertions.
 package ensure
 
+import (
+	"runtime"
+	"strconv"
+)
+
 // True asserts that a given condition is true or panics. A given message is printed as part of the
 // panic function call.
 func True(condition bool, message string) {
@@ -61,6 +66,13 @@ func NoError(err error, message string) {
 	}
 }
 
+// messageHelper returns a formatted string indicating the file, line, and assertion details. It is
+// used to format the panic message for runtime assertions.
 func messageHelper(assertion string, message string) string {
-	return assertion + ": " + message
+	// runtime.Caller is used to report the file and line number of a function invocation. The
+	// argument is the number of stack frames to skip. In this case the messageHelper and the
+	// caller assertion function are skipped, which prints the location where the runtime assertion
+	// failed to be given.
+	_, file, line, _ := runtime.Caller(2)
+	return file + ":" + strconv.Itoa(line) + ": " + assertion + ": " + message
 }
