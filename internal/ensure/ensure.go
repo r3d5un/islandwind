@@ -50,13 +50,13 @@ func NotEqual[T comparable](expected, actual T, message string) {
 }
 
 func Error(err error, message string) {
-	if err != nil {
+	if err == nil {
 		panic(messageHelper("error assertion failed", message))
 	}
 }
 
 func NoError(err error, message string) {
-	if err == nil {
+	if err != nil {
 		panic(messageHelper("non-error assertion failed", message))
 	}
 }

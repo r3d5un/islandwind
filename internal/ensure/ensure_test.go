@@ -130,30 +130,28 @@ func TestNotEqual(t *testing.T) {
 
 func TestError(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		ensure.Error(nil, "should never panic")
+		assert.NotPanics(t, func() {
+			ensure.Error(errors.New("test error"), "should never panic")
+		})
 	})
 
 	t.Run("Panic", func(t *testing.T) {
-		assert.Panics(
-			t,
-			func() {
-				ensure.Error(errors.New("test error"), "should always panic")
-			},
-		)
+		assert.Panics(t, func() {
+			ensure.Error(nil, "should never panic")
+		})
 	})
 }
 
 func TestNoError(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		ensure.NoError(errors.New("test error"), "should never panic")
+		assert.NotPanics(t, func() {
+			ensure.NoError(nil, "should never panic")
+		})
 	})
 
 	t.Run("Panic", func(t *testing.T) {
-		assert.Panics(
-			t,
-			func() {
-				ensure.NoError(nil, "should always panic")
-			},
-		)
+		assert.Panics(t, func() {
+			ensure.NoError(errors.New("test error"), "should never panic")
+		})
 	})
 }
