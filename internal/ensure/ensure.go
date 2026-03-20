@@ -35,7 +35,7 @@ func NotNil(obj any, message string) {
 
 // Equal asserts that two given objects are equal or panics. A given message is printed as part of
 // the panic function call.
-func Equal(expected, actual any, message string) {
+func Equal[T comparable](expected, actual T, message string) {
 	if expected != actual {
 		panic(messageHelper("equality assertion failed", message))
 	}
@@ -43,7 +43,7 @@ func Equal(expected, actual any, message string) {
 
 // NotEqual asserts that two given objects are equal or panics. A given message is printed as part
 // of the panic function call.
-func NotEqual(expected, actual any, message string) {
+func NotEqual[T comparable](expected, actual T, message string) {
 	if expected == actual {
 		panic(messageHelper("non-equality assertion failed", message))
 	}
