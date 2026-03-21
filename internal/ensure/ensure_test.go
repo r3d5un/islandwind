@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/r3d5un/islandwind/internal/confirm"
 	"github.com/r3d5un/islandwind/internal/ensure"
 	"github.com/stretchr/testify/assert"
 )
@@ -166,6 +167,39 @@ func TestIndexs(t *testing.T) {
 	t.Run("Panic", func(t *testing.T) {
 		assert.Panics(t, func() {
 			ensure.Index(100, 10, "should always panic")
+		})
+	})
+}
+
+func TestFor(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.For([]int{1, 2, 3}, func(v int) bool {
+				return v > 0
+			}, "should never panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.For([]int{1, -1, 3}, func(v int) bool {
+				return v > 0
+			}, "should panic on -1")
+		})
+	})
+
+	t.Run("Empty", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.For([]int{}, func(v int) bool {
+				return v > 0
+			}, "should never panic on empty slice")
+		})
+	})
+
+	t.Run("WithConfirm", func(t *testing.T) {
+		slice := []bool{true, true, true, true, true}
+		assert.Panics(t, func() {
+			ensure.For(slice, confirm.False, "all boolean values must be false")
 		})
 	})
 }

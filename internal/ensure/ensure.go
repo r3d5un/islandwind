@@ -66,6 +66,26 @@ func NoError(err error, message string) {
 	}
 }
 
+// For asserts that a given condition is true for all elements in a slice or panics. A given
+// message is printed as part of the panic function call.
+//
+// Example:
+//
+//	slice := []int{1, 2, 3}
+//	ensure.For(slice, func(v int) bool { return v > 0 }, "slice must contain only positive integers")
+//
+// Example:
+//
+//	slice := []bool{false, true, true, false, true}
+//	ensure.For(slice, confirm.False, "all boolean values must be false")
+func For[T any](slice []T, fn func(T) bool, message string) {
+	for _, v := range slice {
+		if !fn(v) {
+			panic(messageHelper("for assertion failed", message))
+		}
+	}
+}
+
 // Index asserts that a given index is within the bounds of a given length or panics. A given
 // message is printed as part of the panic function call.
 //
