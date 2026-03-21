@@ -2,12 +2,17 @@
 package ensure
 
 import (
+	"fmt"
 	"runtime"
 	"strconv"
 )
 
 // True asserts that a given condition is true or panics. A given message is printed as part of the
 // panic function call.
+//
+// Example:
+//
+//	ensure.True(len(slice) > 0, "slice must not be empty")
 func True(condition bool, message string) {
 	if condition != true {
 		panic(messageHelper("true boolean assertion failed", message))
@@ -16,6 +21,10 @@ func True(condition bool, message string) {
 
 // False asserts that a given condition is true or panics. A given message is printed as part of the
 // panic function call.
+//
+// Example:
+//
+//	ensure.False(user.IsDeleted, "user must not be deleted")
 func False(condition bool, message string) {
 	if condition == true {
 		panic(messageHelper("false boolean assertion failed", message))
@@ -24,6 +33,10 @@ func False(condition bool, message string) {
 
 // Nil asserts that a given object is nil or panics. The message is used as part of the panic
 // function call.
+//
+// Example:
+//
+//	ensure.Nil(err, "error should be nil")
 func Nil(obj any, message string) {
 	if obj != nil {
 		panic(messageHelper("nil assertion failed", message))
@@ -32,6 +45,10 @@ func Nil(obj any, message string) {
 
 // NotNil asserts that a given object is not nil or panics. The message is used as part of the panic
 // function call.
+//
+// Example:
+//
+//	ensure.NotNil(client, "client should not be nil")
 func NotNil(obj any, message string) {
 	if obj == nil {
 		panic(messageHelper("not nil assertion failed", message))
@@ -40,6 +57,10 @@ func NotNil(obj any, message string) {
 
 // Equal asserts that two given objects are equal or panics. A given message is printed as part of
 // the panic function call.
+//
+// Example:
+//
+//	ensure.Equal(200, res.StatusCode, "status code must be 200")
 func Equal[T comparable](expected, actual T, message string) {
 	if expected != actual {
 		panic(messageHelper("equality assertion failed", message))
@@ -48,18 +69,36 @@ func Equal[T comparable](expected, actual T, message string) {
 
 // NotEqual asserts that two given objects are equal or panics. A given message is printed as part
 // of the panic function call.
+//
+// Example:
+//
+//	ensure.NotEqual(0, userID, "user ID must not be zero")
 func NotEqual[T comparable](expected, actual T, message string) {
 	if expected == actual {
 		panic(messageHelper("non-equality assertion failed", message))
 	}
 }
 
+// Error asserts that a given error is not nil or panics. A given message is printed as part of
+// the panic function call.
+//
+// Example:
+//
+//	err := doSomething()
+//	ensure.Error(err, "doSomething should return an error")
 func Error(err error, message string) {
 	if err == nil {
 		panic(messageHelper("error assertion failed", message))
 	}
 }
 
+// NoError asserts that a given error is nil or panics. A given message is printed as part of the
+// panic function call.
+//
+// Example:
+//
+//	err := doSomething()
+//	ensure.NoError(err, "doSomething should not return an error")
 func NoError(err error, message string) {
 	if err != nil {
 		panic(messageHelper("non-error assertion failed", message))
