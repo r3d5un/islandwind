@@ -3,6 +3,7 @@ package ensure
 
 import (
 	"fmt"
+	"reflect"
 	"runtime"
 	"strconv"
 )
@@ -146,4 +147,25 @@ func messageHelper(assertion string, message string) string {
 	// failed to be given.
 	_, file, line, _ := runtime.Caller(2)
 	return file + ":" + strconv.Itoa(line) + ": " + assertion + ": " + message
+}
+
+// Valid asserts that a given object is not nil and, if it is a pointer, that it does not point to
+// nil.
+//
+// Checking pointer values relies on reflection, which carries a heavy runtime penalty. It is
+// recommended to use this value once when injecting or initializing objects and avoid using
+// Valid in hot loops or functions.
+//
+// Example:
+//
+//	var p *int
+//	ensure.Valid(p, "p must not be nil") // panics
+//
+// Example:
+//
+//	ensure.Valid(client, "client must be valid: %s", clientID)
+func Valid(obj any, format string, args ...any) {
+	if obj == nil || (reflect.ValueOf(obj).Kind() == reflect.Ptr && reflect.ValueOf(obj).IsNil()) {
+		panic(messageHelper("validity assertion failed", fmt.Sprintf(format, args...)))
+	}
 }

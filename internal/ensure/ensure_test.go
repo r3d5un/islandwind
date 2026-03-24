@@ -203,3 +203,38 @@ func TestFor(t *testing.T) {
 		})
 	})
 }
+
+func TestValid(t *testing.T) {
+	t.Run("SuccessNonPointer", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Valid("test", "should not panic")
+		})
+	})
+
+	t.Run("SuccessPointer", func(t *testing.T) {
+		val := 1
+		assert.NotPanics(t, func() {
+			ensure.Valid(&val, "should not panic")
+		})
+	})
+
+	t.Run("PanicUntypedNil", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Valid(nil, "should panic")
+		})
+	})
+
+	t.Run("PanicTypedNilPointer", func(t *testing.T) {
+		var p *int
+		assert.Panics(t, func() {
+			ensure.Valid(p, "should panic")
+		})
+	})
+
+	t.Run("FormattedMessage", func(t *testing.T) {
+		var p *int
+		assert.Panics(t, func() {
+			ensure.Valid(p, "failed: %d", 123)
+		})
+	})
+}
