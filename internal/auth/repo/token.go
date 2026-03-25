@@ -11,8 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/auth/data"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/ensure"
 	"github.com/r3d5un/islandwind/internal/logging"
-	"github.com/r3d5un/islandwind/internal/testsuite"
 )
 
 type RefreshToken struct {
@@ -123,8 +123,7 @@ func (r *TokenRepository) List(
 	if err != nil {
 		return nil, nil, err
 	}
-	testsuite.Assert(rows != nil, "refresh token list is nil", nil)
-	testsuite.Assert(metadata != nil, "refresh token metadata are nil", nil)
+	ensure.NotNil(metadata, "refresh token metadata must not be nil")
 
 	tokens := make([]*RefreshToken, metadata.ResponseLength)
 	for i, row := range rows {
@@ -149,7 +148,7 @@ func (r *TokenRepository) Update(
 	if err != nil {
 		return nil, err
 	}
-	testsuite.Assert(row != nil, "row cannot be nil without an error", nil)
+	ensure.NotNil(row, "row cannot be nil without errors")
 	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token updated")
 
 	return newRefreshTokenFromRow(row), nil
@@ -166,7 +165,7 @@ func (r *TokenRepository) Delete(ctx context.Context, filter data.Filter) (int64
 	if err != nil {
 		return 0, err
 	}
-	testsuite.Assert(affected != nil, "affected row count cannot be nil without errors", nil)
+	ensure.NotNil(affected, "affected row count cannot be nil without errors")
 	logger.LogAttrs(
 		ctx, slog.LevelInfo, "refresh tokens deleted", slog.Int64("affected", *affected),
 	)

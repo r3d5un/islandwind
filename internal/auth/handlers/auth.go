@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	"github.com/r3d5un/islandwind/internal/auth/data"
-	"github.com/r3d5un/islandwind/internal/testsuite"
+	"github.com/r3d5un/islandwind/internal/ensure"
 	"github.com/r3d5un/islandwind/internal/validator"
 
 	"github.com/r3d5un/islandwind/internal/api"
@@ -66,12 +66,8 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 			}
 			return
 		}
-		testsuite.Assert(
-			refreshTokens != nil, "refresh tokens should not be nil without errors", refreshTokens,
-		)
-		testsuite.Assert(
-			metadata != nil, "refresh token metadata should not be nil without errors", metadata,
-		)
+		ensure.NotNil(refreshTokens, "refresh tokens should not be nil without errors")
+		ensure.NotNil(metadata, "refresh token metadata should not be nil without errors")
 
 		api.RespondWithJSON(
 			w,
@@ -106,11 +102,7 @@ func PatchRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 			}
 			return
 		}
-		testsuite.Assert(
-			refreshToken != nil,
-			"refresh refreshToken should not be nil without errors",
-			refreshToken,
-		)
+		ensure.NotNil(refreshToken, "refresh token should not be nil without errors")
 
 		api.RespondWithJSON(
 			w,
@@ -174,18 +166,14 @@ func LoginHandler(tokens repo.TokenService) http.HandlerFunc {
 			api.ServerErrorResponse(w, r, err)
 			return
 		}
-		testsuite.Assert(
-			accessToken != nil, "accessToken should never be nil without errors", accessToken,
-		)
+		ensure.NotNil(accessToken, "accessToken should not be nil without errors")
 
 		refreshToken, err := tokens.CreateRefreshToken(ctx)
 		if err != nil {
 			api.ServerErrorResponse(w, r, err)
 			return
 		}
-		testsuite.Assert(
-			refreshToken != nil, "refreshToken should never be nil without errors", refreshToken,
-		)
+		ensure.NotNil(refreshToken, "refreshToken should not be nil without errors")
 
 		api.RespondWithJSON(
 			w,
@@ -261,12 +249,8 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 			}
 			return
 		}
-		testsuite.Assert(
-			accessToken != nil, "accessToken should never be nil without errors", accessToken,
-		)
-		testsuite.Assert(
-			refreshToken != nil, "refreshToken should never be nil without errors", refreshToken,
-		)
+		ensure.NotNil(accessToken, "accessToken should not be nil without errors")
+		ensure.NotNil(refreshToken, "refreshToken should not be nil without errors")
 
 		api.RespondWithJSON(
 			w,
