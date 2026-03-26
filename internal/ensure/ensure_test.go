@@ -238,3 +238,43 @@ func TestValid(t *testing.T) {
 		})
 	})
 }
+
+func TestContains(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Contains([]int{1, 2, 3}, 2, "should never panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Contains([]int{1, 2, 3}, 4, "should always panic")
+		})
+	})
+
+	t.Run("EmptySlice", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Contains([]int{}, 1, "should panic on empty slice")
+		})
+	})
+}
+
+func TestNotContains(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.NotContains([]int{1, 2, 3}, 4, "should never panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.NotContains([]int{1, 2, 3}, 2, "should always panic")
+		})
+	})
+
+	t.Run("EmptySlice", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.NotContains([]int{}, 1, "should never panic on empty slice")
+		})
+	})
+}

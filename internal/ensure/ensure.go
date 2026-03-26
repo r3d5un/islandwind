@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"slices"
 	"strconv"
 )
 
@@ -167,5 +168,31 @@ func messageHelper(assertion string, message string) string {
 func Valid(obj any, format string, args ...any) {
 	if obj == nil || (reflect.ValueOf(obj).Kind() == reflect.Ptr && reflect.ValueOf(obj).IsNil()) {
 		panic(messageHelper("validity assertion failed", fmt.Sprintf(format, args...)))
+	}
+}
+
+// Contains asserts that a given slice contains a given element or panics. A given message is
+// printed as part of the panic function call.
+//
+// Example:
+//
+//	slice := []int{1, 2, 3}
+//	ensure.Contains(slice, 2, "slice must contain 2")
+func Contains[T comparable](elements []T, element T, message string) {
+	if !slices.Contains(elements, element) {
+		panic(messageHelper("contains assertion failed", message))
+	}
+}
+
+// NotContains asserts that a given slice does not contain a given element or panics. A given
+// message is printed as part of the panic function call.
+//
+// Example:
+//
+//	slice := []int{1, 2, 3}
+//	ensure.NotContains(slice, 4, "slice must not contain 4")
+func NotContains[T comparable](elements []T, element T, message string) {
+	if slices.Contains(elements, element) {
+		panic(messageHelper("not-contains assertion failed", message))
 	}
 }
