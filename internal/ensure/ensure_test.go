@@ -3,6 +3,7 @@ package ensure_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/r3d5un/islandwind/internal/confirm"
 	"github.com/r3d5un/islandwind/internal/ensure"
@@ -275,6 +276,56 @@ func TestNotContains(t *testing.T) {
 	t.Run("EmptySlice", func(t *testing.T) {
 		assert.NotPanics(t, func() {
 			ensure.NotContains([]int{}, 1, "should never panic on empty slice")
+		})
+	})
+}
+
+func TestBefore(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		start := time.Now()
+		end := start.Add(time.Hour)
+		assert.NotPanics(t, func() {
+			ensure.Before(start, end, "start should be before end")
+		})
+	})
+
+	t.Run("SuccessEqual", func(t *testing.T) {
+		now := time.Now()
+		assert.NotPanics(t, func() {
+			ensure.Before(now, now, "equal times should not panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		end := time.Now()
+		start := end.Add(time.Hour)
+		assert.Panics(t, func() {
+			ensure.Before(start, end, "start should not be after end")
+		})
+	})
+}
+
+func TestAfter(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		end := time.Now()
+		start := end.Add(-time.Hour)
+		assert.NotPanics(t, func() {
+			ensure.After(end, start, "end should be after start")
+		})
+	})
+
+	t.Run("SuccessEqual", func(t *testing.T) {
+		now := time.Now()
+		assert.NotPanics(t, func() {
+			ensure.After(now, now, "equal times should not panic")
+		})
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		start := time.Now()
+		end := start.Add(-time.Hour)
+		assert.Panics(t, func() {
+			ensure.After(end, start, "end should not be before start")
 		})
 	})
 }

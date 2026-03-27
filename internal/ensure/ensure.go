@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"slices"
 	"strconv"
+	"time"
 )
 
 // True asserts that a given condition is true or panics. A given message is printed as part of the
@@ -194,5 +195,33 @@ func Contains[T comparable](elements []T, element T, message string) {
 func NotContains[T comparable](elements []T, element T, message string) {
 	if slices.Contains(elements, element) {
 		panic(messageHelper("not-contains assertion failed", message))
+	}
+}
+
+// Before asserts that a given time is before or equal to a second given time or panics. A
+// given message is printed as part of the panic function call.
+//
+// Example:
+//
+//	start := time.Now()
+//	end := start.Add(time.Hour)
+//	ensure.Before(start, end, "start must be before end")
+func Before(expected, actual time.Time, message string) {
+	if expected.After(actual) {
+		panic(messageHelper("before assertion failed", message))
+	}
+}
+
+// After asserts that a given time is after or equal to a second given time or panics. A given
+// message is printed as part of the panic function call.
+//
+// Example:
+//
+//	end := time.Now()
+//	start := end.Add(-time.Hour)
+//	ensure.After(end, start, "end must be after start")
+func After(expected, actual time.Time, message string) {
+	if expected.Before(actual) {
+		panic(messageHelper("after assertion failed", message))
 	}
 }
