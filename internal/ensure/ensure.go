@@ -2,6 +2,7 @@
 package ensure
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -223,5 +224,31 @@ func Before(expected, actual time.Time, message string) {
 func After(expected, actual time.Time, message string) {
 	if expected.Before(actual) {
 		panic(messageHelper("after assertion failed", message))
+	}
+}
+
+// Greater asserts that a given value is greater than a second given value or panics. A given
+// message is printed as part of the panic function call. The given values must implement the
+// cmp.Ordered interface.
+//
+// Example:
+//
+//	ensure.Greater(10, 5, "10 must be greater than 5")
+func Greater[T cmp.Ordered](a, b T, message string) {
+	if a <= b {
+		panic(messageHelper("greater assertion failed", message))
+	}
+}
+
+// Less asserts that a given value is less than a second given value or panics. A given
+// message is printed as part of the panic function call. The given values must implement the
+// cmp.Ordered interface.
+//
+// Example:
+//
+//	ensure.Less(5, 10, "5 must be less than 10")
+func Less[T cmp.Ordered](a, b T, message string) {
+	if a >= b {
+		panic(messageHelper("less assertion failed", message))
 	}
 }

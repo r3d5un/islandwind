@@ -329,3 +329,55 @@ func TestAfter(t *testing.T) {
 		})
 	})
 }
+
+func TestGreater(t *testing.T) {
+	t.Run("SuccessInt", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Greater(10, 5, "10 should be greater than 5")
+		})
+	})
+
+	t.Run("SuccessString", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Greater("b", "a", "b should be greater than a")
+		})
+	})
+
+	t.Run("PanicLess", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Greater(5, 10, "5 should not be greater than 10")
+		})
+	})
+
+	t.Run("PanicEqual", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Greater(5, 5, "5 should not be greater than 5")
+		})
+	})
+}
+
+func TestLess(t *testing.T) {
+	t.Run("SuccessInt", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Less(5, 10, "5 should be less than 10")
+		})
+	})
+
+	t.Run("SuccessString", func(t *testing.T) {
+		assert.NotPanics(t, func() {
+			ensure.Less("a", "b", "a should be less than b")
+		})
+	})
+
+	t.Run("PanicGreater", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Less(10, 5, "10 should not be less than 5")
+		})
+	})
+
+	t.Run("PanicEqual", func(t *testing.T) {
+		assert.Panics(t, func() {
+			ensure.Less(5, 5, "5 should not be less than 5")
+		})
+	})
+}
