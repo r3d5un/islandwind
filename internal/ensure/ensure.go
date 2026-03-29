@@ -141,17 +141,6 @@ func Index(i, len int, message string) {
 	}
 }
 
-// messageHelper returns a formatted string indicating the file, line, and assertion details. It is
-// used to format the panic message for runtime assertions.
-func messageHelper(assertion string, message string) string {
-	// runtime.Caller is used to report the file and line number of a function invocation. The
-	// argument is the number of stack frames to skip. In this case the messageHelper and the
-	// caller assertion function are skipped, which prints the location where the runtime assertion
-	// failed to be given.
-	_, file, line, _ := runtime.Caller(2)
-	return file + ":" + strconv.Itoa(line) + ": " + assertion + ": " + message
-}
-
 // Valid asserts that a given object is not nil and, if it is a pointer, that it does not point to
 // nil.
 //
@@ -251,4 +240,15 @@ func Less[T cmp.Ordered](a, b T, message string) {
 	if a >= b {
 		panic(messageHelper("less assertion failed", message))
 	}
+}
+
+// messageHelper returns a formatted string indicating the file, line, and assertion details. It is
+// used to format the panic message for runtime assertions.
+func messageHelper(assertion string, message string) string {
+	// runtime.Caller is used to report the file and line number of a function invocation. The
+	// argument is the number of stack frames to skip. In this case the messageHelper and the
+	// caller assertion function are skipped, which prints the location where the runtime assertion
+	// failed to be given.
+	_, file, line, _ := runtime.Caller(2)
+	return file + ":" + strconv.Itoa(line) + ": " + assertion + ": " + message
 }
