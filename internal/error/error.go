@@ -6,11 +6,14 @@ import (
 )
 
 type Error struct {
-	Code     string         `json:"code"`
-	Message  string         `json:"message"`
-	Internal error          `json:"internal"`
-	Metadata map[string]any `json:"metadata,omitempty"`
+	// Code is a short machine-readable identifier for the error.
+	Code string `json:"code"`
+	// Message is a human-readable description of the error.
+	Message string `json:"message"`
+	// Internal is the raw error. This field should not be exposed to clients.
 	Internal error `json:"-"`
+	// Metadata is a map of additional information about the error.
+	Metadata map[string]any `json:"metadata,omitzero"`
 }
 
 func New(code, message string, internal error, metadata map[string]any) *Error {
@@ -38,7 +41,7 @@ func (e *Error) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.String("code", e.Code),
 		slog.String("message", e.Message),
-		slog.String("internal", e.Internal.Error()),
+		slog.Any("internal", e.Internal),
 		slog.Any("metadata", e.Metadata),
 	)
 }
