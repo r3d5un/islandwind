@@ -10,6 +10,7 @@ type Error struct {
 	Message  string         `json:"message"`
 	Internal error          `json:"internal"`
 	Metadata map[string]any `json:"metadata,omitempty"`
+	Internal error `json:"-"`
 }
 
 func New(code, message string, internal error, metadata map[string]any) *Error {
