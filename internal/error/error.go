@@ -5,6 +5,8 @@ import (
 	"log/slog"
 )
 
+// Error is a type that enabled structured error handling while implementing the error interface
+// from the standard library.
 type Error struct {
 	// Code is a short machine-readable identifier for the error.
 	Code string `json:"code"`
@@ -16,6 +18,7 @@ type Error struct {
 	Metadata map[string]any `json:"metadata,omitzero"`
 }
 
+// New creates a new Error instance.
 func New(code, message string, internal error, metadata map[string]any) *Error {
 	return &Error{
 		Code:     code,
