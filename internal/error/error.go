@@ -15,7 +15,7 @@ type Error struct {
 	// Internal is the raw error. This field should not be exposed to clients.
 	Internal error `json:"-"`
 	// Metadata is a map of additional information about the error.
-	Metadata map[string]any `json:"metadata,omitzero"`
+	Metadata map[string]any `json:"-"`
 }
 
 // New creates a new Error instance.
