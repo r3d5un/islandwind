@@ -1,4 +1,5 @@
-package error
+// Package goof contains functionality for structured error handling.
+package goof
 
 import (
 	"errors"
