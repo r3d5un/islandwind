@@ -2,7 +2,6 @@
 package goof
 
 import (
-	"errors"
 	"log/slog"
 )
 
@@ -24,7 +23,7 @@ func New(code, message string, internal error, metadata map[string]any) *Error {
 	return &Error{
 		Code:     code,
 		Message:  message,
-		Internal: errors.Join(internal),
+		Internal: internal,
 		Metadata: metadata,
 	}
 }
