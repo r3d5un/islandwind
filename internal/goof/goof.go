@@ -48,3 +48,12 @@ func (e *Error) LogValue() slog.Value {
 		slog.Any("metadata", e.Metadata),
 	)
 }
+
+func (e *Error) WithMetadata(key string, value any) *Error {
+	if e.Metadata == nil {
+		e.Metadata = make(map[string]any)
+	}
+
+	e.Metadata[key] = value
+	return e
+}
