@@ -3,6 +3,7 @@ package goof
 
 import (
 	"log/slog"
+	"maps"
 )
 
 // Error is a type that enabled structured error handling while implementing the error interface
@@ -24,7 +25,7 @@ func New(code, message string, internal error, metadata map[string]any) *Error {
 		Code:     code,
 		Message:  message,
 		Internal: internal,
-		Metadata: metadata,
+		Metadata: maps.Clone(metadata),
 	}
 }
 
