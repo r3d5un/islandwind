@@ -3,7 +3,6 @@ package goof
 
 import (
 	"log/slog"
-	"maps"
 )
 
 // Error is a type that enabled structured error handling while implementing the error interface
@@ -20,12 +19,11 @@ type Error struct {
 }
 
 // New creates a new Error instance.
-func New(code, message string, internal error, metadata map[string]any) *Error {
+func New(code, message string, internal error) *Error {
 	return &Error{
 		Code:     code,
 		Message:  message,
 		Internal: internal,
-		Metadata: maps.Clone(metadata),
 	}
 }
 
@@ -50,7 +48,7 @@ func (e *Error) LogValue() slog.Value {
 	)
 }
 
-func (e *Error) WithMetadata(key string, value any) *Error {
+func (e *Error) With(key string, value any) *Error {
 	if e.Metadata == nil {
 		e.Metadata = make(map[string]any)
 	}

@@ -20,33 +20,23 @@ func TestNew(t *testing.T) {
 
 	t.Run("New", func(t *testing.T) {
 		internalErr := internal(t)
-		err := goof.New(code, msg, internalErr, map[string]any{"key": "value"})
+		err := goof.New(code, msg, internalErr).With("key", "value")
 
 		assert.Error(t, err)
 		assert.Equal(t, code, err.Code)
 		assert.Equal(t, msg, err.Error())
 		assert.Equal(t, internalErr, err.Internal)
 		assert.NotNil(t, err.Metadata)
+		assert.Equal(t, "value", err.Metadata["key"])
 	})
 
-	t.Run("DefensiveMetadataCopy", func(t *testing.T) {
-		metadata := map[string]any{"key1": "value1"}
-		err := goof.New(code, msg, internal(t), metadata)
+	t.Run("WithMetadata", func(t *testing.T) {
+		err := goof.New(code, msg, nil).
+			With("key1", "value1").
+			With("key2", 123)
 
-		metadata["key1"] = "mutated"
-		metadata["key2"] = "added"
-
-		assert.Equal(
-			t,
-			"value1", err.Metadata["key1"],
-			"error metadata should not be mutable",
-		)
-
-		_, exists := err.Metadata["key2"]
-		assert.False(
-			t,
-			exists,
-			"new metadata entries should not be added externally",
-		)
+		assert.Equal(t, "value1", err.Metadata["key1"])
+		assert.Equal(t, 123, err.Metadata["key2"])
 	})
+
 }
