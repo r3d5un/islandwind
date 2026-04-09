@@ -19,6 +19,8 @@ type Error struct {
 	Metadata map[string]any `json:"-"`
 	// Timestamp is the time at which the error occurred.
 	Timestamp time.Time `json:"timestamp"`
+	// Service refers to the service, module, domain, or category where the error occurred.
+	Service string `json:"service"`
 }
 
 // New creates a new Error instance.
