@@ -31,7 +31,7 @@ func New(code, message string, internal error) *Error {
 	}
 }
 
-// Unwrap implements the error interface.
+// Unwrap implements the errors.Wrapper interface, returning the underlying internal error.
 func (e *Error) Unwrap() error {
 	return e.Internal
 }
