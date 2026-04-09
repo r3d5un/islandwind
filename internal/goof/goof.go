@@ -3,6 +3,7 @@ package goof
 
 import (
 	"log/slog"
+	"time"
 )
 
 // Error is a type that enabled structured error handling while implementing the error interface
@@ -16,14 +17,17 @@ type Error struct {
 	Internal error `json:"-"`
 	// Metadata is a map of additional information about the error.
 	Metadata map[string]any `json:"-"`
+	// Timestamp is the time at which the error occurred.
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // New creates a new Error instance.
 func New(code, message string, internal error) *Error {
 	return &Error{
-		Code:     code,
-		Message:  message,
-		Internal: internal,
+		Code:      code,
+		Message:   message,
+		Internal:  internal,
+		Timestamp: time.Now(),
 	}
 }
 
