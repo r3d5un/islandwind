@@ -59,6 +59,8 @@ func (e *Error) LogValue() slog.Value {
 	)
 }
 
+// With adds a key-value pair to the error's metadata. It is intended to be used to provide
+// additional context or details about the error.
 func (e *Error) With(key string, value any) *Error {
 	if e.Metadata == nil {
 		e.Metadata = make(map[string]any)
