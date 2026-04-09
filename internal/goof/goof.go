@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+var (
+	_ error          = (*Error)(nil)
+	_ slog.LogValuer = (*Error)(nil)
+)
+
 // Error is a type that enabled structured error handling while implementing the error interface
 // from the standard library.
 type Error struct {
