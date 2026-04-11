@@ -68,11 +68,6 @@ test/backend: test/backend/staticCheck test/backend/vet
 	@echo 'Running tests...'
 	go test -race -vet=off ./...
 
-.PHONY: test/backend/reload
-test/backend/reload:
-	@echo 'Running tests...'
-	find . -name "*.go" | entr -c go test -race -vet=off ./...
-
 # ==================================================================================== #
 # TESTING
 # ==================================================================================== #
@@ -93,8 +88,3 @@ build/backend/docker: test/backend
 run/backend: format/backend test/backend
 	@echo 'Running backend...'
 	go run ./cmd/api/
-
-.PHONY: run/backend/reload
-run/backend/reload: format/backend test/backend
-	@echo 'Running backend with live reload...'
-	find . -name "*.go" | entr -c go run ./cmd/api/
