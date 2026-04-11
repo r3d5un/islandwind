@@ -21,7 +21,7 @@ func TestError(t *testing.T) {
 		Message(msg).
 		New(inner)
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
 
 	t.Run("Error", func(t *testing.T) {

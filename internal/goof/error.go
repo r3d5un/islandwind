@@ -16,7 +16,7 @@ type Error struct {
 	// code is a short machine-readable identifier for the error.
 	code string
 	// message is a human-readable description of the error. The message is meant to be safe to
-	// expose to external services. Values should be generic messages like
+	// expose to external services.
 	message string
 	// internal is the raw error. This field should not be exposed to clients.
 	internal error
@@ -28,49 +28,65 @@ type Error struct {
 	service string
 }
 
-// Unwrap implements the errors.Wrapper interface, returning the underlying internal error.
-func (e Error) Unwrap() error {
+// Unwrap returns the underlying error.
+func (e *Error) Unwrap() error {
 	return e.internal
 }
 
-// Error implements the error interface.
-func (e Error) Error() string {
+// Error returns the error message from the underlying error.
+func (e *Error) Error() string {
 	return e.internal.Error()
 }
 
-// LogValue implements the slog.LogValuer interface. It returns a slog.Value containing the details
-// of the error for structured logging.
-func (e Error) LogValue() slog.Value {
-	return slog.GroupValue(
+// LogValue returns the error's properties for structured logging.
+func (e *Error) LogValue() slog.Value {
+	attrs := []slog.Attr{
 		slog.String("code", e.code),
 		slog.String("message", e.message),
-		slog.Any("internal", e.internal),
-		slog.Any("metadata", e.metadata),
-	)
+		slog.Time("time", e.time),
+	}
+
+	if e.service != "" {
+		attrs = append(attrs, slog.String("service", e.service))
+	}
+
+	if e.internal != nil {
+		attrs = append(attrs, slog.Any("internal", e.internal))
+	}
+
+	if len(e.metadata) > 0 {
+		attrs = append(attrs, slog.Any("metadata", e.metadata))
+	}
+
+	return slog.GroupValue(attrs...)
 }
 
-func (e Error) Code() string {
+// Code returns the error code.
+func (e *Error) Code() string {
 	return e.code
 }
 
-// Message returns a human-readable message for the error. The message is meant to be safe to expose
-// to external services and should not contain any internal details.
-func (e Error) Message() string {
+// Message returns the human-readable message.
+func (e *Error) Message() string {
 	return e.message
 }
 
-func (e Error) Metadata() map[string]any {
+// Metadata returns the error's metadata.
+func (e *Error) Metadata() map[string]any {
 	return e.metadata
 }
 
-func (e Error) Time() time.Time {
+// Time returns the time the error occurred.
+func (e *Error) Time() time.Time {
 	return e.time
 }
 
-func (e Error) Service() string {
+// Service returns the service name associated with the error.
+func (e *Error) Service() string {
 	return e.service
 }
 
-func (e Error) Internal() error {
+// Internal returns the underlying error.
+func (e *Error) Internal() error {
 	return e.internal
 }

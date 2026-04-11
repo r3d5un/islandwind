@@ -16,19 +16,19 @@ func TestNew(t *testing.T) {
 
 	assert.NotNil(t, err)
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
 	assert.Equal(t, originalErr.Error(), goofErr.Error())
 }
 
 func TestWrap(t *testing.T) {
 	inner := errors.New("inner error")
-	err := goof.New(inner)
+	err := goof.Wrap(inner)
 
 	assert.NotNil(t, err)
 	assert.ErrorIs(t, err, inner)
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
 	assert.Equal(t, inner, goofErr.Internal())
 }
@@ -39,7 +39,7 @@ func TestWith(t *testing.T) {
 			With("key", "value").
 			New(fmt.Errorf("test error"))
 
-		var goofErr goof.Error
+		var goofErr *goof.Error
 		assert.True(t, errors.As(err, &goofErr))
 		assert.Equal(t, "value", goofErr.Metadata()["key"])
 	})
@@ -50,7 +50,7 @@ func TestWith(t *testing.T) {
 			With("key2", "val2").
 			New(fmt.Errorf("test error"))
 
-		var goofErr goof.Error
+		var goofErr *goof.Error
 		assert.True(t, errors.As(err, &goofErr))
 		assert.Equal(t, "val1", goofErr.Metadata()["key1"])
 		assert.Equal(t, "val2", goofErr.Metadata()["key2"])
@@ -64,7 +64,7 @@ func TestWith(t *testing.T) {
 		errA := b1.New(fmt.Errorf("err a"))
 		errB := b2.New(fmt.Errorf("err b"))
 
-		var goofErrA, goofErrB goof.Error
+		var goofErrA, goofErrB *goof.Error
 		errors.As(errA, &goofErrA)
 		errors.As(errB, &goofErrB)
 
@@ -77,12 +77,14 @@ func TestWith(t *testing.T) {
 
 func TestCode(t *testing.T) {
 	code := "ERR_CODE"
+	inner := fmt.Errorf("test error")
 	err := goof.
 		Code(code).
-		New(fmt.Errorf("test error"))
+		New(inner)
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
+	assert.Equal(t, inner.Error(), goofErr.Error())
 	assert.Equal(t, code, goofErr.Code())
 }
 
@@ -92,7 +94,7 @@ func TestService(t *testing.T) {
 		Service(svc).
 		New(fmt.Errorf("test error"))
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
 	assert.Equal(t, svc, goofErr.Service())
 }
@@ -103,7 +105,7 @@ func TestMessage(t *testing.T) {
 		Service("test-service").
 		Message(msg).New(fmt.Errorf("test error"))
 
-	var goofErr goof.Error
+	var goofErr *goof.Error
 	assert.True(t, errors.As(err, &goofErr))
 	assert.Equal(t, msg, goofErr.Message())
 }
