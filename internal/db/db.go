@@ -90,6 +90,9 @@ func NewTestPool(
 		TimeoutSeconds:  30,
 	}
 	pool, err := OpenPool(ctx, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return pool, &cfg, nil
 }
@@ -166,8 +169,7 @@ func HandleError(ctx context.Context, err error) error {
 		return err
 	}
 
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
+	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 		logger = logger.With(slog.Group(
 			"pgxError",
 			slog.String("error", err.Error()),
