@@ -10,8 +10,7 @@ import (
 type ErrorBuilder struct {
 	// code is a short machine-readable identifier for the error.
 	code string
-	// message is a human-readable description of the error. The message is meant to be safe to
-	// expose to external services.
+	// message is a human-readable, safe-for-public description of the error.
 	message string
 	// metadata is a map of additional information about the error.
 	metadata map[string]any
