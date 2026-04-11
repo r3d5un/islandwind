@@ -9,6 +9,11 @@ func New(err error) error {
 	return newBuilder().New(err)
 }
 
+// Wrap is an alias for New, provided for semantic clarity when wrapping an existing error.
+func Wrap(err error) error {
+	return newBuilder().New(err)
+}
+
 func With(key string, value any) ErrorBuilder {
 	return newBuilder().With(key, value)
 }
