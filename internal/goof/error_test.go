@@ -8,17 +8,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestError tests the public methods associated with the goof.Error type.
 func TestError(t *testing.T) {
 	code := "TEST_CODE"
 	svc := "test-service"
 	inner := errors.New("inner error")
 	metadata := map[string]any{"key": "value"}
+	msg := "test error"
 
 	err := goof.Code(code).
 		Service(svc).
 		With("key", "value").
-		Wrap(inner)
+		Message(msg).
+		New(inner)
 
 	var goofErr goof.Error
 	assert.True(t, errors.As(err, &goofErr))
@@ -32,7 +33,7 @@ func TestError(t *testing.T) {
 	})
 
 	t.Run("Message", func(t *testing.T) {
-		assert.Equal(t, inner.Error(), goofErr.Message())
+		assert.Equal(t, msg, goofErr.Message())
 	})
 
 	t.Run("Metadata", func(t *testing.T) {

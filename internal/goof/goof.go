@@ -1,16 +1,12 @@
 // Package goof contains functionality for structured error handling.
 package goof
 
-func New(message string) error {
-	return newBuilder().New(message)
-}
-
-func Wrap(err error) error {
+func New(err error) error {
 	if err == nil {
 		return nil
 	}
 
-	return newBuilder().Wrap(err)
+	return newBuilder().New(err)
 }
 
 func With(key string, value any) ErrorBuilder {
@@ -23,4 +19,8 @@ func Code(code string) ErrorBuilder {
 
 func Service(service string) ErrorBuilder {
 	return newBuilder().Service(service)
+}
+
+func Message(message string) ErrorBuilder {
+	return newBuilder().Message(message)
 }

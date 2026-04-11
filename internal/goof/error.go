@@ -15,7 +15,8 @@ var (
 type Error struct {
 	// code is a short machine-readable identifier for the error.
 	code string
-	// message is a human-readable description of the error.
+	// message is a human-readable description of the error. The message is meant to be safe to
+	// expose to external services. Values should be generic messages like
 	message string
 	// internal is the raw error. This field should not be exposed to clients.
 	internal error
@@ -34,7 +35,7 @@ func (e Error) Unwrap() error {
 
 // Error implements the error interface.
 func (e Error) Error() string {
-	return e.message
+	return e.internal.Error()
 }
 
 // LogValue implements the slog.LogValuer interface. It returns a slog.Value containing the details
@@ -52,6 +53,8 @@ func (e Error) Code() string {
 	return e.code
 }
 
+// Message returns a human-readable message for the error. The message is meant to be safe to expose
+// to external services and should not contain any internal details.
 func (e Error) Message() string {
 	return e.message
 }

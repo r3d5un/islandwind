@@ -1,7 +1,6 @@
 package goof
 
 import (
-	"errors"
 	"maps"
 	"time"
 )
@@ -10,8 +9,8 @@ type ErrorBuilder Error
 
 func newBuilder() ErrorBuilder {
 	return ErrorBuilder{
-		code:     "",
-		message:  "",
+		code:     "ERROR",
+		message:  "an error occurred",
 		internal: nil,
 		metadata: make(map[string]any),
 		time:     time.Now(),
@@ -35,20 +34,9 @@ func (e ErrorBuilder) clone() ErrorBuilder {
 	return clone
 }
 
-func (e ErrorBuilder) New(message string) error {
-	clone := e.clone()
-	clone.internal = errors.New(message)
-	clone.message = message
-
-	return Error(clone)
-}
-
-func (e ErrorBuilder) Wrap(err error) error {
+func (e ErrorBuilder) New(err error) error {
 	clone := e.clone()
 	clone.internal = err
-	if err != nil {
-		clone.message = err.Error()
-	}
 
 	return Error(clone)
 }
@@ -71,6 +59,13 @@ func (e ErrorBuilder) Code(code string) ErrorBuilder {
 func (e ErrorBuilder) Service(service string) ErrorBuilder {
 	clone := e.clone()
 	clone.service = service
+
+	return clone
+}
+
+func (e ErrorBuilder) Message(message string) ErrorBuilder {
+	clone := e.clone()
+	clone.message = message
 
 	return clone
 }
