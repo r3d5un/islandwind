@@ -21,8 +21,8 @@ func TestError(t *testing.T) {
 		Message(msg).
 		New(inner)
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 
 	t.Run("Error", func(t *testing.T) {
 		assert.Equal(t, inner.Error(), goofErr.Error())

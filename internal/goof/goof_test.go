@@ -16,8 +16,8 @@ func TestNew(t *testing.T) {
 
 	assert.NotNil(t, err)
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 	assert.Equal(t, originalErr.Error(), goofErr.Error())
 }
 
@@ -28,8 +28,8 @@ func TestWrap(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.ErrorIs(t, err, inner)
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 	assert.Equal(t, inner, goofErr.Internal())
 }
 
@@ -39,8 +39,8 @@ func TestWith(t *testing.T) {
 			With("key", "value").
 			New(fmt.Errorf("test error"))
 
-		var goofErr *goof.Error
-		assert.True(t, errors.As(err, &goofErr))
+		goofErr, ok := errors.AsType[*goof.Error](err)
+		assert.True(t, ok)
 		assert.Equal(t, "value", goofErr.Metadata()["key"])
 	})
 
@@ -50,8 +50,8 @@ func TestWith(t *testing.T) {
 			With("key2", "val2").
 			New(fmt.Errorf("test error"))
 
-		var goofErr *goof.Error
-		assert.True(t, errors.As(err, &goofErr))
+		goofErr, ok := errors.AsType[*goof.Error](err)
+		assert.True(t, ok)
 		assert.Equal(t, "val1", goofErr.Metadata()["key1"])
 		assert.Equal(t, "val2", goofErr.Metadata()["key2"])
 	})
@@ -64,10 +64,11 @@ func TestWith(t *testing.T) {
 		errA := b1.New(fmt.Errorf("err a"))
 		errB := b2.New(fmt.Errorf("err b"))
 
-		var goofErrA, goofErrB *goof.Error
-		errors.As(errA, &goofErrA)
-		errors.As(errB, &goofErrB)
+		goofErrA, okA := errors.AsType[*goof.Error](errA)
+		goofErrB, okB := errors.AsType[*goof.Error](errB)
 
+		assert.True(t, okA)
+		assert.True(t, okB)
 		assert.Contains(t, goofErrA.Metadata(), "a")
 		assert.NotContains(t, goofErrA.Metadata(), "b")
 		assert.Contains(t, goofErrB.Metadata(), "b")
@@ -82,8 +83,8 @@ func TestCode(t *testing.T) {
 		Code(code).
 		New(inner)
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 	assert.Equal(t, inner.Error(), goofErr.Error())
 	assert.Equal(t, code, goofErr.Code())
 }
@@ -94,18 +95,17 @@ func TestService(t *testing.T) {
 		Service(svc).
 		New(fmt.Errorf("test error"))
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 	assert.Equal(t, svc, goofErr.Service())
 }
 
 func TestMessage(t *testing.T) {
 	msg := "test error"
 	err := goof.
-		Service("test-service").
 		Message(msg).New(fmt.Errorf("test error"))
 
-	var goofErr *goof.Error
-	assert.True(t, errors.As(err, &goofErr))
+	goofErr, ok := errors.AsType[*goof.Error](err)
+	assert.True(t, ok)
 	assert.Equal(t, msg, goofErr.Message())
 }
