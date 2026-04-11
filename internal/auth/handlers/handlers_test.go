@@ -12,7 +12,6 @@ import (
 	"github.com/r3d5un/islandwind/internal/auth/config"
 	"github.com/r3d5un/islandwind/internal/auth/repo"
 	"github.com/r3d5un/islandwind/internal/db"
-	database "github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/testsuite"
 )
 
@@ -32,13 +31,13 @@ func TestMain(m *testing.M) {
 	}
 	defer shutdown()
 
-	db, cfg, err := database.NewTestPool(ctx, dbContainer)
+	pool, cfg, err := db.NewTestPool(ctx, dbContainer)
 	if err != nil {
 		logger.Error("unable to create database connection pool", slog.String("error", err.Error()))
 		return
 	}
 	authRepo = repo.NewRepository(
-		db,
+		pool,
 		new(cfg.TimeoutDuration()),
 		config.Config{SigningSecret: "islandwind", TokenIssuer: "islandwind"},
 	)
