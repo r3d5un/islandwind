@@ -41,6 +41,10 @@ func (b ErrorBuilder) clone() ErrorBuilder {
 
 // New creates a new Error from the ErrorBuilder and the provided error.
 // If the provided error is nil, it returns nil.
+//
+// Example:
+//
+//	err := goof.Code("ERR_CODE").New(errors.New("original error"))
 func (b ErrorBuilder) New(err error) error {
 	if err == nil {
 		return nil
@@ -58,6 +62,10 @@ func (b ErrorBuilder) New(err error) error {
 
 // With adds a key-value pair to the error's metadata. It is intended to be used to provide
 // additional context or details about the error.
+//
+// Example:
+//
+//	builder := goof.With("field", "email").With("reason", "invalid format")
 func (b ErrorBuilder) With(key string, value any) ErrorBuilder {
 	clone := b.clone()
 	if clone.metadata == nil {
@@ -68,6 +76,10 @@ func (b ErrorBuilder) With(key string, value any) ErrorBuilder {
 }
 
 // Code sets the error code for the ErrorBuilder.
+//
+// Example:
+//
+//	builder := goof.Code("ERR_UNAUTHORIZED")
 func (b ErrorBuilder) Code(code string) ErrorBuilder {
 	clone := b.clone()
 	clone.code = code
@@ -75,6 +87,10 @@ func (b ErrorBuilder) Code(code string) ErrorBuilder {
 }
 
 // Service sets the service for the ErrorBuilder.
+//
+// Example:
+//
+//	builder := goof.Service("payment-gateway")
 func (b ErrorBuilder) Service(service string) ErrorBuilder {
 	clone := b.clone()
 	clone.service = service
@@ -82,6 +98,10 @@ func (b ErrorBuilder) Service(service string) ErrorBuilder {
 }
 
 // Message sets the message for the ErrorBuilder.
+//
+// Example:
+//
+//	builder := goof.Message("could not save file")
 func (b ErrorBuilder) Message(message string) ErrorBuilder {
 	clone := b.clone()
 	clone.message = message
