@@ -158,7 +158,7 @@ func TestNoError(t *testing.T) {
 	})
 }
 
-func TestIndexs(t *testing.T) {
+func TestIndex(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		assert.NotPanics(t, func() {
 			ensure.Index(0, 10, "should never panic")
