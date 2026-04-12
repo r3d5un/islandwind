@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/r3d5un/islandwind/internal/cache"
+	"github.com/r3d5un/islandwind/internal/ensure"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -105,6 +106,8 @@ func (svc *BlogpostService) Read(ctx context.Context, ID uuid.UUID) (*Post, erro
 	if err != nil {
 		return nil, err
 	}
+	ensure.NotNil(blogpost, "blog post cannot be nil without errors")
+	ensure.Equal(blogpost.ID, ID, "blog post ID must match")
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post retrieved")
 
 	return blogpost, nil
@@ -124,6 +127,7 @@ func (svc *BlogpostService) List(
 	if err != nil {
 		return nil, nil, err
 	}
+	ensure.Equal(len(posts), metadata.ResponseLength, "blog post count must match")
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog posts retrieved")
 
 	return posts, metadata, nil
@@ -140,6 +144,7 @@ func (svc *BlogpostService) Create(ctx context.Context, input PostInput) (*Post,
 	if err != nil {
 		return nil, err
 	}
+	ensure.NotNil(blogpost, "blog post cannot be nil without errors")
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post created")
 
 	return blogpost, nil
@@ -156,6 +161,8 @@ func (svc *BlogpostService) Update(ctx context.Context, patch PostPatch) (*Post,
 	if err != nil {
 		return nil, err
 	}
+	ensure.NotNil(post, "blog post cannot be nil without errors")
+	ensure.Equal(post.ID, patch.ID, "blog post ID must match")
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post updated")
 
 	return post, nil
@@ -188,6 +195,8 @@ func (svc *BlogpostService) Restore(ctx context.Context, ID uuid.UUID) (*Post, e
 	if err != nil {
 		return nil, err
 	}
+	ensure.NotNil(blogpost, "blog post cannot be nil without errors")
+	ensure.Equal(blogpost.ID, ID, "blog post ID must match")
 	logger.LogAttrs(ctx, slog.LevelInfo, "blog post restored")
 
 	return blogpost, nil
