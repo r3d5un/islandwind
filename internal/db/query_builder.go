@@ -51,13 +51,10 @@ func newQueryBuilder() QueryBuilder {
 	}
 }
 
-func (qb QueryBuilder) OrderBy(column string, order Order) QueryBuilder {
-	if column == "" {
-		return qb
-	}
-
+func (qb QueryBuilder) OrderBy(order ...OrderBy) QueryBuilder {
 	clone := qb.clone()
-	return clone.OrderBy(column, order)
+	clone.OrderBy(order...)
+	return clone
 }
 
 func (qb QueryBuilder) From(from string) QueryBuilder {
