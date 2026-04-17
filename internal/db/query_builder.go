@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"maps"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -83,21 +82,8 @@ func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
 	return clone
 }
 
-func (qb QueryBuilder) Select(model any) (string, pgx.NamedArgs) {
-	t := reflect.TypeOf(model)
-	var columns []string
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		tag := field.Tag.Get("db")
-		if tag == "" {
-			continue
-		}
-		columns = append(columns, tag)
-	}
-
-	qb.returningColumns = columns
-
+func (qb QueryBuilder) Select(cols ...string) (string, pgx.NamedArgs) {
+	qb.returningColumns = append(qb.returningColumns, cols...)
 	return qb.selectExp()
 }
 
