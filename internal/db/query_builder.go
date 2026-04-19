@@ -33,11 +33,12 @@ type QueryBuilder struct {
 
 func (qb QueryBuilder) clone() QueryBuilder {
 	return QueryBuilder{
-		orderBy:      slices.Clone(qb.orderBy),
-		whereClauses: slices.Clone(qb.whereClauses),
-		namedArgs:    maps.Clone(qb.namedArgs),
-		returning:    qb.returning,
-		from:         qb.from,
+		orderBy:          slices.Clone(qb.orderBy),
+		whereClauses:     slices.Clone(qb.whereClauses),
+		namedArgs:        maps.Clone(qb.namedArgs),
+		returning:        qb.returning,
+		returningColumns: slices.Clone(qb.returningColumns),
+		from:             qb.from,
 	}
 }
 
@@ -53,7 +54,7 @@ func newQueryBuilder() QueryBuilder {
 
 func (qb QueryBuilder) OrderBy(order ...OrderBy) QueryBuilder {
 	clone := qb.clone()
-	clone.OrderBy(order...)
+	clone.orderBy = append(clone.orderBy, order...)
 	return clone
 }
 
@@ -69,8 +70,12 @@ func (qb QueryBuilder) Where(condition string, arg pgx.NamedArgs) QueryBuilder {
 	}
 
 	clone := qb.clone()
+	if clone.namedArgs == nil {
+		clone.namedArgs = make(pgx.NamedArgs)
+	}
+	clone.whereClauses = append(clone.whereClauses, condition)
 	maps.Copy(clone.namedArgs, arg)
-	return clone.Where(condition, arg)
+	return clone
 }
 
 func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
@@ -80,8 +85,9 @@ func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
 }
 
 func (qb QueryBuilder) Select(cols ...string) (string, pgx.NamedArgs) {
-	qb.returningColumns = append(qb.returningColumns, cols...)
-	return qb.selectExp()
+	clone := qb.clone()
+	clone.returningColumns = append(clone.returningColumns, cols...)
+	return clone.selectExp()
 }
 
 func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {

@@ -21,7 +21,15 @@ func TestWhere(t *testing.T) {
 		Where("@id = id", pgx.NamedArgs{"id": "1"}).
 		Select("col1", "col2")
 
-	t.Log(stmt)
+	assert.Equal(t, "SELECT col1, col2 FROM table WHERE @id = id;", stmt)
+}
+
+func TestOrderBy(t *testing.T) {
+	stmt, _ := db.From("table").
+		OrderBy(db.OrderBy{Column: "col1", Order: db.Asc}).
+		Select("col1", "col2")
+
+	assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 ASC;", stmt)
 }
 
 func TestNullFunctions(t *testing.T) {
