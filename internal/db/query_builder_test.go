@@ -17,11 +17,22 @@ func TestSelect(t *testing.T) {
 }
 
 func TestWhere(t *testing.T) {
-	stmt, _ := db.From("table").
-		Where("@id = id", pgx.NamedArgs{"id": "1"}).
-		Select("col1", "col2")
+	t.Run("SingleColumn", func(t *testing.T) {
+		stmt, _ := db.From("table").
+			Where("@id = id", pgx.NamedArgs{"id": "1"}).
+			Select("col1")
 
-	assert.Equal(t, "SELECT col1, col2 FROM table WHERE @id = id;", stmt)
+		assert.Equal(t, "SELECT col1 FROM table WHERE @id = id;", stmt)
+	})
+
+	t.Run("MultipleColumns", func(t *testing.T) {
+		stmt, _ := db.From("table").
+			Where("@id = id", pgx.NamedArgs{"id": "1"}).
+			Select("col1", "col2")
+
+		assert.Equal(t, "SELECT col1, col2 FROM table WHERE @id = id;", stmt)
+	})
+
 }
 
 func TestOrderBy(t *testing.T) {
