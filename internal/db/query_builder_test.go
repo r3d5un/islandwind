@@ -36,11 +36,21 @@ func TestWhere(t *testing.T) {
 }
 
 func TestOrderBy(t *testing.T) {
-	stmt, _ := db.From("table").
-		OrderBy(db.OrderBy{Column: "col1", Order: db.Asc}).
-		Select("col1", "col2")
+	t.Run("Asc", func(t *testing.T) {
+		stmt, _ := db.From("table").
+			OrderBy(db.OrderBy{Column: "col1", Order: db.Asc}).
+			Select("col1", "col2")
 
-	assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 ASC;", stmt)
+		assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 ASC;", stmt)
+	})
+
+	t.Run("Desc", func(t *testing.T) {
+		stmt, _ := db.From("table").
+			OrderBy(db.OrderBy{Column: "col1", Order: db.Desc}).
+			Select("col1", "col2")
+
+		assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 DESC;", stmt)
+	})
 }
 
 func TestNullFunctions(t *testing.T) {
