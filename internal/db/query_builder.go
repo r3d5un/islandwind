@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"maps"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -214,4 +215,25 @@ func Like(val string, column string) (string, pgx.NamedArgs) {
 
 func From(from string) QueryBuilder {
 	return newQueryBuilder().From(from)
+}
+
+func AllColumnsFrom(v any) []string {
+	t := reflect.TypeOf(v)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
+		return nil
+	}
+
+	var cols []string
+	for i := range t.NumField() {
+		field := t.Field(i)
+		if tag, ok := field.Tag.Lookup("db"); ok {
+			cols = append(cols, tag)
+		}
+	}
+
+	return cols
 }
