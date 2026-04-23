@@ -32,7 +32,29 @@ func TestWhere(t *testing.T) {
 
 		assert.Equal(t, "SELECT col1, col2 FROM table WHERE @id = id;", stmt)
 	})
+}
 
+func TestJoin(t *testing.T) {
+	t.Run("SingleJoin", func(t *testing.T) {
+		stmt, _ := db.From("table1 a").
+			Join("table2 b ON a.id = b.a_id").
+			Select("a.col1", "b.col2")
+
+		assert.Equal(t, "SELECT a.col1, b.col2 FROM table1 a JOIN table2 b ON a.id = b.a_id;", stmt)
+	})
+
+	t.Run("MultipleJoins", func(t *testing.T) {
+		stmt, _ := db.From("table1 a").
+			Join("table2 b ON a.id = b.a_id").
+			Join("table3 c ON b.id = c.b_id").
+			Select("a.col1", "b.col2", "c.col3")
+
+		assert.Equal(
+			t,
+			"SELECT a.col1, b.col2, c.col3 FROM table1 a JOIN table2 b ON a.id = b.a_id JOIN table3 c ON b.id = c.b_id;",
+			stmt,
+		)
+	})
 }
 
 func TestOrderBy(t *testing.T) {

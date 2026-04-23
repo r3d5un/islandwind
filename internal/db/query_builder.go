@@ -26,6 +26,7 @@ type OrderBy struct {
 type QueryBuilder struct {
 	orderBy          []OrderBy
 	whereClauses     []string
+	joins            []string
 	namedArgs        pgx.NamedArgs
 	returning        bool
 	returningColumns []string
@@ -36,6 +37,7 @@ func (qb QueryBuilder) clone() QueryBuilder {
 	return QueryBuilder{
 		orderBy:          slices.Clone(qb.orderBy),
 		whereClauses:     slices.Clone(qb.whereClauses),
+		joins:            slices.Clone(qb.joins),
 		namedArgs:        maps.Clone(qb.namedArgs),
 		returning:        qb.returning,
 		returningColumns: slices.Clone(qb.returningColumns),
@@ -47,6 +49,7 @@ func newQueryBuilder() QueryBuilder {
 	return QueryBuilder{
 		orderBy:      make([]OrderBy, 0),
 		whereClauses: make([]string, 0),
+		joins:        make([]string, 0),
 		namedArgs:    make(pgx.NamedArgs, 0),
 		returning:    false,
 		from:         "",
@@ -62,6 +65,12 @@ func (qb QueryBuilder) OrderBy(order ...OrderBy) QueryBuilder {
 func (qb QueryBuilder) From(from string) QueryBuilder {
 	clone := qb.clone()
 	clone.from = from
+	return clone
+}
+
+func (qb QueryBuilder) Join(join string) QueryBuilder {
+	clone := qb.clone()
+	clone.joins = append(clone.joins, join)
 	return clone
 }
 
@@ -106,6 +115,13 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 	}
 	builder.WriteString(" FROM ")
 	builder.WriteString(qb.from)
+
+	if len(qb.joins) > 0 {
+		for _, join := range qb.joins {
+			builder.WriteString(" JOIN ")
+			builder.WriteString(join)
+		}
+	}
 
 	if len(qb.whereClauses) > 0 {
 		builder.WriteString(" WHERE ")
