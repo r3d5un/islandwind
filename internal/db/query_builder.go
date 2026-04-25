@@ -5,6 +5,7 @@ import (
 	"maps"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -74,7 +75,8 @@ func (qb QueryBuilder) Join(join string) QueryBuilder {
 	return clone
 }
 
-func (qb QueryBuilder) Where(condition string, arg pgx.NamedArgs) QueryBuilder {
+func (qb QueryBuilder) Where(condFunc func() (string, pgx.NamedArgs)) QueryBuilder {
+	condition, arg := condFunc()
 	if condition == "" || len(arg) == 0 {
 		return qb
 	}
@@ -145,88 +147,116 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 	return builder.String(), qb.namedArgs
 }
 
-func NullEqual[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " = @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " = @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func NullNotEqual[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullNotEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " != @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " != @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func NullLike(nullable sql.Null[string], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullLike(nullable sql.Null[string], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + nullable.V + "%"}
 	}
-
-	return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + nullable.V + "%"}
 }
 
-func NullGreater[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullGreater[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " > @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " > @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func NullGreaterOrEqual[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullGreaterOrEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " >= @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " >= @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func NullLess[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullLess[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " < @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " < @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func NullLessOrEqual[T any](nullable sql.Null[T], column string) (string, pgx.NamedArgs) {
-	if !nullable.Valid {
-		return "", nil
+func NullLessOrEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		if !nullable.Valid {
+			return "", nil
+		}
+
+		return column + " <= @" + column, pgx.NamedArgs{column: nullable.V}
 	}
-
-	return column + " <= @" + column, pgx.NamedArgs{column: nullable.V}
 }
 
-func Equal[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " = @" + column, pgx.NamedArgs{column: val}
+func Equal[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " = @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func NotEqual[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " != @" + column, pgx.NamedArgs{column: val}
+func NotEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " != @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func Greater[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " > @" + column, pgx.NamedArgs{column: val}
+func Greater[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " > @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func GreaterOrEqual[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " >= @" + column, pgx.NamedArgs{column: val}
+func GreaterOrEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " >= @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func Less[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " < @" + column, pgx.NamedArgs{column: val}
+func Less[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " < @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func LessOrEqual[T any](val T, column string) (string, pgx.NamedArgs) {
-	return column + " <= @" + column, pgx.NamedArgs{column: val}
+func LessOrEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " <= @" + column, pgx.NamedArgs{column: val}
+	}
 }
 
-func Like(val string, column string) (string, pgx.NamedArgs) {
-	return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + val + "%"}
+func Like(val string, column string) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + val + "%"}
+	}
 }
 
 func From(from string) QueryBuilder {
@@ -252,4 +282,51 @@ func AllColumnsFrom(v any) []string {
 	}
 
 	return cols
+}
+
+func And(conditions ...func() (string, pgx.NamedArgs)) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return joinConditions(" AND ", conditions...)
+	}
+}
+
+func Or(conditions ...func() (string, pgx.NamedArgs)) func() (string, pgx.NamedArgs) {
+	return func() (string, pgx.NamedArgs) {
+		return joinConditions(" OR ", conditions...)
+	}
+}
+
+func joinConditions(
+	sep string,
+	conditions ...func() (string, pgx.NamedArgs),
+) (string, pgx.NamedArgs) {
+	var clauses []string
+	allArgs := make(pgx.NamedArgs)
+
+	for i, condFunc := range conditions {
+		clause, args := condFunc()
+		if clause == "" {
+			continue
+		}
+
+		for k, v := range args {
+			newK := k
+			if _, exists := allArgs[k]; exists {
+				newK = k + "_" + strconv.Itoa(i)
+				clause = strings.ReplaceAll(clause, "@"+k, "@"+newK)
+			}
+			allArgs[newK] = v
+		}
+		clauses = append(clauses, clause)
+	}
+
+	if len(clauses) == 0 {
+		return "", nil
+	}
+
+	if len(clauses) == 1 {
+		return clauses[0], allArgs
+	}
+
+	return "(" + strings.Join(clauses, sep) + ")", allArgs
 }

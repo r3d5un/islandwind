@@ -19,18 +19,40 @@ func TestSelect(t *testing.T) {
 func TestWhere(t *testing.T) {
 	t.Run("SingleColumn", func(t *testing.T) {
 		stmt, _ := db.From("table").
-			Where("@id = id", pgx.NamedArgs{"id": "1"}).
+			Where(func() (string, pgx.NamedArgs) {
+				return "id = @id", pgx.NamedArgs{"id": "1"}
+			}).
 			Select("col1")
 
-		assert.Equal(t, "SELECT col1 FROM table WHERE @id = id;", stmt)
+		assert.Equal(t, "SELECT col1 FROM table WHERE id = @id;", stmt)
 	})
 
 	t.Run("MultipleColumns", func(t *testing.T) {
 		stmt, _ := db.From("table").
-			Where("@id = id", pgx.NamedArgs{"id": "1"}).
+			Where(func() (string, pgx.NamedArgs) {
+				return "id = @id", pgx.NamedArgs{"id": "1"}
+			}).
 			Select("col1", "col2")
 
-		assert.Equal(t, "SELECT col1, col2 FROM table WHERE @id = id;", stmt)
+		assert.Equal(t, "SELECT col1, col2 FROM table WHERE id = @id;", stmt)
+	})
+
+	t.Run("ComplexConditions", func(t *testing.T) {
+		stmt, args := db.From("table").
+			Where(db.And(
+				db.Equal(1, "id"),
+				db.Or(
+					db.Equal("active", "status"),
+					db.Equal("pending", "status"),
+				),
+			)).
+			Select("col1")
+
+		expectedSQL := "SELECT col1 FROM table WHERE (id = @id AND (status = @status OR status = @status_1));"
+		assert.Equal(t, expectedSQL, stmt)
+		assert.Equal(t, 1, args["id"])
+		assert.Equal(t, "active", args["status"])
+		assert.Equal(t, "pending", args["status_1"])
 	})
 }
 
@@ -77,48 +99,48 @@ func TestOrderBy(t *testing.T) {
 
 func TestNullFunctions(t *testing.T) {
 	t.Run("NullEqual Valid", func(t *testing.T) {
-		clause, args := db.NullEqual(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col = @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 	t.Run("NullEqual Invalid", func(t *testing.T) {
-		clause, args := db.NullEqual(sql.Null[int]{Valid: false}, "col")
+		clause, args := db.NullEqual(sql.Null[int]{Valid: false}, "col")()
 		assert.Equal(t, "", clause)
 		assert.Nil(t, args)
 	})
 
 	t.Run("NullNotEqual Valid", func(t *testing.T) {
-		clause, args := db.NullNotEqual(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullNotEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col != @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLike Valid", func(t *testing.T) {
-		clause, args := db.NullLike(sql.Null[string]{Valid: true, V: "test"}, "col")
+		clause, args := db.NullLike(sql.Null[string]{Valid: true, V: "test"}, "col")()
 		assert.Equal(t, "col LIKE @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": "%test%"}, args)
 	})
 
 	t.Run("NullGreater Valid", func(t *testing.T) {
-		clause, args := db.NullGreater(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullGreater(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col > @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullGreaterOrEqual Valid", func(t *testing.T) {
-		clause, args := db.NullGreaterOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullGreaterOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col >= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLess Valid", func(t *testing.T) {
-		clause, args := db.NullLess(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullLess(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col < @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLessOrEqual Valid", func(t *testing.T) {
-		clause, args := db.NullLessOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")
+		clause, args := db.NullLessOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col <= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
@@ -126,43 +148,43 @@ func TestNullFunctions(t *testing.T) {
 
 func TestNotNullFunctions(t *testing.T) {
 	t.Run("Equal", func(t *testing.T) {
-		clause, args := db.Equal(10, "col")
+		clause, args := db.Equal(10, "col")()
 		assert.Equal(t, "col = @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NotEqual", func(t *testing.T) {
-		clause, args := db.NotEqual(10, "col")
+		clause, args := db.NotEqual(10, "col")()
 		assert.Equal(t, "col != @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Greater", func(t *testing.T) {
-		clause, args := db.Greater(10, "col")
+		clause, args := db.Greater(10, "col")()
 		assert.Equal(t, "col > @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("GreaterOrEqual", func(t *testing.T) {
-		clause, args := db.GreaterOrEqual(10, "col")
+		clause, args := db.GreaterOrEqual(10, "col")()
 		assert.Equal(t, "col >= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Less", func(t *testing.T) {
-		clause, args := db.Less(10, "col")
+		clause, args := db.Less(10, "col")()
 		assert.Equal(t, "col < @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("LessOrEqual", func(t *testing.T) {
-		clause, args := db.LessOrEqual(10, "col")
+		clause, args := db.LessOrEqual(10, "col")()
 		assert.Equal(t, "col <= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Like", func(t *testing.T) {
-		clause, args := db.Like("test", "col")
+		clause, args := db.Like("test", "col")()
 		assert.Equal(t, "col LIKE @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": "%test%"}, args)
 	})
