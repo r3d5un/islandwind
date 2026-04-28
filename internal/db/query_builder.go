@@ -75,9 +75,8 @@ func (qb QueryBuilder) Join(join string) QueryBuilder {
 	return clone
 }
 
-func (qb QueryBuilder) Where(condFunc func() (string, pgx.NamedArgs)) QueryBuilder {
-	condition, arg := condFunc()
-	if condition == "" || len(arg) == 0 {
+func (qb QueryBuilder) appendWhere(condition string, args pgx.NamedArgs) QueryBuilder {
+	if strings.TrimSpace(condition) == "" {
 		return qb
 	}
 
@@ -86,8 +85,84 @@ func (qb QueryBuilder) Where(condFunc func() (string, pgx.NamedArgs)) QueryBuild
 		clone.namedArgs = make(pgx.NamedArgs)
 	}
 	clone.whereClauses = append(clone.whereClauses, condition)
-	maps.Copy(clone.namedArgs, arg)
+	if len(args) > 0 {
+		maps.Copy(clone.namedArgs, args)
+	}
 	return clone
+}
+
+func (qb QueryBuilder) Where(condition string, args pgx.NamedArgs) QueryBuilder {
+	return qb.appendWhere(condition, args)
+}
+
+func (qb QueryBuilder) WhereNull(nullable any, condition string, args pgx.NamedArgs) QueryBuilder {
+	if explicit, ok := nullable.(ExplicitNull); ok {
+		if isNilExplicitNull(explicit) || !explicit.IsSpecified() || explicit.IsNull() {
+			return qb
+		}
+		return qb.appendWhere(condition, args)
+	}
+
+	if !isSQLNullValid(nullable) {
+		return qb
+	}
+
+	return qb.appendWhere(condition, args)
+}
+
+func (qb QueryBuilder) WhereExplicitNull(
+	nullable ExplicitNull,
+	condition string,
+	args pgx.NamedArgs,
+	nullCondition string,
+) QueryBuilder {
+	if isNilExplicitNull(nullable) {
+		return qb
+	}
+
+	if !nullable.IsSpecified() {
+		return qb
+	}
+
+	if nullable.IsNull() {
+		return qb.appendWhere(nullCondition, nil)
+	}
+
+	return qb.appendWhere(condition, args)
+}
+
+func isNilExplicitNull(nullable ExplicitNull) bool {
+	if nullable == nil {
+		return true
+	}
+
+	rv := reflect.ValueOf(nullable)
+	return rv.Kind() == reflect.Ptr && rv.IsNil()
+}
+
+func isSQLNullValid(v any) bool {
+	if v == nil {
+		return false
+	}
+
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			return false
+		}
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() != reflect.Struct {
+		return false
+	}
+
+	validField := rv.FieldByName("Valid")
+	if !validField.IsValid() || validField.Kind() != reflect.Bool {
+		return false
+	}
+
+	return validField.Bool()
 }
 
 func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
