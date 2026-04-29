@@ -19,9 +19,7 @@ func TestSelect(t *testing.T) {
 func TestWhere(t *testing.T) {
 	t.Run("SingleColumn", func(t *testing.T) {
 		stmt, _ := db.From("table").
-			Where(func() (string, pgx.NamedArgs) {
-				return "id = @id", pgx.NamedArgs{"id": "1"}
-			}).
+			Where("id = @id", pgx.NamedArgs{"id": "1"}).
 			Select("col1")
 
 		assert.Equal(t, "SELECT col1 FROM table WHERE id = @id;", stmt)
@@ -29,23 +27,23 @@ func TestWhere(t *testing.T) {
 
 	t.Run("MultipleColumns", func(t *testing.T) {
 		stmt, _ := db.From("table").
-			Where(func() (string, pgx.NamedArgs) {
-				return "id = @id", pgx.NamedArgs{"id": "1"}
-			}).
+			Where("id = @id", pgx.NamedArgs{"id": "1"}).
 			Select("col1", "col2")
 
 		assert.Equal(t, "SELECT col1, col2 FROM table WHERE id = @id;", stmt)
 	})
 
 	t.Run("ComplexConditions", func(t *testing.T) {
+		where, whereArgs := db.And(
+			db.Equal(1, "id"),
+			db.Or(
+				db.Equal("active", "status"),
+				db.Equal("pending", "status"),
+			),
+		)()
+
 		stmt, args := db.From("table").
-			Where(db.And(
-				db.Equal(1, "id"),
-				db.Or(
-					db.Equal("active", "status"),
-					db.Equal("pending", "status"),
-				),
-			)).
+			Where(where, whereArgs).
 			Select("col1")
 
 		expectedSQL := "SELECT col1 FROM table WHERE (id = @id AND (status = @status OR status = @status_1));"
