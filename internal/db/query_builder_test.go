@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/nullable"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,6 +52,104 @@ func TestWhere(t *testing.T) {
 		assert.Equal(t, 1, args["id"])
 		assert.Equal(t, "active", args["status"])
 		assert.Equal(t, "pending", args["status_1"])
+	})
+}
+
+func TestWhereNull(t *testing.T) {
+	t.Run("Valid", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereNull(sql.Null[string]{Valid: true, V: "abc"}, "id = @id", pgx.NamedArgs{"id": "abc"}).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table WHERE id = @id;", stmt)
+		assert.Equal(t, "abc", args["id"])
+	})
+
+	t.Run("InvalidSkipped", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereNull(sql.Null[string]{Valid: false}, "id = @id", pgx.NamedArgs{"id": "abc"}).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table;", stmt)
+		assert.Empty(t, args)
+	})
+
+	t.Run("ExplicitNullableValue", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereNull(nullable.NewNullableValue("abc"), "id = @id", pgx.NamedArgs{"id": "abc"}).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table WHERE id = @id;", stmt)
+		assert.Equal(t, "abc", args["id"])
+	})
+
+	t.Run("ExplicitNullableNullSkipped", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereNull(nullable.NewNullableNull[string](), "id = @id", pgx.NamedArgs{"id": "abc"}).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table;", stmt)
+		assert.Empty(t, args)
+	})
+}
+
+func TestWhereExplicitNull(t *testing.T) {
+	t.Run("UnspecifiedSkipped", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereExplicitNull(
+				nullable.NewNullableUnspecified[string](),
+				"deleted_at = @deleted_at",
+				pgx.NamedArgs{"deleted_at": "2026-01-01"},
+				"deleted_at IS NULL",
+			).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table;", stmt)
+		assert.Empty(t, args)
+	})
+
+	t.Run("NullClause", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereExplicitNull(
+				nullable.NewNullableNull[string](),
+				"deleted_at = @deleted_at",
+				pgx.NamedArgs{"deleted_at": "2026-01-01"},
+				"deleted_at IS NULL",
+			).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table WHERE deleted_at IS NULL;", stmt)
+		assert.Empty(t, args)
+	})
+
+	t.Run("ValueClause", func(t *testing.T) {
+		stmt, args := db.From("table").
+			WhereExplicitNull(
+				nullable.NewNullableValue("2026-01-01"),
+				"deleted_at = @deleted_at",
+				pgx.NamedArgs{"deleted_at": "2026-01-01"},
+				"deleted_at IS NULL",
+			).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table WHERE deleted_at = @deleted_at;", stmt)
+		assert.Equal(t, "2026-01-01", args["deleted_at"])
+	})
+
+	t.Run("TypedNilPointerSkipped", func(t *testing.T) {
+		var n *nullable.Nullable[string]
+
+		stmt, args := db.From("table").
+			WhereExplicitNull(
+				n,
+				"deleted_at = @deleted_at",
+				pgx.NamedArgs{"deleted_at": "2026-01-01"},
+				"deleted_at IS NULL",
+			).
+			Select("id")
+
+		assert.Equal(t, "SELECT id FROM table;", stmt)
+		assert.Empty(t, args)
 	})
 }
 

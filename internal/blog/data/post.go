@@ -102,22 +102,23 @@ func (m *PostModel) InsertTx(ctx context.Context, tx pgx.Tx, input PostInput) (*
 }
 
 func (m *PostModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
-	const stmt string = `
-SELECT id,
-       title,
-       content,
-       published,
-       created_at,
-       updated_at,
-       deleted,
-       deleted_at
-FROM blog.post
-WHERE id = $1::UUID;
-`
+	stmt, args := db.From("blog.post").
+		Where("id = @id", pgx.NamedArgs{"id": id}).
+		Select(
+			"id",
+			"title",
+			"content",
+			"published",
+			"created_at",
+			"updated_at",
+			"deleted",
+			"deleted_at",
+		)
+
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
 		slog.String("query", logging.MinifySQL(stmt)),
-		slog.String("id", id.String()),
+		slog.Any("args", args),
 		slog.Duration("timeout", *m.Timeout),
 	))
 
@@ -125,7 +126,7 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	p, err := m.scan(q.QueryRow(ctx, stmt, id))
+	p, err := m.scan(q.QueryRow(ctx, stmt, args))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
