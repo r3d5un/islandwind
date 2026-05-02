@@ -338,7 +338,7 @@ func From(from string) QueryBuilder {
 	return newQueryBuilder().From(from)
 }
 
-func AllColumnsFrom(v any) []string {
+func ColumnsFrom(v any) []string {
 	t := reflect.TypeOf(v)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
