@@ -15,15 +15,17 @@ import (
 
 // Post is the database record for a blog post.
 type Post struct {
-	ID        uuid.UUID    `json:"id"`
-	Title     string       `json:"title"`
-	Content   string       `json:"content"`
-	Published bool         `json:"published"`
-	CreatedAt time.Time    `json:"createdAt"`
-	UpdatedAt time.Time    `json:"updatedAt"`
-	Deleted   bool         `json:"deleted"`
-	DeletedAt sql.NullTime `json:"deletedAt"`
+	ID        uuid.UUID    `json:"id"        db:"id"`
+	Title     string       `json:"title"     db:"title"`
+	Content   string       `json:"content"   db:"content"`
+	Published bool         `json:"published" db:"published"`
+	CreatedAt time.Time    `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time    `json:"updatedAt" db:"updated_at"`
+	Deleted   bool         `json:"deleted"   db:"deleted"`
+	DeletedAt sql.NullTime `json:"deletedAt" db:"deleted_at"`
 }
+
+var postColumns = db.ColumnsFrom(Post{})
 
 // PostInput is the input type used by the BlogModel for creating new blog post records.
 type PostInput struct {
@@ -104,16 +106,7 @@ func (m *PostModel) InsertTx(ctx context.Context, tx pgx.Tx, input PostInput) (*
 func (m *PostModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
 	stmt, args := db.From("blog.post").
 		Where("id = @id", pgx.NamedArgs{"id": id}).
-		Select(
-			"id",
-			"title",
-			"content",
-			"published",
-			"created_at",
-			"updated_at",
-			"deleted",
-			"deleted_at",
-		)
+		Select(postColumns...)
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -355,4 +348,17 @@ func (m *PostModel) scan(row pgx.Row) (Post, error) {
 		return p, err
 	}
 	return p, err
+}
+
+func (m *PostModel) scanV2(post *Post, row pgx.Row) error {
+	return row.Scan(
+		&post.ID,
+		&post.Title,
+		&post.Content,
+		&post.Published,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+		&post.Deleted,
+		&post.DeletedAt,
+	)
 }
