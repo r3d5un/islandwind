@@ -136,6 +136,22 @@ func (m *PostModel) SelectOneTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*
 	return m.selectOne(ctx, tx, id)
 }
 
+type PostFilter struct {
+	ID            uuid.NullUUID  `json:"id"`
+	Title         sql.NullString `json:"title"`
+	Published     sql.NullBool   `json:"published"`
+	CreatedAtFrom sql.NullTime   `json:"createdAtFrom"`
+	CreatedAtTo   sql.NullTime   `json:"createdAtTo"`
+	UpdatedAtFrom sql.NullTime   `json:"updatedAtFrom"`
+	UpdatedAtTo   sql.NullTime   `json:"updatedAtTo"`
+	Deleted       sql.NullBool   `json:"deleted"`
+	DeletedAtFrom sql.NullTime   `json:"deletedAtFrom"`
+	DeletedAtTo   sql.NullTime   `json:"deletedAtTo"`
+
+	LastSeen uuid.UUID `json:"lastSeen"`
+	PageSize int       `json:"pageSize"`
+}
+
 func (m *PostModel) selectMany(
 	ctx context.Context,
 	q db.Queryable,
@@ -165,6 +181,7 @@ WHERE ($2::UUID IS NULL OR id = $2::UUID)
 ORDER BY created_at, id
 LIMIT $1;
 `
+
 	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
 
