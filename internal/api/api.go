@@ -264,6 +264,18 @@ func ReadOptionalQueryUUID(qs url.Values, key string, v *validator.Validator) *u
 	return &id
 }
 
+func ReadQueryNullUUID(qs url.Values, key string, v *validator.Validator) uuid.NullUUID {
+	s := qs.Get(key)
+	if s == "" {
+		return uuid.NullUUID{Valid: false}
+	}
+	id, err := uuid.Parse(s)
+	if err != nil {
+		v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+	}
+	return uuid.NullUUID{UUID: id, Valid: true}
+}
+
 func ReadOptionalQueryString(qs url.Values, key string) *string {
 	s := qs.Get(key)
 
