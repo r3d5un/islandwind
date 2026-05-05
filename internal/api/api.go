@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -284,6 +285,14 @@ func ReadOptionalQueryString(qs url.Values, key string) *string {
 	}
 
 	return &s
+}
+
+func ReadQueryNullString(qs url.Values, key string, v *validator.Validator) sql.NullString {
+	s := qs.Get(key)
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
 }
 
 func ReadOptionalQueryDate(qs url.Values, key string, v *validator.Validator) *time.Time {
