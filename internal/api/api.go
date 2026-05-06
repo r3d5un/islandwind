@@ -316,3 +316,24 @@ func ReadOptionalQueryDate(qs url.Values, key string, v *validator.Validator) *t
 
 	return nil
 }
+
+func ReadQueryNullDate(qs url.Values, key string, v *validator.Validator) sql.NullTime {
+	s := qs.Get(key)
+	if s == "" {
+		return sql.NullTime{Valid: false}
+	}
+
+	formats := []string{
+		"2006-01-02",
+		"2006-01-02T15:04:05",
+	}
+
+	for _, format := range formats {
+		if date, err := time.Parse(format, s); err == nil {
+			return sql.NullTime{Time: date, Valid: true}
+		}
+	}
+	v.AddError(key, fmt.Sprintf("not a valid date format, accepting %s", formats))
+
+	return sql.NullTime{Valid: false}
+}
