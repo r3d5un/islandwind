@@ -214,6 +214,18 @@ func ReadOptionalQueryBoolean(qs url.Values, key string) *bool {
 	return &b
 }
 
+func ReadQueryNullBoolean(qs url.Values, key string, v *validator.Validator) sql.NullBool {
+	s := qs.Get(key)
+	if s == "" {
+		return sql.NullBool{Valid: false}
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+	}
+	return sql.NullBool{Bool: b, Valid: true}
+}
+
 func ReadRequiredQueryInt(qs url.Values, key string, defaultVal int, v *validator.Validator) int {
 	s := qs.Get(key)
 
