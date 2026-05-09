@@ -241,6 +241,19 @@ func ReadRequiredQueryInt(qs url.Values, key string, defaultVal int, v *validato
 
 	return i
 }
+
+func ReadQueryNullInt32(qs url.Values, key string, v *validator.Validator) sql.NullInt64 {
+	s := qs.Get(key)
+	if s == "" {
+		return sql.NullInt64{Valid: false}
+	}
+	i, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+	}
+	return sql.NullInt64{Int64: i, Valid: true}
+}
+
 func ReadQueryNullInt64(qs url.Values, key string, v *validator.Validator) sql.NullInt64 {
 	s := qs.Get(key)
 	if s == "" {
