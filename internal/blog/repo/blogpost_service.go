@@ -58,7 +58,7 @@ func (p *PostPatch) row() data.PostPatch {
 
 type PostReader interface {
 	Read(ctx context.Context, ID uuid.UUID) (*Post, error)
-	List(ctx context.Context, filter data.Filter) ([]*Post, *data.Metadata, error)
+	List(ctx context.Context, filter data.PostFilter) ([]*Post, *data.Metadata, error)
 }
 
 type PostWriter interface {
@@ -115,7 +115,7 @@ func (svc *BlogpostService) Read(ctx context.Context, ID uuid.UUID) (*Post, erro
 
 func (svc *BlogpostService) List(
 	ctx context.Context,
-	filter data.Filter,
+	filter data.PostFilter,
 ) ([]*Post, *data.Metadata, error) {
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"posts",

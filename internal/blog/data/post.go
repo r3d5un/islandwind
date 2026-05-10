@@ -155,7 +155,7 @@ type PostFilter struct {
 func (m *PostModel) selectMany(
 	ctx context.Context,
 	q db.Queryable,
-	filter Filter,
+	filter PostFilter,
 ) ([]*Post, *Metadata, error) {
 	const stmt string = `
 SELECT id,
@@ -224,7 +224,14 @@ LIMIT $1;
 	if err = rows.Err(); err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}
-	metadata := NewMetadata(posts, filter)
+	metadata := Metadata{
+		Next:           false,
+		ResponseLength: len(posts),
+	}
+	if len(posts) > 0 {
+		metadata.LastSeen = posts[metadata.ResponseLength-1].ID
+		metadata.Next = true
+	}
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "posts selected", slog.Any("metadata", metadata))
 
@@ -233,7 +240,7 @@ LIMIT $1;
 
 func (m *PostModel) SelectMany(
 	ctx context.Context,
-	filter Filter,
+	filter PostFilter,
 ) ([]*Post, *Metadata, error) {
 	return m.selectMany(ctx, m.DB, filter)
 }
@@ -241,7 +248,7 @@ func (m *PostModel) SelectMany(
 func (m *PostModel) SelectManyTx(
 	ctx context.Context,
 	tx pgx.Tx,
-	filter Filter,
+	filter PostFilter,
 ) ([]*Post, *Metadata, error) {
 	return m.selectMany(ctx, tx, filter)
 }

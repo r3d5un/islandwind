@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,9 +40,9 @@ func TestBlogModel(t *testing.T) {
 	})
 
 	t.Run("SelectMany", func(t *testing.T) {
-		selected, metadata, err := models.Posts.SelectMany(ctx, data.Filter{
+		selected, metadata, err := models.Posts.SelectMany(ctx, data.PostFilter{
 			PageSize: 1,
-			ID:       &post.ID,
+			ID:       uuid.NullUUID{UUID: post.ID, Valid: true},
 		})
 		assert.NoError(t, err)
 		assert.NotNil(t, selected)

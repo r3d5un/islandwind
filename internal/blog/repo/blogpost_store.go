@@ -59,7 +59,7 @@ func (s *blogpostStore) Read(ctx context.Context, ID uuid.UUID) (*Post, error) {
 
 func (s *blogpostStore) List(
 	ctx context.Context,
-	filter data.Filter,
+	filter data.PostFilter,
 ) ([]*Post, *data.Metadata, error) {
 	rows, metadata, err := s.models.Posts.SelectMany(ctx, filter)
 	if err != nil {

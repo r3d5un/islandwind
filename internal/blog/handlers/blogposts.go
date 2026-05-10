@@ -123,20 +123,21 @@ func ListBlogpostHandler(
 
 		v := validator.New()
 		qs := r.URL.Query()
-		filters := data.Filter{}
+		filters := data.PostFilter{}
 
 		filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
-		filters.ID = api.ReadOptionalQueryUUID(qs, "id", v)
-		filters.Title = api.ReadOptionalQueryString(qs, "title")
-		filters.CreatedAtFrom = api.ReadOptionalQueryDate(qs, "created_at_from", v)
-		filters.CreatedAtTo = api.ReadOptionalQueryDate(qs, "created_at_to", v)
-		filters.UpdatedAtFrom = api.ReadOptionalQueryDate(qs, "updated_at_from", v)
-		filters.UpdatedAtTo = api.ReadOptionalQueryDate(qs, "updated_at_to", v)
-		filters.Deleted = api.ReadOptionalQueryBoolean(qs, "deleted")
-		filters.DeletedAtFrom = api.ReadOptionalQueryDate(qs, "deleted_at_from", v)
-		filters.DeletedAtTo = api.ReadOptionalQueryDate(qs, "deleted_at_to", v)
+		filters.ID = api.ReadQueryNullUUID(qs, "id", v)
+		filters.Title = api.ReadQueryNullString(qs, "title", v)
+		filters.CreatedAtTo = api.ReadQueryNullDate(qs, "created_at_to", v)
+		filters.CreatedAtFrom = api.ReadQueryNullDate(qs, "created_at_from", v)
+		filters.CreatedAtTo = api.ReadQueryNullDate(qs, "created_at_to", v)
+		filters.UpdatedAtFrom = api.ReadQueryNullDate(qs, "updated_at_from", v)
+		filters.UpdatedAtTo = api.ReadQueryNullDate(qs, "updated_at_to", v)
+		filters.Deleted = api.ReadQueryNullBoolean(qs, "deleted", v)
+		filters.DeletedAtFrom = api.ReadQueryNullDate(qs, "deleted_at_from", v)
+		filters.DeletedAtTo = api.ReadQueryNullDate(qs, "deleted_at_to", v)
 		filters.LastSeen = *api.ReadRequiredQueryUUID(
-			qs, "last_seen", v, uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+			qs, "last_seen", v, uuid.Nil,
 		)
 
 		if !v.Valid() {
