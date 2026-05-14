@@ -29,8 +29,7 @@ func TestBlogModel(t *testing.T) {
 		require.NotNil(t, inserted)
 
 		t.Cleanup(func() {
-			_, err := models.Posts.Delete(ctx, inserted.ID)
-			require.NoError(t, err)
+			require.NoError(t, models.Posts.Delete(ctx, inserted.ID))
 		})
 	})
 
@@ -44,8 +43,7 @@ func TestBlogModel(t *testing.T) {
 		require.NotNil(t, inserted)
 
 		t.Cleanup(func() {
-			_, err := models.Posts.Delete(ctx, inserted.ID)
-			require.NoError(t, err)
+			require.NoError(t, models.Posts.Delete(ctx, inserted.ID))
 		})
 
 		selected, err := models.Posts.SelectOne(ctx, inserted.ID)
@@ -64,8 +62,7 @@ func TestBlogModel(t *testing.T) {
 		require.NotNil(t, inserted)
 
 		t.Cleanup(func() {
-			_, err := models.Posts.Delete(ctx, inserted.ID)
-			require.NoError(t, err)
+			require.NoError(t, models.Posts.Delete(ctx, inserted.ID))
 		})
 
 		selected, metadata, err := models.Posts.SelectMany(ctx, data.PostFilter{
@@ -89,8 +86,7 @@ func TestBlogModel(t *testing.T) {
 		require.NotNil(t, inserted)
 
 		t.Cleanup(func() {
-			_, err := models.Posts.Delete(ctx, inserted.ID)
-			require.NoError(t, err)
+			require.NoError(t, models.Posts.Delete(ctx, inserted.ID))
 		})
 
 		updated, err := models.Posts.Update(
@@ -113,7 +109,6 @@ func TestBlogModel(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, inserted)
 
-		_, err = models.Posts.Delete(ctx, inserted.ID)
-		require.NoError(t, err)
+		require.NoError(t, models.Posts.Delete(ctx, inserted.ID))
 	})
 }

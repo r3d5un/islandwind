@@ -113,7 +113,7 @@ func (s *blogpostStore) Restore(ctx context.Context, ID uuid.UUID) (*Post, error
 }
 
 func (s *blogpostStore) Purge(ctx context.Context, tx pgx.Tx, ID uuid.UUID) error {
-	_, err := s.models.Posts.DeleteTx(ctx, tx, ID)
+	err := s.models.Posts.DeleteTx(ctx, tx, ID)
 	if err != nil {
 		return err
 	}

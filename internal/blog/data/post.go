@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/db/builder"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -25,7 +26,7 @@ type Post struct {
 	DeletedAt sql.NullTime `json:"deletedAt" db:"deleted_at"`
 }
 
-var postColumns = db.ColumnsFrom(Post{})
+var postColumns = builder.ColumnsFrom(Post{})
 
 // PostInput is the input type used by the BlogModel for creating new blog post records.
 type PostInput struct {
@@ -104,7 +105,7 @@ func (m *PostModel) InsertTx(ctx context.Context, tx pgx.Tx, input PostInput) (*
 }
 
 func (m *PostModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
-	stmt, args := db.From("blog.post").
+	stmt, args := builder.From("blog.post").
 		Where("id = @id", pgx.NamedArgs{"id": id}).
 		Select(postColumns...)
 
@@ -313,19 +314,11 @@ func (m *PostModel) UpdateTx(ctx context.Context, tx pgx.Tx, patch PostPatch) (*
 	return m.update(ctx, tx, patch)
 }
 
-func (m *PostModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
+func (m *PostModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) error {
 	const stmt string = `
 DELETE
 FROM blog.post
-WHERE id = $1::UUID
-RETURNING id,
-    title,
-    content,
-    published,
-    created_at,
-    updated_at,
-    deleted,
-    deleted_at;
+WHERE id = $1::UUID;
 `
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
@@ -339,20 +332,19 @@ RETURNING id,
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	p, err := m.scan(q.QueryRow(ctx, stmt, id))
+	_, err := q.Exec(ctx, stmt, id)
 	if err != nil {
-		return nil, db.HandleError(ctx, err)
+		return db.HandleError(ctx, err)
 	}
-	logger.LogAttrs(ctx, slog.LevelInfo, "post deleted", slog.Any("post", p))
 
-	return &p, nil
+	return nil
 }
 
-func (m *PostModel) Delete(ctx context.Context, id uuid.UUID) (*Post, error) {
+func (m *PostModel) Delete(ctx context.Context, id uuid.UUID) error {
 	return m.delete(ctx, m.DB, id)
 }
 
-func (m *PostModel) DeleteTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*Post, error) {
+func (m *PostModel) DeleteTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	return m.delete(ctx, tx, id)
 }
 
@@ -372,17 +364,4 @@ func (m *PostModel) scan(row pgx.Row) (Post, error) {
 		return p, err
 	}
 	return p, err
-}
-
-func (m *PostModel) scanV2(post *Post, row pgx.Row) error {
-	return row.Scan(
-		&post.ID,
-		&post.Title,
-		&post.Content,
-		&post.Published,
-		&post.CreatedAt,
-		&post.UpdatedAt,
-		&post.Deleted,
-		&post.DeletedAt,
-	)
 }
