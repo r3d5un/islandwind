@@ -31,6 +31,8 @@ type QueryBuilder struct {
 	returning        bool
 	returningColumns []string
 	from             string
+	limitSet         bool
+	limit            int
 }
 
 func (qb QueryBuilder) clone() QueryBuilder {
@@ -53,6 +55,8 @@ func newQueryBuilder() QueryBuilder {
 		namedArgs:    make(pgx.NamedArgs, 0),
 		returning:    false,
 		from:         "",
+		limitSet:     false,
+		limit:        0,
 	}
 }
 
@@ -77,6 +81,13 @@ func (qb QueryBuilder) Join(join string) QueryBuilder {
 func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
 	clone := qb.clone()
 	clone.returning = returning
+	return clone
+}
+
+func (qb QueryBuilder) Limit(limit int) QueryBuilder {
+	clone := qb.clone()
+	clone.limit = limit
+	clone.limitSet = true
 	return clone
 }
 
@@ -124,6 +135,11 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 				builder.WriteString(", ")
 			}
 		}
+	}
+
+	if qb.limitSet {
+		builder.WriteString("LIMIT ")
+		builder.WriteString(strconv.Itoa(qb.limit))
 	}
 
 	builder.WriteString(";")
