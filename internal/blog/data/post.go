@@ -195,15 +195,17 @@ func (m *PostModel) selectMany(
 		return nil, nil, db.HandleError(ctx, err)
 	}
 
-	var posts []*Post
-
+	posts := make([]*Post, filter.PageSize)
+	i := 0
 	for rows.Next() {
 		p, err := m.scan(rows)
 		if err != nil {
 			return nil, nil, db.HandleError(ctx, err)
 		}
-		posts = append(posts, &p)
+		posts[i] = &p
+		i++
 	}
+	posts = posts[:i]
 	if err = rows.Err(); err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}
@@ -215,8 +217,6 @@ func (m *PostModel) selectMany(
 		metadata.LastSeen = posts[metadata.ResponseLength-1].ID
 		metadata.Next = true
 	}
-
-	logger.LogAttrs(ctx, slog.LevelInfo, "posts selected", slog.Any("metadata", metadata))
 
 	return posts, &metadata, nil
 }

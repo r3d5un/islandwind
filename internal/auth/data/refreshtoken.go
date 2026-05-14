@@ -201,16 +201,18 @@ LIMIT $1;
 		return nil, nil, db.HandleError(ctx, err)
 	}
 
-	var tokens []*RefreshToken
-
+	tokens := make([]*RefreshToken, filter.PageSize)
+	i := 0
 	for rows.Next() {
 		var r RefreshToken
 		r, err := m.scan(rows)
 		if err != nil {
 			return nil, nil, db.HandleError(ctx, err)
 		}
-		tokens = append(tokens, &r)
+		tokens[i] = &r
+		i++
 	}
+	tokens = tokens[:i]
 	if err = rows.Err(); err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}
