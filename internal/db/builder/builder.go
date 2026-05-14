@@ -126,8 +126,8 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 	}
 
 	if len(qb.orderBy) > 0 {
+		builder.WriteString(" ORDER BY ")
 		for i, orderBy := range qb.orderBy {
-			builder.WriteString(" ORDER BY ")
 			builder.WriteString(orderBy.Column)
 			builder.WriteString(" ")
 			builder.WriteString(string(orderBy.Order))
