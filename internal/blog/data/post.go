@@ -138,16 +138,16 @@ func (m *PostModel) SelectOneTx(ctx context.Context, tx pgx.Tx, id uuid.UUID) (*
 }
 
 type PostFilter struct {
-	ID            uuid.NullUUID  `json:"id"`
-	Title         sql.NullString `json:"title"`
-	Published     sql.NullBool   `json:"published"`
-	CreatedAtFrom sql.NullTime   `json:"createdAtFrom"`
-	CreatedAtTo   sql.NullTime   `json:"createdAtTo"`
-	UpdatedAtFrom sql.NullTime   `json:"updatedAtFrom"`
-	UpdatedAtTo   sql.NullTime   `json:"updatedAtTo"`
-	Deleted       sql.NullBool   `json:"deleted"`
-	DeletedAtFrom sql.NullTime   `json:"deletedAtFrom"`
-	DeletedAtTo   sql.NullTime   `json:"deletedAtTo"`
+	ID            sql.Null[uuid.UUID] `json:"id"`
+	Title         sql.Null[string]    `json:"title"`
+	Published     sql.Null[bool]      `json:"published"`
+	CreatedAtFrom sql.Null[time.Time] `json:"createdAtFrom"`
+	CreatedAtTo   sql.Null[time.Time] `json:"createdAtTo"`
+	UpdatedAtFrom sql.Null[time.Time] `json:"updatedAtFrom"`
+	UpdatedAtTo   sql.Null[time.Time] `json:"updatedAtTo"`
+	Deleted       sql.Null[bool]      `json:"deleted"`
+	DeletedAtFrom sql.Null[time.Time] `json:"deletedAtFrom"`
+	DeletedAtTo   sql.Null[time.Time] `json:"deletedAtTo"`
 
 	LastSeen uuid.UUID `json:"lastSeen"`
 	PageSize int       `json:"pageSize"`
@@ -158,30 +158,27 @@ func (m *PostModel) selectMany(
 	q db.Queryable,
 	filter PostFilter,
 ) ([]*Post, *Metadata, error) {
-	const stmt string = `
-SELECT id,
-       title,
-       content,
-       published,
-       created_at,
-       updated_at,
-       deleted,
-       deleted_at
-FROM blog.post
-WHERE ($2::UUID IS NULL OR id = $2::UUID)
-  AND ($3::VARCHAR(1024) IS NULL OR title = $3::VARCHAR(1024))
-  AND ($4::BOOLEAN IS NULL OR published = $4::BOOLEAN)
-  AND ($5::TIMESTAMPTZ IS NULL OR created_at <= $5::TIMESTAMPTZ)
-  AND ($6::TIMESTAMPTZ IS NULL OR created_at > $6::TIMESTAMPTZ)
-  AND ($7::TIMESTAMPTZ IS NULL OR updated_at <= $7::TIMESTAMPTZ)
-  AND ($8::TIMESTAMPTZ IS NULL OR updated_at > $8::TIMESTAMPTZ)
-  AND ($9::BOOLEAN IS NULL OR deleted = $9::BOOLEAN)
-  AND ($10::TIMESTAMPTZ IS NULL OR updated_at <= $10::TIMESTAMPTZ)
-  AND ($11::TIMESTAMPTZ IS NULL OR updated_at > $11::TIMESTAMPTZ)
-  AND id > $12::UUID
-ORDER BY created_at, id
-LIMIT $1;
-`
+	stmt, args := builder.
+		From("blog.post").
+		Where(
+			builder.NewNullPredicate("id", builder.Equal, filter.ID),
+			builder.NewNullPredicate("title", builder.Equal, filter.Title),
+			builder.NewNullPredicate("published", builder.Equal, filter.Published),
+			builder.NewNullPredicate("deleted", builder.Equal, filter.Deleted),
+			builder.NewNullPredicate("deleted_at", builder.GreaterOrEqual, filter.DeletedAtFrom),
+			builder.NewNullPredicate("deleted_to", builder.Less, filter.DeletedAtTo),
+			builder.NewNullPredicate("created_at", builder.GreaterOrEqual, filter.CreatedAtFrom),
+			builder.NewNullPredicate("created_to", builder.Less, filter.CreatedAtFrom),
+			builder.NewNullPredicate("updated_at", builder.GreaterOrEqual, filter.UpdatedAtFrom),
+			builder.NewNullPredicate("updated_at", builder.Less, filter.UpdatedAtFrom),
+			builder.NewGenericPredicate("id", builder.Greater, filter.LastSeen),
+		).
+		OrderBy(
+			builder.OrderBy{Column: "created_at", Order: builder.Asc},
+			builder.OrderBy{Column: "id", Order: builder.Asc},
+		).
+		Limit(filter.PageSize).
+		Select(postColumns...)
 
 	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
@@ -193,22 +190,7 @@ LIMIT $1;
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	rows, err := q.Query(
-		ctx,
-		stmt,
-		filter.PageSize,
-		filter.ID,
-		filter.Title,
-		filter.Published,
-		filter.CreatedAtFrom,
-		filter.CreatedAtTo,
-		filter.UpdatedAtFrom,
-		filter.UpdatedAtTo,
-		filter.Deleted,
-		filter.DeletedAtFrom,
-		filter.DeletedAtTo,
-		filter.LastSeen,
-	)
+	rows, err := q.Query(ctx, stmt, args)
 	if err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}

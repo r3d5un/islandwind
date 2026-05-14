@@ -2,6 +2,7 @@ package data_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -67,7 +68,7 @@ func TestBlogModel(t *testing.T) {
 
 		selected, metadata, err := models.Posts.SelectMany(ctx, data.PostFilter{
 			PageSize: 1,
-			ID:       uuid.NullUUID{UUID: inserted.ID, Valid: true},
+			ID:       sql.Null[uuid.UUID]{V: inserted.ID, Valid: true},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, selected)

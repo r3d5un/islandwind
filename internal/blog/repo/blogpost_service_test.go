@@ -2,6 +2,7 @@ package repo_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -73,7 +74,7 @@ func TestPostRepository(t *testing.T) {
 			ctx,
 			data.PostFilter{
 				PageSize: 1,
-				ID:       uuid.NullUUID{UUID: created.ID, Valid: true},
+				ID:       sql.Null[uuid.UUID]{V: created.ID, Valid: true},
 			},
 		)
 		require.NoError(t, err)

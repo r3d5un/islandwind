@@ -126,19 +126,17 @@ func ListBlogpostHandler(
 		filters := data.PostFilter{}
 
 		filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
-		filters.ID = api.ReadQueryNullUUID(qs, "id", v)
-		filters.Title = api.ReadQueryNullString(qs, "title", v)
-		filters.CreatedAtTo = api.ReadQueryNullDate(qs, "created_at_to", v)
-		filters.CreatedAtFrom = api.ReadQueryNullDate(qs, "created_at_from", v)
-		filters.CreatedAtTo = api.ReadQueryNullDate(qs, "created_at_to", v)
-		filters.UpdatedAtFrom = api.ReadQueryNullDate(qs, "updated_at_from", v)
-		filters.UpdatedAtTo = api.ReadQueryNullDate(qs, "updated_at_to", v)
-		filters.Deleted = api.ReadQueryNullBoolean(qs, "deleted", v)
-		filters.DeletedAtFrom = api.ReadQueryNullDate(qs, "deleted_at_from", v)
-		filters.DeletedAtTo = api.ReadQueryNullDate(qs, "deleted_at_to", v)
-		filters.LastSeen = *api.ReadRequiredQueryUUID(
-			qs, "last_seen", v, uuid.Nil,
-		)
+		filters.ID = api.ReadQueryNull(api.ParseQueryUUID(qs, "id", v))
+		filters.Title = api.ReadQueryNull(api.ParseQueryString(qs, "id", v))
+		filters.CreatedAtTo = api.ReadQueryNull(api.ParseQueryDate(qs, "created_at_to", v))
+		filters.CreatedAtFrom = api.ReadQueryNull(api.ParseQueryDate(qs, "created_at_from", v))
+		filters.CreatedAtTo = api.ReadQueryNull(api.ParseQueryDate(qs, "created_at_to", v))
+		filters.UpdatedAtFrom = api.ReadQueryNull(api.ParseQueryDate(qs, "updated_at_from", v))
+		filters.UpdatedAtTo = api.ReadQueryNull(api.ParseQueryDate(qs, "updated_at_to", v))
+		filters.Deleted = api.ReadQueryNull(api.ParseQueryBoolean(qs, "deleted", v))
+		filters.DeletedAtFrom = api.ReadQueryNull(api.ParseQueryDate(qs, "deleted_at_from", v))
+		filters.DeletedAtTo = api.ReadQueryNull(api.ParseQueryDate(qs, "deleted_at_to", v))
+		filters.LastSeen = *api.ReadRequiredQueryUUID(qs, "last_seen", v, uuid.Nil)
 
 		if !v.Valid() {
 			api.ValidationFailedResponse(ctx, w, r, v.Errors)
