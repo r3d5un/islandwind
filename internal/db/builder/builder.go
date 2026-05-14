@@ -1,9 +1,7 @@
 package builder
 
 import (
-	"database/sql"
 	"maps"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -76,96 +74,6 @@ func (qb QueryBuilder) Join(join string) QueryBuilder {
 	return clone
 }
 
-func (qb QueryBuilder) appendWhere(condition string, args pgx.NamedArgs) QueryBuilder {
-	if strings.TrimSpace(condition) == "" {
-		return qb
-	}
-
-	clone := qb.clone()
-	if clone.namedArgs == nil {
-		clone.namedArgs = make(pgx.NamedArgs)
-	}
-	clone.whereClauses = append(clone.whereClauses, condition)
-	if len(args) > 0 {
-		maps.Copy(clone.namedArgs, args)
-	}
-	return clone
-}
-
-func (qb QueryBuilder) Where(condition string, args pgx.NamedArgs) QueryBuilder {
-	return qb.appendWhere(condition, args)
-}
-
-func (qb QueryBuilder) WhereNull(nullable any, condition string, args pgx.NamedArgs) QueryBuilder {
-	if explicit, ok := nullable.(ExplicitNull); ok {
-		if isNilExplicitNull(explicit) || !explicit.IsSpecified() || explicit.IsNull() {
-			return qb
-		}
-		return qb.appendWhere(condition, args)
-	}
-
-	if !isSQLNullValid(nullable) {
-		return qb
-	}
-
-	return qb.appendWhere(condition, args)
-}
-
-func (qb QueryBuilder) WhereExplicitNull(
-	nullable ExplicitNull,
-	condition string,
-	args pgx.NamedArgs,
-	nullCondition string,
-) QueryBuilder {
-	if isNilExplicitNull(nullable) {
-		return qb
-	}
-
-	if !nullable.IsSpecified() {
-		return qb
-	}
-
-	if nullable.IsNull() {
-		return qb.appendWhere(nullCondition, nil)
-	}
-
-	return qb.appendWhere(condition, args)
-}
-
-func isNilExplicitNull(nullable ExplicitNull) bool {
-	if nullable == nil {
-		return true
-	}
-
-	rv := reflect.ValueOf(nullable)
-	return rv.Kind() == reflect.Pointer && rv.IsNil()
-}
-
-func isSQLNullValid(v any) bool {
-	if v == nil {
-		return false
-	}
-
-	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Pointer {
-		if rv.IsNil() {
-			return false
-		}
-		rv = rv.Elem()
-	}
-
-	if rv.Kind() != reflect.Struct {
-		return false
-	}
-
-	validField := rv.FieldByName("Valid")
-	if !validField.IsValid() || validField.Kind() != reflect.Bool {
-		return false
-	}
-
-	return validField.Bool()
-}
-
 func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
 	clone := qb.clone()
 	clone.returning = returning
@@ -223,167 +131,8 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 	return builder.String(), qb.namedArgs
 }
 
-func NullEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " = @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func NullNotEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " != @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func NullLike(nullable sql.Null[string], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + nullable.V + "%"}
-	}
-}
-
-func NullGreater[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " > @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func NullGreaterOrEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " >= @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func NullLess[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " < @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func NullLessOrEqual[T any](nullable sql.Null[T], column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		if !nullable.Valid {
-			return "", nil
-		}
-
-		return column + " <= @" + column, pgx.NamedArgs{column: nullable.V}
-	}
-}
-
-func Equal[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " = @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func NotEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " != @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func Greater[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " > @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func GreaterOrEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " >= @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func Less[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " < @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func LessOrEqual[T any](val T, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " <= @" + column, pgx.NamedArgs{column: val}
-	}
-}
-
-func Like(val string, column string) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return column + " LIKE @" + column, pgx.NamedArgs{column: "%" + val + "%"}
-	}
-}
-
 func From(from string) QueryBuilder {
 	return newQueryBuilder().From(from)
-}
-
-func And(conditions ...func() (string, pgx.NamedArgs)) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return joinConditions(" AND ", conditions...)
-	}
-}
-
-func Or(conditions ...func() (string, pgx.NamedArgs)) func() (string, pgx.NamedArgs) {
-	return func() (string, pgx.NamedArgs) {
-		return joinConditions(" OR ", conditions...)
-	}
-}
-
-func joinConditions(
-	sep string,
-	conditions ...func() (string, pgx.NamedArgs),
-) (string, pgx.NamedArgs) {
-	var clauses []string
-	allArgs := make(pgx.NamedArgs)
-
-	for i, condFunc := range conditions {
-		clause, args := condFunc()
-		if clause == "" {
-			continue
-		}
-
-		for k, v := range args {
-			newK := k
-			if _, exists := allArgs[k]; exists {
-				newK = k + "_" + strconv.Itoa(i)
-				clause = strings.ReplaceAll(clause, "@"+k, "@"+newK)
-			}
-			allArgs[newK] = v
-		}
-		clauses = append(clauses, clause)
-	}
-
-	if len(clauses) == 0 {
-		return "", nil
-	}
-
-	if len(clauses) == 1 {
-		return clauses[0], allArgs
-	}
-
-	return "(" + strings.Join(clauses, sep) + ")", allArgs
 }
 
 var (
@@ -400,4 +149,28 @@ var (
 type ExplicitNull interface {
 	IsSpecified() bool
 	IsNull() bool
+}
+
+func (qb QueryBuilder) Where(predicates ...Predicate) QueryBuilder {
+	clone := qb.clone()
+	for i, p := range predicates {
+		if strings.TrimSpace(p.Text) == "" {
+			continue
+		}
+
+		text := p.Text
+		args := make(pgx.NamedArgs, len(p.Arg))
+		for k, v := range p.Arg {
+			newK := k
+			if _, exists := clone.namedArgs[k]; exists {
+				newK = k + "_" + strconv.Itoa(i)
+				text = strings.ReplaceAll(text, "@"+k, "@"+newK)
+			}
+			args[newK] = v
+		}
+
+		clone.whereClauses = append(clone.whereClauses, text)
+		maps.Copy(clone.namedArgs, args)
+	}
+	return clone
 }

@@ -106,7 +106,7 @@ func (m *PostModel) InsertTx(ctx context.Context, tx pgx.Tx, input PostInput) (*
 
 func (m *PostModel) selectOne(ctx context.Context, q db.Queryable, id uuid.UUID) (*Post, error) {
 	stmt, args := builder.From("blog.post").
-		Where("id = @id", pgx.NamedArgs{"id": id}).
+		Where(builder.NewGenericPredicate("id", builder.Equal, id)).
 		Select(postColumns...)
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
