@@ -373,3 +373,69 @@ func ReadQueryNullDate(qs url.Values, key string, v *validator.Validator) sql.Nu
 
 	return sql.NullTime{Valid: false}
 }
+
+func ParseQueryUUID(qs url.Values, key string, v *validator.Validator) func() (uuid.UUID, bool) {
+	return func() (uuid.UUID, bool) {
+		s := qs.Get(key)
+		if s == "" {
+			return uuid.Nil, false
+		}
+		id, err := uuid.Parse(s)
+		if err != nil {
+			v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+		}
+		return id, true
+	}
+}
+
+func ParseQueryString(qs url.Values, key string, v *validator.Validator) func() (string, bool) {
+	return func() (string, bool) {
+		s := qs.Get(key)
+		if s == "" {
+			return "", false
+		}
+		return s, true
+	}
+}
+
+func ParseQueryBoolean(qs url.Values, key string, v *validator.Validator) func() (bool, bool) {
+	return func() (bool, bool) {
+		s := qs.Get(key)
+		if s == "" {
+			return false, false
+		}
+		b, err := strconv.ParseBool(s)
+		if err != nil {
+			v.AddError(key, fmt.Sprintf("unable to parse value: %s", err.Error()))
+		}
+		return b, true
+	}
+}
+
+func ParseQueryDate(qs url.Values, key string, v *validator.Validator) func() (time.Time, bool) {
+	return func() (time.Time, bool) {
+		s := qs.Get(key)
+		if s == "" {
+			return time.Time{}, false
+		}
+
+		formats := []string{
+			"2006-01-02",
+			"2006-01-02T15:04:05",
+		}
+
+		for _, format := range formats {
+			if date, err := time.Parse(format, s); err == nil {
+				return date, true
+			}
+		}
+		v.AddError(key, fmt.Sprintf("not a valid date format, accepting %s", formats))
+
+		return time.Time{}, false
+	}
+}
+
+func ReadQueryNull[T any](parse func() (T, bool)) sql.Null[T] {
+	value, valid := parse()
+	return sql.Null[T]{V: value, Valid: valid}
+}
