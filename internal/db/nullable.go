@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/r3d5un/islandwind/internal/nullable"
+	"github.com/oapi-codegen/nullable"
 )
 
 var (

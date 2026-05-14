@@ -1,4 +1,4 @@
-package db
+package builder
 
 import (
 	"database/sql"
@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/oapi-codegen/nullable"
 	"github.com/r3d5un/islandwind/internal/ensure"
 )
 
@@ -137,7 +138,7 @@ func isNilExplicitNull(nullable ExplicitNull) bool {
 	}
 
 	rv := reflect.ValueOf(nullable)
-	return rv.Kind() == reflect.Ptr && rv.IsNil()
+	return rv.Kind() == reflect.Pointer && rv.IsNil()
 }
 
 func isSQLNullValid(v any) bool {
@@ -146,7 +147,7 @@ func isSQLNullValid(v any) bool {
 	}
 
 	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return false
 		}
@@ -340,7 +341,7 @@ func From(from string) QueryBuilder {
 
 func ColumnsFrom(v any) []string {
 	t := reflect.TypeOf(v)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 
@@ -349,8 +350,7 @@ func ColumnsFrom(v any) []string {
 	}
 
 	var cols []string
-	for i := range t.NumField() {
-		field := t.Field(i)
+	for field := range t.Fields() {
 		if tag, ok := field.Tag.Lookup("db"); ok {
 			cols = append(cols, tag)
 		}
@@ -404,4 +404,20 @@ func joinConditions(
 	}
 
 	return "(" + strings.Join(clauses, sep) + ")", allArgs
+}
+
+var (
+	_ ExplicitNull = nullable.Nullable[string]{}
+	_ ExplicitNull = (*nullable.Nullable[string])(nil)
+)
+
+// ExplicitNull represents a tri-state nullable value used in query filters.
+//
+// States:
+// - Unspecified: filter should be ignored
+// - Null: filter should target SQL NULL
+// - Value: filter should apply with a concrete value
+type ExplicitNull interface {
+	IsSpecified() bool
+	IsNull() bool
 }

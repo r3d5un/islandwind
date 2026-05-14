@@ -1,17 +1,17 @@
-package db_test
+package builder_test
 
 import (
 	"database/sql"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/r3d5un/islandwind/internal/db"
-	"github.com/r3d5un/islandwind/internal/nullable"
+	"github.com/oapi-codegen/nullable"
+	"github.com/r3d5un/islandwind/internal/db/builder"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSelect(t *testing.T) {
-	stmt, _ := db.From("table").
+	stmt, _ := builder.From("table").
 		Select("col1", "col2")
 
 	t.Log(stmt)
@@ -19,7 +19,7 @@ func TestSelect(t *testing.T) {
 
 func TestWhere(t *testing.T) {
 	t.Run("SingleColumn", func(t *testing.T) {
-		stmt, _ := db.From("table").
+		stmt, _ := builder.From("table").
 			Where("id = @id", pgx.NamedArgs{"id": "1"}).
 			Select("col1")
 
@@ -27,7 +27,7 @@ func TestWhere(t *testing.T) {
 	})
 
 	t.Run("MultipleColumns", func(t *testing.T) {
-		stmt, _ := db.From("table").
+		stmt, _ := builder.From("table").
 			Where("id = @id", pgx.NamedArgs{"id": "1"}).
 			Select("col1", "col2")
 
@@ -35,15 +35,15 @@ func TestWhere(t *testing.T) {
 	})
 
 	t.Run("ComplexConditions", func(t *testing.T) {
-		where, whereArgs := db.And(
-			db.Equal(1, "id"),
-			db.Or(
-				db.Equal("active", "status"),
-				db.Equal("pending", "status"),
+		where, whereArgs := builder.And(
+			builder.Equal(1, "id"),
+			builder.Or(
+				builder.Equal("active", "status"),
+				builder.Equal("pending", "status"),
 			),
 		)()
 
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			Where(where, whereArgs).
 			Select("col1")
 
@@ -57,7 +57,7 @@ func TestWhere(t *testing.T) {
 
 func TestWhereNull(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereNull(sql.Null[string]{Valid: true, V: "abc"}, "id = @id", pgx.NamedArgs{"id": "abc"}).
 			Select("id")
 
@@ -66,7 +66,7 @@ func TestWhereNull(t *testing.T) {
 	})
 
 	t.Run("InvalidSkipped", func(t *testing.T) {
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereNull(sql.Null[string]{Valid: false}, "id = @id", pgx.NamedArgs{"id": "abc"}).
 			Select("id")
 
@@ -75,8 +75,8 @@ func TestWhereNull(t *testing.T) {
 	})
 
 	t.Run("ExplicitNullableValue", func(t *testing.T) {
-		stmt, args := db.From("table").
-			WhereNull(nullable.NewNullableValue("abc"), "id = @id", pgx.NamedArgs{"id": "abc"}).
+		stmt, args := builder.From("table").
+			WhereNull(nullable.NewNullableWithValue("abc"), "id = @id", pgx.NamedArgs{"id": "abc"}).
 			Select("id")
 
 		assert.Equal(t, "SELECT id FROM table WHERE id = @id;", stmt)
@@ -84,8 +84,8 @@ func TestWhereNull(t *testing.T) {
 	})
 
 	t.Run("ExplicitNullableNullSkipped", func(t *testing.T) {
-		stmt, args := db.From("table").
-			WhereNull(nullable.NewNullableNull[string](), "id = @id", pgx.NamedArgs{"id": "abc"}).
+		stmt, args := builder.From("table").
+			WhereNull(nullable.NewNullNullable[string](), "id = @id", pgx.NamedArgs{"id": "abc"}).
 			Select("id")
 
 		assert.Equal(t, "SELECT id FROM table;", stmt)
@@ -95,9 +95,9 @@ func TestWhereNull(t *testing.T) {
 
 func TestWhereExplicitNull(t *testing.T) {
 	t.Run("UnspecifiedSkipped", func(t *testing.T) {
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereExplicitNull(
-				nullable.NewNullableUnspecified[string](),
+				nullable.Nullable[string]{},
 				"deleted_at = @deleted_at",
 				pgx.NamedArgs{"deleted_at": "2026-01-01"},
 				"deleted_at IS NULL",
@@ -109,9 +109,9 @@ func TestWhereExplicitNull(t *testing.T) {
 	})
 
 	t.Run("NullClause", func(t *testing.T) {
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereExplicitNull(
-				nullable.NewNullableNull[string](),
+				nullable.NewNullNullable[string](),
 				"deleted_at = @deleted_at",
 				pgx.NamedArgs{"deleted_at": "2026-01-01"},
 				"deleted_at IS NULL",
@@ -123,9 +123,9 @@ func TestWhereExplicitNull(t *testing.T) {
 	})
 
 	t.Run("ValueClause", func(t *testing.T) {
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereExplicitNull(
-				nullable.NewNullableValue("2026-01-01"),
+				nullable.NewNullableWithValue("2026-01-01"),
 				"deleted_at = @deleted_at",
 				pgx.NamedArgs{"deleted_at": "2026-01-01"},
 				"deleted_at IS NULL",
@@ -139,7 +139,7 @@ func TestWhereExplicitNull(t *testing.T) {
 	t.Run("TypedNilPointerSkipped", func(t *testing.T) {
 		var n *nullable.Nullable[string]
 
-		stmt, args := db.From("table").
+		stmt, args := builder.From("table").
 			WhereExplicitNull(
 				n,
 				"deleted_at = @deleted_at",
@@ -155,7 +155,7 @@ func TestWhereExplicitNull(t *testing.T) {
 
 func TestJoin(t *testing.T) {
 	t.Run("SingleJoin", func(t *testing.T) {
-		stmt, _ := db.From("table1 a").
+		stmt, _ := builder.From("table1 a").
 			Join("table2 b ON a.id = b.a_id").
 			Select("a.col1", "b.col2")
 
@@ -163,7 +163,7 @@ func TestJoin(t *testing.T) {
 	})
 
 	t.Run("MultipleJoins", func(t *testing.T) {
-		stmt, _ := db.From("table1 a").
+		stmt, _ := builder.From("table1 a").
 			Join("table2 b ON a.id = b.a_id").
 			Join("table3 c ON b.id = c.b_id").
 			Select("a.col1", "b.col2", "c.col3")
@@ -178,16 +178,16 @@ func TestJoin(t *testing.T) {
 
 func TestOrderBy(t *testing.T) {
 	t.Run("Asc", func(t *testing.T) {
-		stmt, _ := db.From("table").
-			OrderBy(db.OrderBy{Column: "col1", Order: db.Asc}).
+		stmt, _ := builder.From("table").
+			OrderBy(builder.OrderBy{Column: "col1", Order: builder.Asc}).
 			Select("col1", "col2")
 
 		assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 ASC;", stmt)
 	})
 
 	t.Run("Desc", func(t *testing.T) {
-		stmt, _ := db.From("table").
-			OrderBy(db.OrderBy{Column: "col1", Order: db.Desc}).
+		stmt, _ := builder.From("table").
+			OrderBy(builder.OrderBy{Column: "col1", Order: builder.Desc}).
 			Select("col1", "col2")
 
 		assert.Equal(t, "SELECT col1, col2 FROM table ORDER BY col1 DESC;", stmt)
@@ -196,48 +196,48 @@ func TestOrderBy(t *testing.T) {
 
 func TestNullFunctions(t *testing.T) {
 	t.Run("NullEqual Valid", func(t *testing.T) {
-		clause, args := db.NullEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col = @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 	t.Run("NullEqual Invalid", func(t *testing.T) {
-		clause, args := db.NullEqual(sql.Null[int]{Valid: false}, "col")()
+		clause, args := builder.NullEqual(sql.Null[int]{Valid: false}, "col")()
 		assert.Equal(t, "", clause)
 		assert.Nil(t, args)
 	})
 
 	t.Run("NullNotEqual Valid", func(t *testing.T) {
-		clause, args := db.NullNotEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullNotEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col != @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLike Valid", func(t *testing.T) {
-		clause, args := db.NullLike(sql.Null[string]{Valid: true, V: "test"}, "col")()
+		clause, args := builder.NullLike(sql.Null[string]{Valid: true, V: "test"}, "col")()
 		assert.Equal(t, "col LIKE @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": "%test%"}, args)
 	})
 
 	t.Run("NullGreater Valid", func(t *testing.T) {
-		clause, args := db.NullGreater(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullGreater(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col > @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullGreaterOrEqual Valid", func(t *testing.T) {
-		clause, args := db.NullGreaterOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullGreaterOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col >= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLess Valid", func(t *testing.T) {
-		clause, args := db.NullLess(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullLess(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col < @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NullLessOrEqual Valid", func(t *testing.T) {
-		clause, args := db.NullLessOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
+		clause, args := builder.NullLessOrEqual(sql.Null[int]{Valid: true, V: 10}, "col")()
 		assert.Equal(t, "col <= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
@@ -245,43 +245,43 @@ func TestNullFunctions(t *testing.T) {
 
 func TestNotNullFunctions(t *testing.T) {
 	t.Run("Equal", func(t *testing.T) {
-		clause, args := db.Equal(10, "col")()
+		clause, args := builder.Equal(10, "col")()
 		assert.Equal(t, "col = @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("NotEqual", func(t *testing.T) {
-		clause, args := db.NotEqual(10, "col")()
+		clause, args := builder.NotEqual(10, "col")()
 		assert.Equal(t, "col != @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Greater", func(t *testing.T) {
-		clause, args := db.Greater(10, "col")()
+		clause, args := builder.Greater(10, "col")()
 		assert.Equal(t, "col > @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("GreaterOrEqual", func(t *testing.T) {
-		clause, args := db.GreaterOrEqual(10, "col")()
+		clause, args := builder.GreaterOrEqual(10, "col")()
 		assert.Equal(t, "col >= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Less", func(t *testing.T) {
-		clause, args := db.Less(10, "col")()
+		clause, args := builder.Less(10, "col")()
 		assert.Equal(t, "col < @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("LessOrEqual", func(t *testing.T) {
-		clause, args := db.LessOrEqual(10, "col")()
+		clause, args := builder.LessOrEqual(10, "col")()
 		assert.Equal(t, "col <= @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": 10}, args)
 	})
 
 	t.Run("Like", func(t *testing.T) {
-		clause, args := db.Like("test", "col")()
+		clause, args := builder.Like("test", "col")()
 		assert.Equal(t, "col LIKE @col", clause)
 		assert.Equal(t, pgx.NamedArgs{"col": "%test%"}, args)
 	})
