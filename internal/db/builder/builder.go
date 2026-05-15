@@ -151,22 +151,6 @@ func From(from string) QueryBuilder {
 	return newQueryBuilder().From(from)
 }
 
-var (
-	_ ExplicitNull = nullable.Nullable[string]{}
-	_ ExplicitNull = (*nullable.Nullable[string])(nil)
-)
-
-// ExplicitNull represents a tri-state nullable value used in query filters.
-//
-// States:
-// - Unspecified: filter should be ignored
-// - Null: filter should target SQL NULL
-// - Value: filter should apply with a concrete value
-type ExplicitNull interface {
-	IsSpecified() bool
-	IsNull() bool
-}
-
 func (qb QueryBuilder) Where(predicates ...Predicate) QueryBuilder {
 	clone := qb.clone()
 	for i, p := range predicates {
