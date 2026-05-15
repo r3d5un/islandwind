@@ -297,11 +297,9 @@ func (m *PostModel) UpdateTx(ctx context.Context, tx pgx.Tx, patch PostPatch) (*
 }
 
 func (m *PostModel) delete(ctx context.Context, q db.Queryable, id uuid.UUID) error {
-	const stmt string = `
-DELETE
-FROM blog.post
-WHERE id = $1::UUID;
-`
+	stmt, args := builder.From("blog.post").
+		Where(builder.NewGenericPredicate("id", builder.Equal, id)).
+		Delete()
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -314,7 +312,7 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	_, err := q.Exec(ctx, stmt, id)
+	_, err := q.Exec(ctx, stmt, args)
 	if err != nil {
 		return db.HandleError(ctx, err)
 	}
