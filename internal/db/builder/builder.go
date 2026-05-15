@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/oapi-codegen/nullable"
 	"github.com/r3d5un/islandwind/internal/ensure"
 )
 
@@ -28,7 +27,6 @@ type QueryBuilder struct {
 	whereClauses     []string
 	joins            []string
 	namedArgs        pgx.NamedArgs
-	returning        bool
 	returningColumns []string
 	from             string
 	limitSet         bool
@@ -41,7 +39,6 @@ func (qb QueryBuilder) clone() QueryBuilder {
 		whereClauses:     slices.Clone(qb.whereClauses),
 		joins:            slices.Clone(qb.joins),
 		namedArgs:        maps.Clone(qb.namedArgs),
-		returning:        qb.returning,
 		returningColumns: slices.Clone(qb.returningColumns),
 		from:             qb.from,
 	}
@@ -53,7 +50,6 @@ func newQueryBuilder() QueryBuilder {
 		whereClauses: make([]string, 0),
 		joins:        make([]string, 0),
 		namedArgs:    make(pgx.NamedArgs, 0),
-		returning:    false,
 		from:         "",
 		limitSet:     false,
 		limit:        0,
@@ -78,9 +74,9 @@ func (qb QueryBuilder) Join(join string) QueryBuilder {
 	return clone
 }
 
-func (qb QueryBuilder) Returning(returning bool) QueryBuilder {
+func (qb QueryBuilder) Returning(cols ...string) QueryBuilder {
 	clone := qb.clone()
-	clone.returning = returning
+	clone.returningColumns = append(clone.returningColumns, cols...)
 	return clone
 }
 
@@ -173,4 +169,31 @@ func (qb QueryBuilder) Where(predicates ...Predicate) QueryBuilder {
 		maps.Copy(clone.namedArgs, args)
 	}
 	return clone
+}
+
+func (qb QueryBuilder) Delete() (string, pgx.NamedArgs) {
+	var builder strings.Builder
+
+	builder.WriteString("DELETE FROM ")
+	builder.WriteString(qb.from)
+
+	if len(qb.whereClauses) > 0 {
+		builder.WriteString(" WHERE ")
+		builder.WriteString(strings.Join(qb.whereClauses, " AND "))
+	}
+
+	colsLength := len(qb.returningColumns)
+	if colsLength > 0 {
+		builder.WriteString(" RETURNING ")
+		for i, column := range qb.returningColumns {
+			builder.WriteString(column)
+			if i != colsLength-1 {
+				builder.WriteString(", ")
+			}
+		}
+	}
+
+	builder.WriteString(";")
+
+	return builder.String(), qb.namedArgs
 }
