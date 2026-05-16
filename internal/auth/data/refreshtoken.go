@@ -15,13 +15,15 @@ import (
 )
 
 type RefreshToken struct {
-	ID            uuid.UUID     `json:"id"`
-	Issuer        string        `json:"issuer"`
-	Expiration    time.Time     `json:"expiration"`
-	IssuedAt      time.Time     `json:"issuedAt"`
-	Invalidated   bool          `json:"invalidated"`
-	InvalidatedBy uuid.NullUUID `json:"invalidatedBy"`
+	ID            uuid.UUID     `json:"id"            db:"id"`
+	Issuer        string        `json:"issuer"        db:"issuer"`
+	Expiration    time.Time     `json:"expiration"    db:"expiration"`
+	IssuedAt      time.Time     `json:"issuedAt"      db:"issued_at"`
+	Invalidated   bool          `json:"invalidated"   db:"invalidated"`
+	InvalidatedBy uuid.NullUUID `json:"invalidatedBy" db:"invalidated_by"`
 }
+
+var refreshTokenColumns = builder.ColumnsFrom(RefreshToken{})
 
 type RefreshTokenInput struct {
 	Issuer     string    `json:"issuer"`
@@ -53,7 +55,7 @@ func (m *RefreshTokenModel) insert(
 			"issued_at":  {V: input.IssuedAt, Valid: true},
 		}).
 		Returning(
-			"id", "issuer", "expiration", "issued_at", "invalidated", "invalidated_by",
+			refreshTokenColumns...,
 		).
 		Into("auth.refresh_token")
 	if err != nil {
