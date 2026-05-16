@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/db"
+	"github.com/r3d5un/islandwind/internal/db/builder"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
 
@@ -45,21 +46,19 @@ func (m *RefreshTokenModel) insert(
 	q db.Queryable,
 	input RefreshTokenInput,
 ) (*RefreshToken, error) {
-	const stmt string = `
-INSERT INTO auth.refresh_token (issuer,
-                                expiration,
-                                issued_at)
-VALUES ($1::VARCHAR(512),
-        $2::TIMESTAMP,
-        $3::TIMESTAMP)
-RETURNING
-    id,
-    issuer,
-    expiration,
-    issued_at,
-    invalidated,
-    invalidated_by;
-`
+	stmt, args, err := builder.
+		Insert(builder.Tuple{
+			"issuer":     {V: input.Issuer, Valid: true},
+			"expiration": {V: input.Expiration, Valid: true},
+			"issued_at":  {V: input.IssuedAt, Valid: true},
+		}).
+		Returning(
+			"id", "issuer", "expiration", "issued_at", "invalidated", "invalidated_by",
+		).
+		Into("auth.refresh_token")
+	if err != nil {
+		return nil, err
+	}
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -72,11 +71,10 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	r, err := m.scan(q.QueryRow(ctx, stmt, input.Issuer, input.Expiration, input.IssuedAt))
+	r, err := m.scan(q.QueryRow(ctx, stmt, args))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
-	logger.LogAttrs(ctx, slog.LevelInfo, "refresh token inserted", slog.Any("refreshToken", r))
 
 	return &r, nil
 }

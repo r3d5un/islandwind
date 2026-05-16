@@ -52,23 +52,19 @@ type PostModel struct {
 }
 
 func (m *PostModel) insert(ctx context.Context, q db.Queryable, input PostInput) (*Post, error) {
-	const stmt string = `
-INSERT INTO blog.post (title,
-                       content,
-                       published)
-VALUES ($1::VARCHAR(1024),
-        $2::TEXT,
-        $3::BOOLEAN)
-RETURNING
-    id,
-    title,
-    content,
-    published,
-    created_at,
-    updated_at,
-    deleted,
-    deleted_at;
-`
+	stmt, args, err := builder.
+		Insert(builder.Tuple{
+			"title":     {V: input.Content, Valid: true},
+			"content":   {V: input.Content, Valid: true},
+			"published": {V: input.Published, Valid: true},
+		}).
+		Returning(
+			postColumns...,
+		).
+		Into("blog.post")
+	if err != nil {
+		return nil, err
+	}
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -81,13 +77,7 @@ RETURNING
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	p, err := m.scan(q.QueryRow(
-		ctx,
-		stmt,
-		input.Title,
-		input.Content,
-		input.Published,
-	))
+	p, err := m.scan(q.QueryRow(ctx, stmt, args))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
