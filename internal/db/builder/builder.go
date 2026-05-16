@@ -1,8 +1,11 @@
 package builder
 
 import (
+	"database/sql"
+	"errors"
 	"maps"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -28,9 +31,11 @@ type QueryBuilder struct {
 	joins            []string
 	namedArgs        pgx.NamedArgs
 	returningColumns []string
-	from             string
+	insertColumns    []string
+	table            string
 	limitSet         bool
 	limit            int
+	tuples           []Tuple
 }
 
 func (qb QueryBuilder) clone() QueryBuilder {
@@ -40,7 +45,9 @@ func (qb QueryBuilder) clone() QueryBuilder {
 		joins:            slices.Clone(qb.joins),
 		namedArgs:        maps.Clone(qb.namedArgs),
 		returningColumns: slices.Clone(qb.returningColumns),
-		from:             qb.from,
+		insertColumns:    slices.Clone(qb.insertColumns),
+		table:            qb.table,
+		tuples:           slices.Clone(qb.tuples),
 	}
 }
 
@@ -50,9 +57,10 @@ func newQueryBuilder() QueryBuilder {
 		whereClauses: make([]string, 0),
 		joins:        make([]string, 0),
 		namedArgs:    make(pgx.NamedArgs, 0),
-		from:         "",
+		table:        "",
 		limitSet:     false,
 		limit:        0,
+		tuples:       make([]Tuple, 0),
 	}
 }
 
@@ -64,7 +72,7 @@ func (qb QueryBuilder) OrderBy(order ...OrderBy) QueryBuilder {
 
 func (qb QueryBuilder) From(from string) QueryBuilder {
 	clone := qb.clone()
-	clone.from = from
+	clone.table = from
 	return clone
 }
 
@@ -107,7 +115,7 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 		}
 	}
 	builder.WriteString(" FROM ")
-	builder.WriteString(qb.from)
+	builder.WriteString(qb.table)
 
 	if len(qb.joins) > 0 {
 		for _, join := range qb.joins {
@@ -175,7 +183,7 @@ func (qb QueryBuilder) Delete() (string, pgx.NamedArgs) {
 	var builder strings.Builder
 
 	builder.WriteString("DELETE FROM ")
-	builder.WriteString(qb.from)
+	builder.WriteString(qb.table)
 
 	if len(qb.whereClauses) > 0 {
 		builder.WriteString(" WHERE ")
@@ -196,4 +204,73 @@ func (qb QueryBuilder) Delete() (string, pgx.NamedArgs) {
 	builder.WriteString(";")
 
 	return builder.String(), qb.namedArgs
+}
+
+var (
+	ErrNoInsertTuples      = errors.New("no tuples provided for insertion")
+	ErrTupleColumnNotFound = errors.New("tuple column not found")
+)
+
+type Tuple map[string]sql.Null[any]
+
+func Insert(records ...Tuple) QueryBuilder {
+	qb := newQueryBuilder()
+	qb.tuples = append(qb.tuples, records...)
+	if len(records) > 0 {
+		for columnName := range records[0] {
+			qb.insertColumns = append(qb.insertColumns, columnName)
+		}
+		sort.Strings(qb.insertColumns)
+	}
+
+	return qb
+}
+
+func (qb QueryBuilder) Into(into string) (string, pgx.NamedArgs, error) {
+	var builder strings.Builder
+
+	if len(qb.tuples) < 1 {
+		return "", make(pgx.NamedArgs), ErrNoInsertTuples
+	}
+
+	builder.WriteString("INSERT INTO ")
+	builder.WriteString(into)
+	builder.WriteString(" (")
+	builder.WriteString(strings.Join(qb.insertColumns, ", "))
+	builder.WriteString(") ")
+	builder.WriteString("VALUES ")
+
+	for i, tuple := range qb.tuples {
+		tupleParams := make([]string, 0)
+		for _, columnName := range qb.insertColumns {
+			val, ok := tuple[columnName]
+			if !ok {
+				return "", qb.namedArgs, ErrTupleColumnNotFound
+			}
+			param := columnName + "_" + strconv.Itoa(i)
+			qb.namedArgs[param] = val
+			tupleParams = append(tupleParams, "@"+param)
+		}
+		builder.WriteString("(")
+		builder.WriteString(strings.Join(tupleParams, ", "))
+		builder.WriteString(")")
+		if i != len(qb.tuples)-1 {
+			builder.WriteString(", ")
+		}
+	}
+
+	colsLength := len(qb.returningColumns)
+	if colsLength > 0 {
+		builder.WriteString(" RETURNING ")
+		for i, column := range qb.returningColumns {
+			builder.WriteString(column)
+			if i != colsLength-1 {
+				builder.WriteString(", ")
+			}
+		}
+	}
+
+	builder.WriteString(";")
+
+	return builder.String(), qb.namedArgs, nil
 }
