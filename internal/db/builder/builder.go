@@ -274,3 +274,49 @@ func (qb QueryBuilder) Into(into string) (string, pgx.NamedArgs, error) {
 
 	return builder.String(), qb.namedArgs, nil
 }
+
+func Update(table string) QueryBuilder {
+	qb := newQueryBuilder()
+	qb.table = table
+	return qb
+}
+
+func (qb QueryBuilder) Set(assignments ...Assignment) (string, pgx.NamedArgs, error) {
+	var builder strings.Builder
+
+	if qb.table == "" {
+		return "", make(pgx.NamedArgs), errors.New("table not set")
+	}
+	builder.WriteString("UPDATE ")
+	builder.WriteString(qb.table)
+	builder.WriteString(" SET ")
+	if len(assignments) < 1 {
+		return "", make(pgx.NamedArgs), errors.New("no assignments set")
+	}
+	assignmentStrings := make([]string, len(assignments))
+	for i, assignment := range assignments {
+		assignmentStrings[i] = assignment.Text
+		maps.Copy(qb.namedArgs, assignment.Args)
+	}
+	builder.WriteString(strings.Join(assignmentStrings, ", "))
+
+	if len(qb.whereClauses) > 0 {
+		builder.WriteString(" WHERE ")
+		builder.WriteString(strings.Join(qb.whereClauses, " AND "))
+	}
+
+	colsLength := len(qb.returningColumns)
+	if colsLength > 0 {
+		builder.WriteString(" RETURNING ")
+		for i, column := range qb.returningColumns {
+			builder.WriteString(column)
+			if i != colsLength-1 {
+				builder.WriteString(", ")
+			}
+		}
+	}
+
+	builder.WriteString(";")
+
+	return builder.String(), qb.namedArgs, nil
+}
