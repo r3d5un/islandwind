@@ -209,6 +209,8 @@ func (qb QueryBuilder) Delete() (string, pgx.NamedArgs) {
 var (
 	ErrNoInsertTuples      = errors.New("no tuples provided for insertion")
 	ErrTupleColumnNotFound = errors.New("tuple column not found")
+	ErrTableNotSet         = errors.New("table not set")
+	ErrNoAssignmentSet     = errors.New("no assignments set")
 )
 
 type Tuple map[string]sql.Null[any]
@@ -285,13 +287,13 @@ func (qb QueryBuilder) Set(assignments ...Assignment) (string, pgx.NamedArgs, er
 	var builder strings.Builder
 
 	if qb.table == "" {
-		return "", make(pgx.NamedArgs), errors.New("table not set")
+		return "", make(pgx.NamedArgs), ErrTableNotSet
 	}
 	builder.WriteString("UPDATE ")
 	builder.WriteString(qb.table)
 	builder.WriteString(" SET ")
 	if len(assignments) < 1 {
-		return "", make(pgx.NamedArgs), errors.New("no assignments set")
+		return "", make(pgx.NamedArgs), ErrNoAssignmentSet
 	}
 	assignmentStrings := make([]string, len(assignments))
 	for i, assignment := range assignments {

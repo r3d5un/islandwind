@@ -43,6 +43,7 @@ func TestUpdate(t *testing.T) {
 		require.Error(t, err)
 		require.Empty(t, stmt)
 		require.Empty(t, args)
+		assert.ErrorIs(t, err, builder.ErrTableNotSet)
 	})
 
 	t.Run("NoAssignmentsSet", func(t *testing.T) {
@@ -52,6 +53,7 @@ func TestUpdate(t *testing.T) {
 		require.Error(t, err)
 		require.Empty(t, stmt)
 		require.Empty(t, args)
+		assert.ErrorIs(t, err, builder.ErrNoAssignmentSet)
 	})
 
 	t.Run("Where", func(t *testing.T) {
