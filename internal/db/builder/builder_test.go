@@ -20,7 +20,7 @@ func TestWhere(t *testing.T) {
 			Where(builder.NewGenericPredicate("id", builder.Equal, "1")).
 			Select("col1")
 
-		assert.Equal(t, "SELECT col1 FROM table WHERE id = @id;", stmt)
+		assert.Equal(t, "SELECT col1 FROM table WHERE id = @predicate_id;", stmt)
 	})
 
 	t.Run("MultipleColumns", func(t *testing.T) {
@@ -31,7 +31,7 @@ func TestWhere(t *testing.T) {
 			).
 			Select("col1", "col2")
 
-		assert.Equal(t, "SELECT col1, col2 FROM table WHERE id = @id AND col1 = @col1;", stmt)
+		assert.Equal(t, "SELECT col1, col2 FROM table WHERE id = @predicate_id AND col1 = @predicate_col1;", stmt)
 	})
 
 	t.Run("And", func(t *testing.T) {

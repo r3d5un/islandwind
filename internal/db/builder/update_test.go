@@ -18,7 +18,7 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @column1;", stmt)
+		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1;", stmt)
 	})
 
 	t.Run("UpdateMultipleColumns", func(t *testing.T) {
@@ -31,7 +31,7 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @column1, column2 = @column2;", stmt)
+		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1, column2 = @assignment_column2;", stmt)
 	})
 
 	t.Run("TableNotSet", func(t *testing.T) {
@@ -64,10 +64,7 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @column1 WHERE column1 = @column1;", stmt)
-
-		// TODO: Where predicate and assignment parameters can come into conflict with each other.
-		//  Fix this by appending or prepending a `predicate_` to the parameters.
+		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1 WHERE column1 = @predicate_column1;", stmt)
 	})
 
 	t.Run("Returning", func(t *testing.T) {
@@ -80,6 +77,6 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @column1 RETURNING column1;", stmt)
+		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1 RETURNING column1;", stmt)
 	})
 }

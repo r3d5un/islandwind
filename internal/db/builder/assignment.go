@@ -7,6 +7,8 @@ import (
 	"github.com/oapi-codegen/nullable"
 )
 
+var assignmentPrefix = "assignment_"
+
 type Assignment struct {
 	Text string        `json:"text"`
 	Args pgx.NamedArgs `json:"args"`
@@ -25,9 +27,10 @@ func NewNullableAssignment[T any](
 		return assignment
 	}
 
-	assignment.Text = column + " = " + "@" + column
+	parameter := assignmentPrefix + column
+	assignment.Text = column + " = " + "@" + parameter
 	if value.IsNull() {
-		assignment.Args = pgx.NamedArgs{column: nil}
+		assignment.Args = pgx.NamedArgs{parameter: nil}
 		return assignment
 	}
 
@@ -49,16 +52,18 @@ func NewNullAssignment[T any](
 		return assignment
 	}
 
-	assignment.Text = column + " = " + "@" + column
-	assignment.Args = pgx.NamedArgs{column: value.V}
+	parameter := assignmentPrefix + column
+	assignment.Text = column + " = " + "@" + parameter
+	assignment.Args = pgx.NamedArgs{parameter: value.V}
 
 	return assignment
 }
 
 func NewGenericAssignment[T any](column string, value T) Assignment {
+	parameter := assignmentPrefix + column
 	return Assignment{
-		Text: column + " = " + "@" + column,
-		Args: pgx.NamedArgs{column: value},
+		Text: column + " = " + "@" + parameter,
+		Args: pgx.NamedArgs{parameter: value},
 	}
 }
 

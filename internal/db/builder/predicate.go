@@ -7,6 +7,10 @@ import (
 	"github.com/oapi-codegen/nullable"
 )
 
+const (
+	predicatePrefix = "predicate_"
+)
+
 type PredicateCondition string
 
 const (
@@ -43,9 +47,11 @@ func NewNullablePredicate[T any](
 		return predicate
 	}
 
-	predicate.Text = column + " " + string(cond) + " @" + column
+	parameter := predicatePrefix + column
+
+	predicate.Text = column + " " + string(cond) + " @" + parameter
 	if value.IsNull() {
-		predicate.Arg = pgx.NamedArgs{column: nil}
+		predicate.Arg = pgx.NamedArgs{parameter: nil}
 		return predicate
 	}
 
@@ -53,7 +59,7 @@ func NewNullablePredicate[T any](
 	if err != nil {
 		return predicate
 	}
-	predicate.Arg = pgx.NamedArgs{column: v}
+	predicate.Arg = pgx.NamedArgs{parameter: v}
 
 	return predicate
 }
@@ -67,8 +73,9 @@ func NewNullPredicate[T any](
 		return predicate
 	}
 
-	predicate.Text = column + " " + string(cond) + " @" + column
-	predicate.Arg = pgx.NamedArgs{column: value.V}
+	parameter := predicatePrefix + column
+	predicate.Text = column + " " + string(cond) + " @" + parameter
+	predicate.Arg = pgx.NamedArgs{parameter: value.V}
 
 	return predicate
 }
@@ -76,9 +83,10 @@ func NewNullPredicate[T any](
 func NewGenericPredicate[T any](
 	column string, cond PredicateCondition, value T,
 ) Predicate {
+	parameter := predicatePrefix + column
 	return Predicate{
-		Text: column + " " + string(cond) + " @" + column,
-		Arg:  pgx.NamedArgs{column: value},
+		Text: column + " " + string(cond) + " @" + parameter,
+		Arg:  pgx.NamedArgs{parameter: value},
 	}
 }
 

@@ -22,8 +22,8 @@ func TestDelete(t *testing.T) {
 			Delete()
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		require.Equal(t, "test", args["col1"])
-		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @col1;", stmt)
+		require.Equal(t, "test", args["predicate_col1"])
+		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @predicate_col1;", stmt)
 	})
 
 	t.Run("ReturningSingleColumn", func(t *testing.T) {
@@ -33,8 +33,8 @@ func TestDelete(t *testing.T) {
 			Delete()
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		require.Equal(t, "test", args["col1"])
-		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @col1 RETURNING col1;", stmt)
+		require.Equal(t, "test", args["predicate_col1"])
+		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @predicate_col1 RETURNING col1;", stmt)
 	})
 
 	t.Run("ReturningMultipleColumns", func(t *testing.T) {
@@ -44,7 +44,7 @@ func TestDelete(t *testing.T) {
 			Delete()
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		require.Equal(t, "test", args["col1"])
-		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @col1 RETURNING col1, col2;", stmt)
+		require.Equal(t, "test", args["predicate_col1"])
+		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @predicate_col1 RETURNING col1, col2;", stmt)
 	})
 }
