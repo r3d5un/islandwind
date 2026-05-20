@@ -39,11 +39,11 @@ type PostInput struct {
 // the ID is optional, but if populated will update the record when given to
 // BlogModel.Update.
 type PostPatch struct {
-	ID        uuid.UUID `json:"id"`
-	Title     *string   `json:"title"`
-	Content   *string   `json:"content"`
-	Published *bool     `json:"published"`
-	Deleted   *bool     `json:"deleted"`
+	ID        uuid.UUID        `json:"id"`
+	Title     sql.Null[string] `json:"title"`
+	Content   sql.Null[string] `json:"content"`
+	Published sql.Null[bool]   `json:"published"`
+	Deleted   sql.Null[bool]   `json:"deleted"`
 }
 
 type PostModel struct {
@@ -227,28 +227,22 @@ func (m *PostModel) SelectManyTx(
 }
 
 func (m *PostModel) update(ctx context.Context, q db.Queryable, patch PostPatch) (*Post, error) {
-	const stmt string = `
-UPDATE blog.post
-SET title      = COALESCE($2::VARCHAR(1024), title),
-    content    = COALESCE($3::TEXT, content),
-    published  = COALESCE($4::BOOLEAN, published),
-    deleted    = COALESCE($5::BOOLEAN, deleted),
-    deleted_at = CASE
-                     WHEN COALESCE($5::BOOLEAN, deleted) = TRUE AND deleted_at IS NULL THEN NOW()
-                     WHEN COALESCE($5::BOOLEAN, deleted) = FALSE THEN NULL
-                     ELSE deleted_at
-        END,
-    updated_at = NOW()
-WHERE id = $1::UUID
-RETURNING id,
-    title,
-    content,
-    published,
-    created_at,
-    updated_at,
-    deleted,
-    deleted_at;
-`
+	stmt, args, err := builder.
+		Update("blog.post").
+		Where(builder.NewGenericPredicate("id", builder.Equal, patch.ID)).
+		Returning(postColumns...).
+		Set(
+			builder.NewNullAssignment("title", patch.Title),
+			builder.NewNullAssignment("content", patch.Content),
+			builder.NewNullAssignment("published", patch.Published),
+			builder.NewAssignment(
+				`deleted_at = CASE
+					 WHEN COALESCE(@deleted, deleted) = TRUE AND deleted_at IS NULL THEN NOW()
+					 WHEN COALESCE(@deleted, deleted) = FALSE THEN NULL
+					 ELSE deleted_at
+				END `,
+				pgx.NamedArgs{"deleted": patch.Deleted}),
+		)
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -261,15 +255,7 @@ RETURNING id,
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	p, err := m.scan(q.QueryRow(
-		ctx,
-		stmt,
-		patch.ID,
-		patch.Title,
-		patch.Content,
-		patch.Published,
-		patch.Deleted,
-	))
+	p, err := m.scan(q.QueryRow(ctx, stmt, args))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}

@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log/slog"
 
@@ -88,7 +89,7 @@ func (s *blogpostStore) Update(ctx context.Context, patch PostPatch) (*Post, err
 func (s *blogpostStore) Delete(ctx context.Context, ID uuid.UUID) error {
 	_, err := s.models.Posts.Update(
 		ctx,
-		data.PostPatch{ID: ID, Deleted: new(false)},
+		data.PostPatch{ID: ID, Deleted: sql.Null[bool]{V: false, Valid: true}},
 	)
 	if err != nil {
 		return err
@@ -104,7 +105,7 @@ func (s *blogpostStore) Delete(ctx context.Context, ID uuid.UUID) error {
 func (s *blogpostStore) Restore(ctx context.Context, ID uuid.UUID) (*Post, error) {
 	row, err := s.models.Posts.Update(
 		ctx,
-		data.PostPatch{ID: ID, Deleted: new(false)},
+		data.PostPatch{ID: ID, Deleted: sql.Null[bool]{V: false, Valid: true}},
 	)
 	if err != nil {
 		return nil, err

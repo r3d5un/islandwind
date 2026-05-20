@@ -7,6 +7,20 @@ import (
 	"github.com/google/uuid"
 )
 
+func NullToPtr[T any](nullValue sql.Null[T]) *T {
+	if !nullValue.Valid {
+		return nil
+	}
+	return &nullValue.V
+}
+
+func PtrToNull[T any](value *T) sql.Null[T] {
+	if value == nil {
+		return sql.Null[T]{Valid: false}
+	}
+	return sql.Null[T]{V: *value, Valid: true}
+}
+
 func NullTimeToPtr(nt sql.NullTime) *time.Time {
 	if !nt.Valid {
 		return nil

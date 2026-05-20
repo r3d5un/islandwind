@@ -295,9 +295,12 @@ func (qb QueryBuilder) Set(assignments ...Assignment) (string, pgx.NamedArgs, er
 	if len(assignments) < 1 {
 		return "", make(pgx.NamedArgs), ErrNoAssignmentSet
 	}
-	assignmentStrings := make([]string, len(assignments))
-	for i, assignment := range assignments {
-		assignmentStrings[i] = assignment.Text
+	var assignmentStrings []string
+	for _, assignment := range assignments {
+		if assignment.Text == "" {
+			continue
+		}
+		assignmentStrings = append(assignmentStrings, assignment.Text)
 		maps.Copy(qb.namedArgs, assignment.Args)
 	}
 	builder.WriteString(strings.Join(assignmentStrings, ", "))

@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/r3d5un/islandwind/internal/blog/data"
 	"github.com/r3d5un/islandwind/internal/cache"
+	"github.com/r3d5un/islandwind/internal/db"
 	"github.com/r3d5un/islandwind/internal/ensure"
 	"github.com/r3d5un/islandwind/internal/logging"
 )
@@ -49,10 +50,10 @@ type PostPatch struct {
 func (p *PostPatch) row() data.PostPatch {
 	return data.PostPatch{
 		ID:        p.ID,
-		Title:     p.Title,
-		Content:   p.Content,
-		Published: p.Published,
-		Deleted:   p.Deleted,
+		Title:     db.PtrToNull(p.Title),
+		Content:   db.PtrToNull(p.Content),
+		Published: db.PtrToNull(p.Published),
+		Deleted:   db.PtrToNull(p.Deleted),
 	}
 }
 

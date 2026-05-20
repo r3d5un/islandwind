@@ -92,7 +92,7 @@ func TestBlogModel(t *testing.T) {
 
 		updated, err := models.Posts.Update(
 			ctx,
-			data.PostPatch{ID: inserted.ID, Deleted: new(true)},
+			data.PostPatch{ID: inserted.ID, Deleted: sql.Null[bool]{V: true, Valid: true}},
 		)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
