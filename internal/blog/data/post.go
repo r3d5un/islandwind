@@ -243,6 +243,9 @@ func (m *PostModel) update(ctx context.Context, q db.Queryable, patch PostPatch)
 				END `,
 				pgx.NamedArgs{"deleted": patch.Deleted}),
 		)
+	if err != nil {
+		return nil, err
+	}
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
