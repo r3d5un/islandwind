@@ -235,6 +235,7 @@ func (m *PostModel) update(ctx context.Context, q db.Queryable, patch PostPatch)
 			builder.NewNullAssignment("title", patch.Title),
 			builder.NewNullAssignment("content", patch.Content),
 			builder.NewNullAssignment("published", patch.Published),
+			builder.NewNullAssignment("deleted", patch.Deleted),
 			builder.NewAssignment(
 				`deleted_at = CASE
 					 WHEN COALESCE(@deleted, deleted) = TRUE AND deleted_at IS NULL THEN NOW()
