@@ -124,10 +124,7 @@ func (qb QueryBuilder) selectExp() (string, pgx.NamedArgs) {
 		}
 	}
 
-	if len(qb.whereClauses) > 0 {
-		builder.WriteString(" WHERE ")
-		builder.WriteString(strings.Join(qb.whereClauses, " AND "))
-	}
+	qb.addWhereExpression(&builder)
 
 	if len(qb.orderBy) > 0 {
 		builder.WriteString(" ORDER BY ")
@@ -185,21 +182,8 @@ func (qb QueryBuilder) Delete() (string, pgx.NamedArgs) {
 	builder.WriteString("DELETE FROM ")
 	builder.WriteString(qb.table)
 
-	if len(qb.whereClauses) > 0 {
-		builder.WriteString(" WHERE ")
-		builder.WriteString(strings.Join(qb.whereClauses, " AND "))
-	}
-
-	colsLength := len(qb.returningColumns)
-	if colsLength > 0 {
-		builder.WriteString(" RETURNING ")
-		for i, column := range qb.returningColumns {
-			builder.WriteString(column)
-			if i != colsLength-1 {
-				builder.WriteString(", ")
-			}
-		}
-	}
+	qb.addWhereExpression(&builder)
+	qb.addReturningExpression(&builder)
 
 	builder.WriteString(";")
 
@@ -261,16 +245,7 @@ func (qb QueryBuilder) Into(into string) (string, pgx.NamedArgs, error) {
 		}
 	}
 
-	colsLength := len(qb.returningColumns)
-	if colsLength > 0 {
-		builder.WriteString(" RETURNING ")
-		for i, column := range qb.returningColumns {
-			builder.WriteString(column)
-			if i != colsLength-1 {
-				builder.WriteString(", ")
-			}
-		}
-	}
+	qb.addReturningExpression(&builder)
 
 	builder.WriteString(";")
 
@@ -305,11 +280,22 @@ func (qb QueryBuilder) Set(assignments ...Assignment) (string, pgx.NamedArgs, er
 	}
 	builder.WriteString(strings.Join(assignmentStrings, ", "))
 
+	qb.addWhereExpression(&builder)
+	qb.addReturningExpression(&builder)
+
+	builder.WriteString(";")
+
+	return builder.String(), qb.namedArgs, nil
+}
+
+func (qb QueryBuilder) addWhereExpression(builder *strings.Builder) {
 	if len(qb.whereClauses) > 0 {
 		builder.WriteString(" WHERE ")
 		builder.WriteString(strings.Join(qb.whereClauses, " AND "))
 	}
+}
 
+func (qb QueryBuilder) addReturningExpression(builder *strings.Builder) {
 	colsLength := len(qb.returningColumns)
 	if colsLength > 0 {
 		builder.WriteString(" RETURNING ")
@@ -320,8 +306,4 @@ func (qb QueryBuilder) Set(assignments ...Assignment) (string, pgx.NamedArgs, er
 			}
 		}
 	}
-
-	builder.WriteString(";")
-
-	return builder.String(), qb.namedArgs, nil
 }
