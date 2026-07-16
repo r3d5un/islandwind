@@ -101,16 +101,9 @@ func (m *RefreshTokenModel) selectOne(
 	q db.Queryable,
 	id uuid.UUID,
 ) (*RefreshToken, error) {
-	const stmt string = `
-SELECT id,
-       issuer,
-       expiration,
-       issued_at,
-       invalidated,
-       invalidated_by
-FROM auth.refresh_token
-WHERE id = $1::UUID;
-`
+	stmt, args := builder.From("auth.refresh_token").
+		Where(builder.NewGenericPredicate("id", builder.Equal, id)).
+		Select(refreshTokenColumns...)
 
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"query",
@@ -123,7 +116,7 @@ WHERE id = $1::UUID;
 	defer cancel()
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	r, err := m.scan(q.QueryRow(ctx, stmt, id))
+	r, err := m.scan(q.QueryRow(ctx, stmt, args))
 	if err != nil {
 		return nil, db.HandleError(ctx, err)
 	}
