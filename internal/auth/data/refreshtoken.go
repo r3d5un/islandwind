@@ -140,6 +140,20 @@ func (m *RefreshTokenModel) SelectOneTx(
 	return m.selectOne(ctx, tx, id)
 }
 
+type RefreshTokenFilter struct {
+	ID             sql.Null[uuid.UUID] `json:"id"`
+	Issuer         sql.Null[uuid.UUID] `json:"issuer"`
+	ExpirationFrom sql.Null[time.Time] `json:"expirationFrom"`
+	ExpirationTo   sql.Null[time.Time] `json:"expirationTo"`
+	IssuedAtFrom   sql.Null[time.Time] `json:"issuedAtFrom"`
+	IssuedAtTo     sql.Null[time.Time] `json:"issuedAtTo"`
+	Invalidated    sql.Null[bool]      `json:"invalidated"`
+	InvalidatedBy  sql.Null[uuid.UUID] `json:"invalidatedBy"`
+
+	PageSize int       `json:"pageSize"`
+	LastSeen uuid.UUID `json:"lastSeen"`
+}
+
 func (m *RefreshTokenModel) selectMany(
 	ctx context.Context,
 	q db.Queryable,
