@@ -31,7 +31,11 @@ func TestWhere(t *testing.T) {
 			).
 			Select("col1", "col2")
 
-		assert.Equal(t, "SELECT col1, col2 FROM table WHERE id = @predicate_id AND col1 = @predicate_col1;", stmt)
+		assert.Equal(
+			t,
+			"SELECT col1, col2 FROM table WHERE id = @predicate_id AND col1 = @predicate_col1;",
+			stmt,
+		)
 	})
 
 	t.Run("And", func(t *testing.T) {

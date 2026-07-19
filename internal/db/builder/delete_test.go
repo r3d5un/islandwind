@@ -45,6 +45,10 @@ func TestDelete(t *testing.T) {
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
 		require.Equal(t, "test", args["predicate_col1"])
-		assert.Equal(t, "DELETE FROM table1 WHERE col1 = @predicate_col1 RETURNING col1, col2;", stmt)
+		assert.Equal(
+			t,
+			"DELETE FROM table1 WHERE col1 = @predicate_col1 RETURNING col1, col2;",
+			stmt,
+		)
 	})
 }

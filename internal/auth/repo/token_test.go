@@ -2,6 +2,7 @@ package repo_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -56,7 +57,10 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("ListRefreshTokens", func(t *testing.T) {
-		refreshTokens, metadata, err := authRepo.Tokens.List(ctx, data.Filter{PageSize: 100})
+		refreshTokens, metadata, err := authRepo.Tokens.List(
+			ctx,
+			data.RefreshTokenFilter{PageSize: 100},
+		)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, metadata)
 		assert.NotEmpty(t, refreshTokens)
@@ -74,10 +78,9 @@ func TestTokenRepository(t *testing.T) {
 	})
 
 	t.Run("Purge", func(t *testing.T) {
-		affected, err := authRepo.Tokens.Delete(
-			ctx,
-			data.Filter{ExpirationFrom: new(time.Now().UTC())},
-		)
+		affected, err := authRepo.Tokens.Delete(ctx, data.RefreshTokenFilter{
+			ExpirationFrom: sql.Null[time.Time]{V: time.Now().UTC(), Valid: true},
+		})
 		assert.NoError(t, err)
 		assert.NotNil(t, affected)
 	})

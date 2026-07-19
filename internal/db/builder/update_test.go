@@ -31,7 +31,11 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1, column2 = @assignment_column2;", stmt)
+		assert.Equal(
+			t,
+			"UPDATE table1 SET column1 = @assignment_column1, column2 = @assignment_column2;",
+			stmt,
+		)
 	})
 
 	t.Run("TableNotSet", func(t *testing.T) {
@@ -66,7 +70,11 @@ func TestUpdate(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, stmt)
 		require.NotEmpty(t, args)
-		assert.Equal(t, "UPDATE table1 SET column1 = @assignment_column1 WHERE column1 = @predicate_column1;", stmt)
+		assert.Equal(
+			t,
+			"UPDATE table1 SET column1 = @assignment_column1 WHERE column1 = @predicate_column1;",
+			stmt,
+		)
 	})
 
 	t.Run("Returning", func(t *testing.T) {
