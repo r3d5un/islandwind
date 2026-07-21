@@ -78,8 +78,11 @@ type TokenService interface {
 	) (accessToken *string, refreshToken *string, err error)
 	Update(ctx context.Context, input RefreshTokenPatch) (*RefreshToken, error)
 	DeleteExpired(ctx context.Context) error
-	List(ctx context.Context, filter data.Filter) ([]*RefreshToken, *data.Metadata, error)
-	Delete(ctx context.Context, filter data.Filter) (int64, error)
+	List(
+		ctx context.Context,
+		filter data.RefreshTokenFilter,
+	) ([]*RefreshToken, *data.Metadata, error)
+	Delete(ctx context.Context, filter data.RefreshTokenFilter) (int64, error)
 }
 
 type TokenRepository struct {
@@ -111,7 +114,7 @@ func NewTokenRepository(
 
 func (r *TokenRepository) List(
 	ctx context.Context,
-	filter data.Filter,
+	filter data.RefreshTokenFilter,
 ) ([]*RefreshToken, *data.Metadata, error) {
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"posts",
@@ -154,7 +157,10 @@ func (r *TokenRepository) Update(
 	return newRefreshTokenFromRow(row), nil
 }
 
-func (r *TokenRepository) Delete(ctx context.Context, filter data.Filter) (int64, error) {
+func (r *TokenRepository) Delete(
+	ctx context.Context,
+	filter data.RefreshTokenFilter,
+) (int64, error) {
 	logger := logging.LoggerFromContext(ctx).With(slog.Group(
 		"posts",
 		slog.Any("filter", filter),
@@ -461,10 +467,9 @@ func (r *TokenRepository) DeleteExpired(ctx context.Context) error {
 	logger := logging.LoggerFromContext(ctx)
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "deleting expired tokens")
-	affectedRows, err := r.models.RefreshTokens.DeleteMany(
-		ctx,
-		data.Filter{ExpirationFrom: new(time.Now().UTC())},
-	)
+	affectedRows, err := r.models.RefreshTokens.DeleteMany(ctx, data.RefreshTokenFilter{
+		ExpirationFrom: sql.Null[time.Time]{V: time.Now().UTC(), Valid: true},
+	})
 	if err != nil {
 		return err
 	}

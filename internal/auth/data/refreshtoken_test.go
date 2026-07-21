@@ -42,9 +42,9 @@ func TestRefreshTokenModel(t *testing.T) {
 	})
 
 	t.Run("SelectMany", func(t *testing.T) {
-		selected, metadata, err := models.RefreshTokens.SelectMany(ctx, data.Filter{
+		selected, metadata, err := models.RefreshTokens.SelectMany(ctx, data.RefreshTokenFilter{
 			PageSize: 1,
-			ID:       &refreshToken.ID,
+			ID:       sql.Null[uuid.UUID]{V: refreshToken.ID, Valid: true},
 		})
 		assert.NoError(t, err)
 		assert.NotNil(t, selected)
@@ -84,7 +84,7 @@ func TestRefreshTokenModel(t *testing.T) {
 	t.Run("DeleteMany", func(t *testing.T) {
 		rowsAffected, err := models.RefreshTokens.DeleteMany(
 			ctx,
-			data.Filter{ExpirationTo: new(time.Now())},
+			data.RefreshTokenFilter{ExpirationTo: sql.Null[time.Time]{V: time.Now(), Valid: true}},
 		)
 		assert.NoError(t, err)
 		assert.NotNil(t, *rowsAffected)

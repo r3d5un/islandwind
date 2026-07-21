@@ -142,7 +142,7 @@ func (m *RefreshTokenModel) SelectOneTx(
 
 type RefreshTokenFilter struct {
 	ID             sql.Null[uuid.UUID] `json:"id"`
-	Issuer         sql.Null[uuid.UUID] `json:"issuer"`
+	Issuer         sql.Null[string]    `json:"issuer"`
 	ExpirationFrom sql.Null[time.Time] `json:"expirationFrom"`
 	ExpirationTo   sql.Null[time.Time] `json:"expirationTo"`
 	IssuedAtFrom   sql.Null[time.Time] `json:"issuedAtFrom"`
@@ -157,28 +157,25 @@ type RefreshTokenFilter struct {
 func (m *RefreshTokenModel) selectMany(
 	ctx context.Context,
 	q db.Queryable,
-	filter Filter,
+	filter RefreshTokenFilter,
 ) ([]*RefreshToken, *Metadata, error) {
-	const stmt string = `
-SELECT id,
-       issuer,
-       expiration,
-       issued_at,
-       invalidated,
-       invalidated_by
-FROM auth.refresh_token
-WHERE ($2::UUID IS NULL OR id = $2::UUID)
-  AND ($3::VARCHAR(512) IS NULL OR issuer = $3::VARCHAR(512))
-  AND ($4::TIMESTAMP IS NULL OR expiration <= $4::TIMESTAMP)
-  AND ($5::TIMESTAMP IS NULL OR expiration > $5::TIMESTAMP)
-  AND ($6::TIMESTAMP IS NULL OR issued_at <= $6::TIMESTAMP)
-  AND ($7::TIMESTAMP IS NULL OR issued_at > $7::TIMESTAMP)
-  AND ($8::BOOLEAN IS NULL OR invalidated = $8::BOOLEAN)
-  AND ($9::UUID IS NULL OR invalidated_by = $9::UUID)
-  AND id > $10::UUID
-ORDER BY expiration, id
-LIMIT $1;
-`
+	stmt, args := builder.From("auth.refresh_token").
+		Where(
+			builder.NewGenericPredicate("id", builder.Equal, filter.ID),
+			builder.NewGenericPredicate("issuer", builder.Equal, filter.Issuer),
+			builder.NewGenericPredicate("expiration", builder.LessOrEqual, filter.ExpirationFrom),
+			builder.NewGenericPredicate("expiration", builder.Greater, filter.ExpirationTo),
+			builder.NewGenericPredicate("issued_at", builder.LessOrEqual, filter.IssuedAtFrom),
+			builder.NewGenericPredicate("issued_at", builder.Greater, filter.IssuedAtTo),
+			builder.NewGenericPredicate("invalidated", builder.Equal, filter.Invalidated),
+			builder.NewGenericPredicate("invalidated_by", builder.Equal, filter.InvalidatedBy),
+		).
+		OrderBy(
+			builder.OrderBy{Column: "expiration", Order: builder.Asc},
+			builder.OrderBy{Column: "id", Order: builder.Asc},
+		).
+		Limit(filter.PageSize).
+		Select(refreshTokenColumns...)
 
 	ctx, cancel := context.WithTimeout(ctx, *m.Timeout)
 	defer cancel()
@@ -190,20 +187,7 @@ LIMIT $1;
 	))
 
 	logger.LogAttrs(ctx, slog.LevelInfo, "performing query")
-	rows, err := q.Query(
-		ctx,
-		stmt,
-		filter.PageSize,
-		filter.ID,
-		filter.Issuer,
-		filter.ExpirationFrom,
-		filter.ExpirationTo,
-		filter.IssuedAtFrom,
-		filter.IssuedAtTo,
-		filter.Invalidated,
-		filter.InvalidatedBy,
-		filter.LastSeen,
-	)
+	rows, err := q.Query(ctx, stmt, args)
 	if err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}
@@ -223,16 +207,21 @@ LIMIT $1;
 	if err = rows.Err(); err != nil {
 		return nil, nil, db.HandleError(ctx, err)
 	}
-	metadata := NewMetadata(tokens, filter)
-
-	logger.LogAttrs(ctx, slog.LevelInfo, "posts selected", slog.Any("metadata", metadata))
+	metadata := Metadata{
+		Next:           false,
+		ResponseLength: len(tokens),
+	}
+	if len(tokens) > 0 {
+		metadata.LastSeen = tokens[metadata.ResponseLength-1].ID
+		metadata.Next = true
+	}
 
 	return tokens, &metadata, nil
 }
 
 func (m *RefreshTokenModel) SelectMany(
 	ctx context.Context,
-	filter Filter,
+	filter RefreshTokenFilter,
 ) ([]*RefreshToken, *Metadata, error) {
 	return m.selectMany(ctx, m.DB, filter)
 }
@@ -240,7 +229,7 @@ func (m *RefreshTokenModel) SelectMany(
 func (m *RefreshTokenModel) SelectManyTx(
 	ctx context.Context,
 	tx pgx.Tx,
-	filter Filter,
+	filter RefreshTokenFilter,
 ) ([]*RefreshToken, *Metadata, error) {
 	return m.selectMany(ctx, tx, filter)
 }
@@ -360,7 +349,7 @@ func (m *RefreshTokenModel) DeleteTx(
 func (m *RefreshTokenModel) deleteMany(
 	ctx context.Context,
 	q db.Queryable,
-	filter Filter,
+	filter RefreshTokenFilter,
 ) (*int64, error) {
 	const stmt string = `
 DELETE
@@ -417,14 +406,17 @@ WHERE ($1::UUID IS NULL OR id = $1::UUID)
 	return &rowsAffected, nil
 }
 
-func (m *RefreshTokenModel) DeleteMany(ctx context.Context, filter Filter) (*int64, error) {
+func (m *RefreshTokenModel) DeleteMany(
+	ctx context.Context,
+	filter RefreshTokenFilter,
+) (*int64, error) {
 	return m.deleteMany(ctx, m.DB, filter)
 }
 
 func (m *RefreshTokenModel) DeleteManyTx(
 	ctx context.Context,
 	tx pgx.Tx,
-	filter Filter,
+	filter RefreshTokenFilter,
 ) (*int64, error) {
 	return m.deleteMany(ctx, tx, filter)
 }

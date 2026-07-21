@@ -48,9 +48,9 @@ func ListRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 
 		v := validator.New()
 		qs := r.URL.Query()
-		filters := data.Filter{}
+		filters := data.RefreshTokenFilter{}
 
-		addFilters(&filters, qs, v)
+		addRefreshTokenFilters(&filters, qs, v)
 		if !v.Valid() {
 			api.ValidationFailedResponse(ctx, w, r, v.Errors)
 			return
@@ -122,9 +122,9 @@ func DeleteRefreshTokenHandler(tokens repo.TokenService) http.HandlerFunc {
 
 		v := validator.New()
 		qs := r.URL.Query()
-		filters := data.Filter{}
+		filters := data.RefreshTokenFilter{}
 
-		addFilters(&filters, qs, v)
+		addRefreshTokenFilters(&filters, qs, v)
 		if !v.Valid() {
 			api.ValidationFailedResponse(ctx, w, r, v.Errors)
 			return
@@ -265,14 +265,18 @@ func RefreshHandler(tokens repo.TokenService) http.HandlerFunc {
 	}
 }
 
-func addFilters(filters *data.Filter, qs url.Values, v *validator.Validator) {
+func addRefreshTokenFilters(
+	filters *data.RefreshTokenFilter,
+	qs url.Values,
+	v *validator.Validator,
+) {
 	filters.PageSize = api.ReadRequiredQueryInt(qs, "page_size", 25, v)
-	filters.ID = api.ReadOptionalQueryUUID(qs, "id", v)
-	filters.Issuer = api.ReadOptionalQueryString(qs, "id")
-	filters.IssuedAtFrom = api.ReadOptionalQueryDate(qs, "issued_at_from", v)
-	filters.IssuedAtTo = api.ReadOptionalQueryDate(qs, "issued_at_to", v)
-	filters.ExpirationFrom = api.ReadOptionalQueryDate(qs, "expiration_from", v)
-	filters.ExpirationTo = api.ReadOptionalQueryDate(qs, "expiration_to", v)
-	filters.Invalidated = api.ReadOptionalQueryBoolean(qs, "invalidated")
-	filters.InvalidatedBy = api.ReadOptionalQueryUUID(qs, "invalidated_by", v)
+	filters.ID = api.ReadQueryNull(api.ParseQueryUUID(qs, "id", v))
+	filters.Issuer = api.ReadQueryNull(api.ParseQueryString(qs, "issuer", v))
+	filters.IssuedAtFrom = api.ReadQueryNull(api.ParseQueryDate(qs, "issued_at_from", v))
+	filters.IssuedAtTo = api.ReadQueryNull(api.ParseQueryDate(qs, "issued_at_to", v))
+	filters.ExpirationFrom = api.ReadQueryNull(api.ParseQueryDate(qs, "expiration_from", v))
+	filters.ExpirationTo = api.ReadQueryNull(api.ParseQueryDate(qs, "expiration_to", v))
+	filters.Invalidated = api.ReadQueryNull(api.ParseQueryBoolean(qs, "invalidated", v))
+	filters.InvalidatedBy = api.ReadQueryNull(api.ParseQueryUUID(qs, "invalidated_by", v))
 }
